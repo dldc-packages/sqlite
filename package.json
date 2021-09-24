@@ -1,0 +1,70 @@
+{
+  "name": "tsqlite",
+  "version": "0.0.0",
+  "description": "Type safe tooling for SQLite",
+  "keywords": [],
+  "homepage": "https://github.com/etienne-dldc/tsqlite#readme",
+  "bugs": {
+    "url": "https://github.com/etienne-dldc/tsqlite/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/etienne-dldc/tsqlite.git"
+  },
+  "license": "MIT",
+  "author": "Etienne Dldc",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/tsqlite.es.js",
+      "require": "./dist/tsqlite.cjs.js"
+    }
+  },
+  "main": "./dist/tsqlite.cjs.js",
+  "module": "./dist/tsqlite.es.js",
+  "types": "./dist/mod.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "rimraf dist && vite build && yarn build:types && denoify",
+    "build:types": "tsc -p ./tsconfig.build.json",
+    "example:run": "vite serve example",
+    "lint": "prettier . --check && eslint . && tsc --noEmit",
+    "lint:fix": "prettier . --write . && eslint . --fix",
+    "release": "yarn build && np",
+    "test": "yarn lint && jest --coverage",
+    "test:run": "jest",
+    "test:clear-cache": "jest --clearCache",
+    "test:clear-cache:run": "jest --clearCache && jest",
+    "test:watch": "jest --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "tslib": "^2.3.0"
+  },
+  "devDependencies": {
+    "@types/fs-extra": "^9.0.12",
+    "@types/glob": "^7.1.4",
+    "@types/jest": "^26.0.24",
+    "@typescript-eslint/eslint-plugin": "^4.29.0",
+    "@typescript-eslint/parser": "^4.29.0",
+    "denoify": "^0.9.0",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "fs-extra": "^10.0.0",
+    "glob": "^7.1.7",
+    "jest": "^27.0.6",
+    "jest-ts-tsx-resolver": "^1.0.0",
+    "np": "^7.5.0",
+    "prettier": "^2.3.1",
+    "rimraf": "^3.0.2",
+    "ts-jest": "^27.0.4",
+    "typescript": "^4.3.5",
+    "vite": "^2.4.4"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  }
+}
