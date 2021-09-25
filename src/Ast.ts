@@ -105,8 +105,8 @@ type Fragments = {
   ColumnConstraintConstraint:
     | {
         variant: 'PrimaryKey';
-        keyWhitespace?: WL;
-        direction?: { variant: 'Asc'; ascWhitespace?: WL } | { variant: 'Decs'; descWhitespace?: WL };
+        keyWhitespaceAfter?: WL;
+        direction?: { variant: 'Asc' | 'Decs'; whitespace?: WL };
         conflictClauseWhitespace?: WL;
         conflictClause: Node<'ConflictClause'>;
         autoincrement?: { autoincrementWhitespace?: WL };
@@ -132,7 +132,7 @@ type Fragments = {
       }
     | {
         variant: 'As';
-        generatedAlways?: { alwaysWhitespace?: WL };
+        generatedAlways?: { alwaysWhitespace?: WL; whitespaceAfter?: WL };
         openParentWhitespace?: WL;
         exprWhitespace?: WL;
         expr: Expr;
@@ -205,6 +205,16 @@ type Fragments = {
     orderBy?: { orderWhitespace?: WL; byWhitespace?: WL; orderingTerms: NonEmptyCommaListSingle<Node<'OrderingTerm'>> };
     frameSpec?: { frameSpecWhitespace?: WL; frameSpec: Node<'FrameSpec'> };
   };
+  CreateTableConstraintItem: { commaWhitespace?: WL; tableConstraintWhitespace?: WL; tableConstraint: Node<'TableConstraint'> };
+  CreateTableColumnsDef: {
+    variant: 'Columns';
+    openParentWhitespace?: WL;
+    columnDefs: NonEmptyCommaListSingle<Node<'ColumnDef'>>;
+    tableConstraints?: Array<Fragment<'CreateTableConstraintItem'>>;
+    closeParentWhitespace?: WL;
+    withoutRowId?: { withoutWhitespace?: WL; rowidWhitespace?: WL };
+  };
+  CreateTableAsDef: { variant: 'As'; asWhitespace?: WL; selectStmtWhitespace?: WL; selectStmt: Node<'SelectStmt'> };
   // Expr
   SelectExists: {
     not?: { whitespaceAfter?: WL };
@@ -373,8 +383,7 @@ export type NodeData = {
   };
   BeginStmt: { mode?: Fragment<'BeginStmtMode'>; transaction?: { transactionWhitespace?: WL } };
   ColumnConstraint: {
-    constraintName?: { name: Identifier; nameWhitespace?: WL };
-    constraintWhitespace?: WL;
+    constraintName?: { constraintWhitespaceAfter?: WL; name: Identifier; whitespaceAfter?: WL };
     constraint: Fragment<'ColumnConstraintConstraint'>;
   };
   ColumnDef: {
@@ -438,21 +447,12 @@ export type NodeData = {
     where?: Fragment<'Where'>;
   };
   CreateTableStmt: {
-    temp?: { variant: 'Temp'; tempWhitespace?: WL } | { variant: 'Temporary'; temporaryWhitespace?: WL };
+    temp?: { whitespace?: WL; variant: 'Temp' | 'Temporary' };
     tableWhitespace?: WL;
     ifNotExists?: Fragment<'IfNotExists'>;
     tableTargetWhitespace?: WL;
     tableTarget: Fragment<'SchemaItemTarget'>;
-    definition:
-      | { variant: 'As'; asWhitespace?: WL; selectStmtWhitespace?: WL; selectStmt: Node<'SelectStmt'> }
-      | {
-          variant: 'Columns';
-          openParentWhitespace?: WL;
-          columnDefs: NonEmptyCommaListSingle<Node<'ColumnDef'>>;
-          tableConstraints?: Array<{ commaWhitespace?: WL; tableConstraintWhitespace?: WL; tableConstraint: Node<'TableConstraint'> }>;
-          closeParentWhitespace?: WL;
-          withoutRowId?: { withoutWhitespace?: WL; rowidWhitespace?: WL };
-        };
+    definition: Fragment<'CreateTableColumnsDef' | 'CreateTableAsDef'>;
   };
   CreateTriggerStmt: {
     temp?: { variant: 'Temp'; tempWhitespace?: WL } | { variant: 'Temporary'; temporaryWhitespace?: WL };
@@ -823,7 +823,7 @@ export type NodeData = {
     limit?: Fragment<'Limit'>;
   };
   SignedNumber: {
-    sign?: { variant: 'Plus'; whitespaceAfter?: WL } | { variant: 'Minus'; whitespaceAfter?: WL };
+    sign?: { variant: 'Plus' | 'Minus'; whitespaceAfter?: WL };
     numericLiteral: Node<'NumericLiteral'>;
   };
   SimpleFunctionInvocation: {
@@ -932,8 +932,7 @@ export type NodeData = {
       }
     | { variant: 'Join'; openParentWhitespace?: WL; joinClauseWhitespace?: WL; joinClause: Node<'JoinClause'>; closeParentWhitespace?: WL };
   TypeName: {
-    firstName: Node<'SingleTypeName'>;
-    names?: Array<{ nameWhitespace?: WL; name: Node<'SingleTypeName'> }>;
+    names: NonEmptyListSepBy<Node<'SingleTypeName'>, WL | undefined>;
     size?: {
       openParentWhitespace?: WL;
       firstWhitespace?: WL;
@@ -1245,6 +1244,9 @@ export const FRAGMENTS_OBJ = createFragmentsObject({
   OverClauseInner: false,
   OverClauseOrderBy: true,
   OverClausePartitionBy: true,
+  CreateTableAsDef: true,
+  CreateTableColumnsDef: true,
+  CreateTableConstraintItem: true,
 });
 
 function createNodesObject<P extends { [K in NodeKind]: boolean }>(data: P): P {

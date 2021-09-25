@@ -93,7 +93,8 @@ const hexParser = createRegexp('Hex', /^0(x|X)[0-9A-Fa-f]+/g);
 const exponentiationSuffixRawParser = createRegexp('Exponentiation', /^(e|E)(\+|-)?[0-9]+/g);
 const parameterRawNameParser = createRegexp('ParameterRawName', /^[A-Za-z0-9$]+/g);
 const parameterSuffixParser = createRegexp('ParameterSuffix', /^([^ \t\n\r\u000c]+)/g);
-const rawIdentifierParser = createRegexp('RawIdentifier', /^[A-Za-z_\u007f-\uffff][0-9A-Za-z_\u007f-\uffff$]+/g);
+const rawIdentifierParser = createRegexp('RawIdentifier', /^[A-Za-z_\u007f-\uffff][0-9A-Za-z_\u007f-\uffff$]*/g);
+const typeNameItemParser = createRegexp('TypeNameItem', /^[A-Za-z][A-Za-z0-9]*/g);
 
 const DOUBLE_QUOTE = '"';
 const doubleQuoteParser = createExact(DOUBLE_QUOTE);
@@ -404,8 +405,8 @@ NodeParser.SqlStmt.setParser(
         NodeParser.AttachStmt,
         NodeParser.BeginStmt,
         NodeParser.CommitStmt,
-        NodeParser.CreateIndexStmt
-        // NodeParser.CreateTableStmt,
+        NodeParser.CreateIndexStmt,
+        NodeParser.CreateTableStmt
         // NodeParser.CreateTriggerStmt,
         // NodeParser.CreateViewStmt,
         // NodeParser.CreateVirtualTableStmt,
@@ -549,6 +550,91 @@ FragmentParser.Where.setParser(
   }))
 );
 
+NodeParser.SingleTypeName.setParser(c.apply(typeNameItemParser, (type) => ({ type })));
+
+NodeParser.SignedNumber.setParser(
+  c.apply(
+    c.pipe(
+      c.maybe(
+        c.apply(c.pipe(c.oneOf(plusParser, dashParser), MaybeWlParser), ([sign, whitespaceAfter]): Node<'SignedNumber'>['sign'] => ({
+          variant: sign === '+' ? 'Plus' : 'Minus',
+          whitespaceAfter,
+        }))
+      ),
+      NodeParser.NumericLiteral
+    ),
+    ([sign, numericLiteral]) => ({ sign, numericLiteral })
+  )
+);
+
+NodeParser.ColumnConstraint.setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key(
+        'constraintName',
+        c.maybe(
+          c.apply(
+            c.pipe(KeywordParser.CONSTRAINT, WLParser, NodeParser.Identifier, WLParser),
+            ([_constraint, constraintWhitespaceAfter, name, whitespaceAfter]) => ({ constraintWhitespaceAfter, name, whitespaceAfter })
+          )
+        )
+      ),
+      key('constraint', FragmentParser.ColumnConstraintConstraint)
+    )
+  )
+);
+
+NodeParser.TypeName.setParser(
+  c.apply(
+    c.pipe(
+      nonEmptyListSepBy(NodeParser.SingleTypeName, WLParser),
+      c.maybe(
+        c.apply(
+          c.pipe(
+            MaybeWlParser,
+            openParentParser,
+            MaybeWlParser,
+            NodeParser.SignedNumber,
+            c.maybe(
+              c.apply(c.pipe(MaybeWlParser, commaParser, MaybeWlParser, NodeParser.SignedNumber), ([commaWhitespace, _comma, secondWhitespace, second]) => ({
+                commaWhitespace,
+                secondWhitespace,
+                second,
+              }))
+            ),
+            MaybeWlParser,
+            closeParentParser
+          ),
+          ([openParentWhitespace, _open, firstWhitespace, first, second, closeParentWhitespace, _close]): Node<'TypeName'>['size'] => ({
+            openParentWhitespace,
+            firstWhitespace,
+            first,
+            second,
+            closeParentWhitespace,
+          })
+        )
+      )
+    ),
+    ([names, size]) => ({ names, size })
+  )
+);
+
+NodeParser.ColumnDef.setParser(
+  c.apply(
+    c.pipe(
+      NodeParser.Identifier,
+      c.maybe(c.apply(c.pipe(WLParser, NodeParser.TypeName), ([typeNameWhitespace, typeName]) => ({ typeNameWhitespace, typeName }))),
+      c.many(
+        c.apply(c.pipe(WLParser, NodeParser.ColumnConstraint), ([columnConstraintWhitespace, columnConstraint]) => ({
+          columnConstraintWhitespace,
+          columnConstraint,
+        }))
+      )
+    ),
+    ([columnName, typeName, columnConstraints]) => ({ columnName, typeName, columnConstraints })
+  )
+);
+
 NodeParser.CreateIndexStmt.setParser(
   c.keyed((key) =>
     c.keyedPipe(
@@ -572,6 +658,60 @@ NodeParser.CreateIndexStmt.setParser(
       key('closeParentWhitespace', MaybeWlParser),
       closeParentParser,
       key('where', c.maybe(FragmentParser.Where))
+    )
+  )
+);
+
+FragmentParser.CreateTableAsDef.setParser(
+  c.apply(c.pipe(WLParser, KeywordParser.AS, WLParser, NodeParser.SelectStmt), ([asWhitespace, _as, selectStmtWhitespace, selectStmt]) => ({
+    variant: 'As',
+    asWhitespace,
+    selectStmtWhitespace,
+    selectStmt,
+  }))
+);
+
+FragmentParser.CreateTableColumnsDef.setParser(
+  c.apply(
+    c.pipe(
+      MaybeWlParser,
+      openParentParser,
+      nonEmptyCommaSingleList(NodeParser.ColumnDef),
+      c.many(FragmentParser.CreateTableConstraintItem),
+      MaybeWlParser,
+      closeParentParser,
+      c.maybe(c.pipe(MaybeWlParser, KeywordParser.WITHOUT, WLParser, KeywordParser.ROWID))
+    ),
+    ([openParentWhitespace, _open, columnDefs, tableConstraints, closeParentWhitespace, _close, withoutRowId]): Fragment<'CreateTableColumnsDef'> => ({
+      variant: 'Columns',
+      openParentWhitespace,
+      columnDefs,
+      tableConstraints,
+      closeParentWhitespace,
+      withoutRowId: mapIfExist(withoutRowId, ([withoutWhitespace, _without, rowidWhitespace, _rowid]) => ({ withoutWhitespace, rowidWhitespace })),
+    })
+  )
+);
+
+NodeParser.CreateTableStmt.setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      KeywordParser.CREATE,
+      key(
+        'temp',
+        c.maybe(
+          c.apply(c.pipe(WLParser, c.oneOf(KeywordParser.TEMP, KeywordParser.TEMPORARY)), ([whitespace, keyword]) => ({
+            whitespace,
+            variant: keyword === 'TEMP' ? 'Temp' : 'Temporary',
+          }))
+        )
+      ),
+      key('tableWhitespace', WLParser),
+      KeywordParser.TABLE,
+      key('ifNotExists', c.maybe(FragmentParser.IfNotExists)),
+      key('tableTargetWhitespace', WLParser),
+      key('tableTarget', FragmentParser.SchemaItemTarget),
+      key('definition', c.oneOf(FragmentParser.CreateTableAsDef, FragmentParser.CreateTableColumnsDef))
     )
   )
 );

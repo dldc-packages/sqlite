@@ -148,4 +148,5 @@ export const KEYWORDS = [
   'WITHOUT',
   'TRUE',
   'FALSE',
+  'ROWID',
 ] as const;
