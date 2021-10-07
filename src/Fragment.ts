@@ -2,17 +2,17 @@ import { Expr, Identifier, Node, NonEmptyCommaList, NonEmptyCommaListSingle } fr
 
 type FragmentData = {
   WhitespaceLike: Array<Node<'Whitespace'> | Node<'CommentSyntax'>>;
-  AggregateFunctionInvocation_Paramters: Fragment<'AggregateFunctionInvocation_Paramters_Star' | 'AggregateFunctionInvocation_Paramters_Exprs'>;
-  AggregateFunctionInvocation_Paramters_Star: {
+  AggregateFunctionInvocation_Parameters: Fragment<'AggregateFunctionInvocation_Parameters_Star' | 'AggregateFunctionInvocation_Parameters_Exprs'>;
+  AggregateFunctionInvocation_Parameters_Star: {
     variant: 'Star';
     whitespaceBeforeStar?: WhitespaceLike;
   };
-  AggregateFunctionInvocation_Paramters_Exprs: {
+  AggregateFunctionInvocation_Parameters_Exprs: {
     variant: 'Exprs';
-    distinct?: Fragment<'AggregateFunctionInvocation_Paramters_Exprs_Distinct'>;
+    distinct?: Fragment<'AggregateFunctionInvocation_Parameters_Exprs_Distinct'>;
     exprs: NonEmptyCommaListSingle<Expr>;
   };
-  AggregateFunctionInvocation_Paramters_Exprs_Distinct: {
+  AggregateFunctionInvocation_Parameters_Exprs_Distinct: {
     whitespaceBeforeDistinctKeyword?: WhitespaceLike;
     distinctKeyword?: string;
   };
@@ -106,7 +106,7 @@ type FragmentData = {
   };
   ColumnConstraint_Name: {
     constraintKeyword?: string;
-    whitespaceAfterConstraintKeyword?: WhitespaceLike;
+    whitespaceBeforeName?: WhitespaceLike;
     name: Identifier;
     whitespaceAfterName?: WhitespaceLike;
   };

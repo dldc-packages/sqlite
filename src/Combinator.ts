@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/explicit-module-boundary-types */
 import { TSQliteError } from './TSQliteError';
 import { ParseFailure, ParseSuccess, resultTracker } from './Parser';
 import { Parser, ParseResult, ParseResultSuccess, Rule } from './types';
@@ -554,11 +555,17 @@ type KeyFn<T extends Record<string, any>, Ctx> = <K extends keyof T>(
   parser: Parser<T[K], Ctx>
 ) => K extends string ? Parser<Keyed<K, T[K]>, Ctx> : never;
 
-export function keyed<T extends Record<string, any>, Ctx>(runner: (keyFn: KeyFn<T, Ctx>) => Parser<T, Ctx>): Parser<T, Ctx> {
-  const keyFn = <K extends keyof T>(key: K, parser: Parser<T[K], Ctx>): K extends string ? Parser<Keyed<K, T[K]>, Ctx> : never => {
+export function keyed<T extends Record<string, any>, Inject extends Partial<T>, Ctx>(
+  inject: Inject,
+  runner: (keyFn: KeyFn<Omit<T, keyof Inject>, Ctx>) => Parser<Omit<T, keyof Inject>, Ctx>
+): Parser<T, Ctx>;
+export function keyed<T extends Record<string, any>, Ctx>(runner: (keyFn: KeyFn<T, Ctx>) => Parser<T, Ctx>): Parser<T, Ctx>;
+export function keyed<Ctx>(arg1: any, arg2?: any): Parser<any, Ctx> {
+  const [inject, runner] = arg2 ? [arg1, arg2] : [{}, arg2];
+  const keyFn = (key: any, parser: Parser<any, Ctx>): any => {
     return keyValue(key as any, parser) as any;
   };
-  return runner(keyFn);
+  return apply(runner(keyFn), (res: any) => ({ ...inject, ...res }));
 }
 
 /**

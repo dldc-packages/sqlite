@@ -13,7 +13,7 @@ export type NodeData = {
   AggregateFunctionInvocation: {
     aggregateFunc: Identifier;
     whitespaceBeforeOpenParent?: WhitespaceLike;
-    parameters?: Fragment<'AggregateFunctionInvocation_Paramters'>;
+    parameters?: Fragment<'AggregateFunctionInvocation_Parameters'>;
     whitespaceBeforeCloseParent?: WhitespaceLike;
     filterClause?: Fragment<'FilterClauseWithWhitespace'>;
   };

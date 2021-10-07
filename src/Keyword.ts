@@ -124,6 +124,7 @@ export const KEYWORDS = [
   'SAVEPOINT',
   'SELECT',
   'SET',
+  'STORED',
   'TABLE',
   'TEMP',
   'TEMPORARY',

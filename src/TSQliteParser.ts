@@ -110,7 +110,7 @@ const notNewLineParser = createRegexp('NotNewLine', /^[^\n]+/g);
 export const KeywordParser: { [K in typeof KEYWORDS[number]]: Parser<K, Ctx> } = Object.fromEntries(KEYWORDS.map((k) => [k, createKeyword(k)])) as any;
 
 interface NodeRule<K extends NodeKind> extends Parser<Node<K>, Ctx> {
-  setParser(parser: Parser<NodeData[K], Ctx>): void;
+  setParser(parser: Parser<Complete<NodeData[K]>, Ctx>): void;
 }
 
 // prettier-ignore
@@ -139,7 +139,14 @@ type FragmentParserKeys = Exclude<FragmentName, VirtualFragments>;
 
 export const FragmentParser: { [K in FragmentParserKeys]?: Rule<Fragment<K>, Ctx> } = {};
 
-function fragmentParser<K extends FragmentParserKeys>(kind: K): Rule<Fragment<K>, Ctx> {
+// prettier-ignore
+type NonCompleteFragments = 'AggregateFunctionInvocation_Parameters' | 'AlterAction' | 'AnalyzeStmt_Target' | 'ColumnConstraint_Constraint' | 'Direction' | 'LiteralValue';
+
+interface FragmentRule<K extends FragmentParserKeys> extends Parser<Fragment<K>, Ctx> {
+  setParser(parser: Parser<K extends NonCompleteFragments ? Fragment<K> : Complete<Fragment<K>>, Ctx>): void;
+}
+
+function fragmentParser<K extends FragmentParserKeys>(kind: K): FragmentRule<K> {
   if (FragmentParser[kind] === undefined) {
     FragmentParser[kind] = c.rule(kind) as any;
   }
@@ -149,14 +156,15 @@ function fragmentParser<K extends FragmentParserKeys>(kind: K): Rule<Fragment<K>
 const WhitespaceLikeParser = fragmentParser('WhitespaceLike');
 const MaybeWhitespaceLikeParser = c.maybe(WhitespaceLikeParser);
 const IdentifierParser = nodeParser('Identifier');
+const ExprParser = fragmentParser('Expr');
 
 nodeParser('AggregateFunctionInvocation').setParser(
   c.keyed((key) =>
     c.keyedPipe(
       key('aggregateFunc', IdentifierParser),
-      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
       openParentParser,
-      key('parameters', c.maybe(fragmentParser('AggregateFunctionInvocation_Paramters'))),
+      key('parameters', c.maybe(fragmentParser('AggregateFunctionInvocation_Parameters'))),
       key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
       closeParentParser,
       key('filterClause', c.maybe(fragmentParser('FilterClauseWithWhitespace')))
@@ -166,22 +174,22 @@ nodeParser('AggregateFunctionInvocation').setParser(
 
 fragmentParser('WhitespaceLike').setParser(c.many(c.oneOf(nodeParser('Whitespace'), nodeParser('CommentSyntax')), { allowEmpty: false }));
 
-fragmentParser('AggregateFunctionInvocation_Paramters').setParser(
-  c.oneOf(fragmentParser('AggregateFunctionInvocation_Paramters_Star'), fragmentParser('AggregateFunctionInvocation_Paramters_Exprs'))
+fragmentParser('AggregateFunctionInvocation_Parameters').setParser(
+  c.oneOf(fragmentParser('AggregateFunctionInvocation_Parameters_Star'), fragmentParser('AggregateFunctionInvocation_Parameters_Exprs'))
 );
 
-fragmentParser('AggregateFunctionInvocation_Paramters_Star').setParser(
+fragmentParser('AggregateFunctionInvocation_Parameters_Star').setParser(
   c.apply(c.pipe(MaybeWhitespaceLikeParser, starParser), ([whitespaceBeforeStar, _star]) => ({ variant: 'Star', whitespaceBeforeStar }))
 );
 
-fragmentParser('AggregateFunctionInvocation_Paramters_Exprs').setParser(
+fragmentParser('AggregateFunctionInvocation_Parameters_Exprs').setParser(
   c.apply(
-    c.pipe(c.maybe(fragmentParser('AggregateFunctionInvocation_Paramters_Exprs_Distinct')), nonEmptyCommaSingleList(fragmentParser('Expr'))),
+    c.pipe(c.maybe(fragmentParser('AggregateFunctionInvocation_Parameters_Exprs_Distinct')), nonEmptyCommaSingleList(ExprParser)),
     ([distinct, exprs]) => ({ variant: 'Exprs', distinct, exprs })
   )
 );
 
-fragmentParser('AggregateFunctionInvocation_Paramters_Exprs_Distinct').setParser(
+fragmentParser('AggregateFunctionInvocation_Parameters_Exprs_Distinct').setParser(
   c.apply(c.pipe(MaybeWhitespaceLikeParser, KeywordParser.DISTINCT), ([whitespaceBeforeDistinctKeyword, distinctKeyword]) => ({
     whitespaceBeforeDistinctKeyword,
     distinctKeyword,
@@ -195,9 +203,9 @@ fragmentParser('FilterClauseWithWhitespace').setParser(
 nodeParser('AlterTableStmt').setParser(
   c.keyed((key) =>
     c.keyedPipe(
-      KeywordParser.ALTER,
+      key('alterKeyword', KeywordParser.ALTER),
       key('whitespaceBeforeTableKeyword', WhitespaceLikeParser),
-      KeywordParser.TABLE,
+      key('tableKeyword', KeywordParser.TABLE),
       key('whitespaceBeforeTable', WhitespaceLikeParser),
       key('table', fragmentParser('SchemaTable')),
       key('whitespaceBeforeAction', WhitespaceLikeParser),
@@ -213,7 +221,7 @@ fragmentParser('SchemaTable').setParser(
 fragmentParser('SchemaItem_Schema').setParser(
   c.apply(
     c.pipe(IdentifierParser, MaybeWhitespaceLikeParser, dotParser, MaybeWhitespaceLikeParser),
-    ([schemaName, whitespaceBeforeDot, _dot, whitespaceAfter]) => ({ schemaName, whitespaceBeforeDot, whitespaceAfter })
+    ([schemaName, whitespaceBeforeDot, _dot, whitespaceAfterDot]) => ({ schemaName, whitespaceBeforeDot, whitespaceAfterDot })
   )
 );
 
@@ -227,61 +235,63 @@ fragmentParser('AlterAction').setParser(
 );
 
 fragmentParser('AlterAction_RenameTo').setParser(
-  c.apply(
-    c.pipe(KeywordParser.RENAME, WhitespaceLikeParser, KeywordParser.TO, WhitespaceLikeParser, IdentifierParser),
-    ([_rename, whitespaceBeforeTo, _to, whitespaceBeforeNewTableName, newTableName]) => ({
-      variant: 'RenameTo',
-      whitespaceBeforeTo,
-      whitespaceBeforeNewTableName,
-      newTableName,
-    })
+  c.keyed({ variant: 'RenameTo' }, (key) =>
+    c.keyedPipe(
+      key('renameKeyword', KeywordParser.RENAME),
+      key('whitespaceBeforeToKeyword', WhitespaceLikeParser),
+      key('toKeyword', KeywordParser.TO),
+      key('whitespaceBeforeNewTableName', WhitespaceLikeParser),
+      key('newTableName', IdentifierParser)
+    )
   )
 );
 
 fragmentParser('AlterAction_RenameColumn').setParser(
-  c.apply(
-    c.pipe(
-      KeywordParser.RENAME,
-      c.maybe(fragmentParser('AlterTableStmt_Column')),
-      WhitespaceLikeParser,
-      IdentifierParser,
-      WhitespaceLikeParser,
-      KeywordParser.TO,
-      WhitespaceLikeParser,
-      IdentifierParser
-    ),
-    ([_rename, column, whitespaceBeforeColumnName, columnName, whitespaceBeforeTo, _to, whitespaceBeforeNewColumnName, newColumnName]) => ({
-      variant: 'RenameColumn',
-      column,
-      whitespaceBeforeColumnName,
-      columnName,
-      whitespaceBeforeTo,
-      whitespaceBeforeNewColumnName,
-      newColumnName,
-    })
+  c.keyed({ variant: 'RenameColumn' }, (key) =>
+    c.keyedPipe(
+      key('renameKeyword', KeywordParser.RENAME),
+      key('column', c.maybe(fragmentParser('AlterTableStmt_Column'))),
+      key('whitespaceBeforeColumnName', WhitespaceLikeParser),
+      key('columnName', IdentifierParser),
+      key('whitespaceBeforeToKeyword', WhitespaceLikeParser),
+      key('toKeyword', KeywordParser.TO),
+      key('whitespaceBeforeNewColumnName', WhitespaceLikeParser),
+      key('newColumnName', IdentifierParser)
+    )
   )
 );
 
 fragmentParser('AlterTableStmt_Column').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.COLUMN), ([whitespaceBeforeColumnKeyword, _column]) => ({ whitespaceBeforeColumnKeyword }))
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.COLUMN), ([whitespaceBeforeColumnKeyword, columnKeyword]) => ({
+    whitespaceBeforeColumnKeyword,
+    columnKeyword,
+  }))
 );
 
 fragmentParser('AlterAction_AddColumn').setParser(
-  c.apply(
-    c.pipe(KeywordParser.ADD, c.maybe(fragmentParser('AlterTableStmt_Column')), WhitespaceLikeParser, nodeParser('ColumnDef')),
-    ([_add, column, whitespaceBeforeColumnDef, columnDef]) => ({ variant: 'AddColumn', column, whitespaceBeforeColumnDef, columnDef })
+  c.keyed({ variant: 'AddColumn' }, (key) =>
+    c.keyedPipe(
+      key('addKeyword', KeywordParser.ADD),
+      key('column', c.maybe(fragmentParser('AlterTableStmt_Column'))),
+      key('whitespaceBeforeColumnDef', WhitespaceLikeParser),
+      key('columnDef', nodeParser('ColumnDef'))
+    )
   )
 );
 
 fragmentParser('AlterAction_DropColumn').setParser(
-  c.apply(
-    c.pipe(KeywordParser.DROP, c.maybe(fragmentParser('AlterTableStmt_Column')), WhitespaceLikeParser, IdentifierParser),
-    ([_add, column, whitespaceBeforeColumnDef, columnName]) => ({ variant: 'DropColumn', column, whitespaceBeforeColumnDef, columnName })
+  c.keyed({ variant: 'DropColumn' }, (key) =>
+    c.keyedPipe(
+      key('dropKeyword', KeywordParser.DROP),
+      key('column', c.maybe(fragmentParser('AlterTableStmt_Column'))),
+      key('whitespaceBeforeColumnName', WhitespaceLikeParser),
+      key('columnName', IdentifierParser)
+    )
   )
 );
 
 nodeParser('AnalyzeStmt').setParser(
-  c.apply(c.pipe(KeywordParser.ANALYZE, c.maybe(fragmentParser('AnalyzeStmt_Target'))), ([_analyze, target]) => ({ target }))
+  c.apply(c.pipe(KeywordParser.ANALYZE, c.maybe(fragmentParser('AnalyzeStmt_Target'))), ([analyzeKeyword, target]) => ({ analyzeKeyword, target }))
 );
 
 fragmentParser('AnalyzeStmt_Target').setParser(c.oneOf(fragmentParser('AnalyzeStmt_Target_Single'), fragmentParser('AnalyzeStmt_Target_WithSchema')));
@@ -291,16 +301,15 @@ fragmentParser('AnalyzeStmt_Target_Single').setParser(
 );
 
 fragmentParser('AnalyzeStmt_Target_WithSchema').setParser(
-  c.apply(
-    c.pipe(WhitespaceLikeParser, IdentifierParser, MaybeWhitespaceLikeParser, dotParser, MaybeWhitespaceLikeParser, IdentifierParser),
-    ([whitespaceBeforeSchemaName, schemaName, whitespaceBeforeDot, _dot, whitespaceBeforeIndexOrTableName, indexOrTableName]) => ({
-      variant: 'WithSchema',
-      whitespaceBeforeSchemaName,
-      schemaName,
-      whitespaceBeforeDot,
-      whitespaceBeforeIndexOrTableName,
-      indexOrTableName,
-    })
+  c.keyed({ variant: 'WithSchema' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeSchemaName', WhitespaceLikeParser),
+      key('schemaName', IdentifierParser),
+      key('whitespaceBeforeDot', MaybeWhitespaceLikeParser),
+      dotParser,
+      key('whitespaceBeforeIndexOrTableName', MaybeWhitespaceLikeParser),
+      key('indexOrTableName', IdentifierParser)
+    )
   )
 );
 
@@ -310,7 +319,7 @@ nodeParser('AttachStmt').setParser(
       key('attachKeyword', KeywordParser.ATTACH),
       key('database', c.maybe(fragmentParser('AttachStmt_Database'))),
       key('whitespaceBeforeExpr', WhitespaceLikeParser),
-      key('expr', fragmentParser('Expr')),
+      key('expr', ExprParser),
       key('whitespaceBeforeAsKeyword', WhitespaceLikeParser),
       key('asKeyword', KeywordParser.AS),
       key('whitespaceBeforeSchemaName', WhitespaceLikeParser),
@@ -318,6 +327,312 @@ nodeParser('AttachStmt').setParser(
     )
   )
 );
+
+fragmentParser('AttachStmt_Database').setParser(
+  c.apply(c.pipe(MaybeWhitespaceLikeParser, KeywordParser.DATABASE), ([whitespaceBeforeDatabaseKeyword, databaseKeyword]) => ({
+    whitespaceBeforeDatabaseKeyword,
+    databaseKeyword,
+  }))
+);
+
+nodeParser('BeginStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('beginKeyword', KeywordParser.BEGIN),
+      key('mode', c.oneOf(fragmentParser('BeginStmt_Deferred'), fragmentParser('BeginStmt_Immediate'), fragmentParser('BeginStmt_Exclusive'))),
+      key('transaction', fragmentParser('BeginStmt_Transaction'))
+    )
+  )
+);
+
+fragmentParser('BeginStmt_Deferred').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.DEFERRED), ([whitespaceBeforeDeferredKeyword, deferredKeyword]) => ({
+    variant: 'Deferred',
+    whitespaceBeforeDeferredKeyword,
+    deferredKeyword,
+  }))
+);
+
+fragmentParser('BeginStmt_Immediate').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.IMMEDIATE), ([whitespaceBeforeImmediateKeyword, immediateKeyword]) => ({
+    variant: 'Immediate',
+    whitespaceBeforeImmediateKeyword,
+    immediateKeyword,
+  }))
+);
+
+fragmentParser('BeginStmt_Exclusive').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.EXCLUSIVE), ([whitespaceBeforeExclusiveKeyword, exclusiveKeyword]) => ({
+    variant: 'Exclusive',
+    whitespaceBeforeExclusiveKeyword,
+    exclusiveKeyword,
+  }))
+);
+
+fragmentParser('BeginStmt_Transaction').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.TRANSACTION), ([whitespaceBeforeTransactionKeyword, transactionKeyword]) => ({
+    whitespaceBeforeTransactionKeyword,
+    transactionKeyword,
+  }))
+);
+
+nodeParser('ColumnConstraint').setParser(
+  c.apply(c.pipe(fragmentParser('ColumnConstraint_Name'), fragmentParser('ColumnConstraint_Constraint')), ([constraintName, constraint]) => ({
+    constraintName,
+    constraint,
+  }))
+);
+
+fragmentParser('ColumnConstraint_Name').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('constraintKeyword', KeywordParser.CONSTRAINT),
+      key('whitespaceBeforeName', WhitespaceLikeParser),
+      key('name', IdentifierParser),
+      key('whitespaceAfterName', WhitespaceLikeParser)
+    )
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint').setParser(
+  c.oneOf(
+    fragmentParser('ColumnConstraint_Constraint_PrimaryKey'),
+    fragmentParser('ColumnConstraint_Constraint_NotNull'),
+    fragmentParser('ColumnConstraint_Constraint_Unique'),
+    fragmentParser('ColumnConstraint_Constraint_Check'),
+    fragmentParser('ColumnConstraint_Constraint_DefaultExpr'),
+    fragmentParser('ColumnConstraint_Constraint_DefaultLiteralValue'),
+    fragmentParser('ColumnConstraint_Constraint_DefaultSignedNumber'),
+    fragmentParser('ColumnConstraint_Constraint_Collate'),
+    fragmentParser('ColumnConstraint_Constraint_ForeignKey'),
+    fragmentParser('ColumnConstraint_Constraint_As')
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_PrimaryKey').setParser(
+  c.keyed({ variant: 'PrimaryKey' }, (key) =>
+    c.keyedPipe(
+      key('primaryKeyword', KeywordParser.PRIMARY),
+      key('whitespaceBeforeKeyKeyword', WhitespaceLikeParser),
+      key('keyKeyword', KeywordParser.KEY),
+      key('direction', fragmentParser('Direction')),
+      key('whitespaceBeforeConflictClause', WhitespaceLikeParser),
+      key('conflictClause', nodeParser('ConflictClause')),
+      key('autoincrement', fragmentParser('Autoincrement'))
+    )
+  )
+);
+
+fragmentParser('Direction').setParser(c.oneOf(fragmentParser('Direction_Asc'), fragmentParser('Direction_Desc')));
+
+fragmentParser('Direction_Asc').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.ASC), ([whitespaceBeforeAscKeyword, ascKeyword]) => ({
+    variant: 'Asc',
+    whitespaceBeforeAscKeyword,
+    ascKeyword,
+  }))
+);
+
+fragmentParser('Direction_Desc').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.DESC), ([whitespaceBeforeDescKeyword, descKeyword]) => ({
+    variant: 'Desc',
+    whitespaceBeforeDescKeyword,
+    descKeyword,
+  }))
+);
+
+fragmentParser('Autoincrement').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.AUTOINCREMENT), ([whitespaceBeforeAutoincrementKeyword, autoincrementKeyword]) => ({
+    whitespaceBeforeAutoincrementKeyword,
+    autoincrementKeyword,
+  }))
+);
+
+fragmentParser('ColumnConstraint_Constraint_NotNull').setParser(
+  c.keyed({ variant: 'NotNull' }, (key) =>
+    c.keyedPipe(
+      key('notKeyword', KeywordParser.NOT),
+      key('whitespaceBeforeNullKeyword', WhitespaceLikeParser),
+      key('nullKeyword', KeywordParser.NULL),
+      key('whitespaceBeforeConflictClause', WhitespaceLikeParser),
+      key('conflictClause', nodeParser('ConflictClause'))
+    )
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_Unique').setParser(
+  c.keyed({ variant: 'Unique' }, (key) =>
+    c.keyedPipe(
+      key('uniqueKeyword', KeywordParser.UNIQUE),
+      key('whitespaceBeforeConflictClause', WhitespaceLikeParser),
+      key('conflictClause', nodeParser('ConflictClause'))
+    )
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_Check').setParser(
+  c.keyed({ variant: 'Check' }, (key) =>
+    c.keyedPipe(
+      key('checkKeyword', KeywordParser.CHECK),
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('whitespaceBeforeExpr', MaybeWhitespaceLikeParser),
+      key('expr', ExprParser),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_DefaultExpr').setParser(
+  c.keyed({ variant: 'DefaultExpr' }, (key) =>
+    c.keyedPipe(
+      key('defaultKeyword', KeywordParser.DEFAULT),
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('whitespaceBeforeExpr', MaybeWhitespaceLikeParser),
+      key('expr', ExprParser),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_DefaultLiteralValue').setParser(
+  c.keyed({ variant: 'DefaultLiteralValue' }, (key) =>
+    c.keyedPipe(
+      key('defaultKeyword', KeywordParser.DEFAULT),
+      key('whitespaceBeforeLiteralValue', WhitespaceLikeParser),
+      key('literalValue', fragmentParser('LiteralValue'))
+    )
+  )
+);
+
+fragmentParser('LiteralValue').setParser(
+  c.oneOf(
+    nodeParser('NumericLiteral'),
+    nodeParser('StringLiteral'),
+    nodeParser('BlobLiteral'),
+    nodeParser('Null'),
+    nodeParser('True'),
+    nodeParser('False'),
+    nodeParser('CurrentTime'),
+    nodeParser('CurrentDate'),
+    nodeParser('CurrentTimestamp')
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_DefaultSignedNumber').setParser(
+  c.keyed({ variant: 'DefaultSignedNumber' }, (key) =>
+    c.keyedPipe(
+      key('defaultKeyword', KeywordParser.DEFAULT),
+      key('whitespaceBeforeSignedNumber', WhitespaceLikeParser),
+      key('signedNumber', nodeParser('SignedNumber'))
+    )
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_Collate').setParser(
+  c.keyed({ variant: 'Collate' }, (key) =>
+    c.keyedPipe(
+      key('collateKeyword', KeywordParser.COLLATE),
+      key('whitespaceBeforeCollationName', WhitespaceLikeParser),
+      key('collationName', IdentifierParser)
+    )
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_ForeignKey').setParser(
+  c.apply(nodeParser('ForeignKeyClause'), (foreignKeyClause) => ({ variant: 'ForeignKey', foreignKeyClause }))
+);
+
+fragmentParser('ColumnConstraint_Constraint_As').setParser(
+  c.keyed({ variant: 'As' }, (key) =>
+    c.keyedPipe(
+      key('generatedAlways', fragmentParser('GeneratedAlways')),
+      key('asKeyword', KeywordParser.AS),
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('whitespaceBeforeExpr', MaybeWhitespaceLikeParser),
+      key('expr', ExprParser),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser,
+      key('mode', c.oneOf(fragmentParser('ColumnConstraint_Constraint_As_Stored'), fragmentParser('ColumnConstraint_Constraint_As_Virtual')))
+    )
+  )
+);
+
+fragmentParser('GeneratedAlways').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('generatedKeyword', KeywordParser.GENERATED),
+      key('whitespaceBeforeAlwaysKeyword', WhitespaceLikeParser),
+      key('alwaysKeyword', KeywordParser.ALWAYS),
+      key('whitespaceAfterAlwaysKeyword', WhitespaceLikeParser)
+    )
+  )
+);
+
+fragmentParser('ColumnConstraint_Constraint_As_Stored').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.STORED), ([whitespaceBeforeStoredKeyword, storedKeyword]) => ({
+    variant: 'Stored',
+    whitespaceBeforeStoredKeyword,
+    storedKeyword,
+  }))
+);
+
+fragmentParser('ColumnConstraint_Constraint_As_Virtual').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.VIRTUAL), ([whitespaceBeforeVirtualKeyword, virtualKeyword]) => ({
+    variant: 'Virtual',
+    whitespaceBeforeVirtualKeyword,
+    virtualKeyword,
+  }))
+);
+
+nodeParser('ColumnDef').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('columnName', IdentifierParser),
+      key('typeName', fragmentParser('ColumnDef_TypeName')),
+      key('columnConstraints', c.many(fragmentParser('ColumnDef_ColumnConstraint')))
+    )
+  )
+);
+
+fragmentParser('ColumnDef_TypeName').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, nodeParser('TypeName')), ([whitespaceBeforeTypeName, typeName]) => ({ whitespaceBeforeTypeName, typeName }))
+);
+
+fragmentParser('ColumnDef_ColumnConstraint').setParser(
+  c.apply(c.pipe(WhitespaceLikeParser, nodeParser('ColumnConstraint')), ([whitespaceBeforeColumnConstraint, columnConstraint]) => ({
+    whitespaceBeforeColumnConstraint,
+    columnConstraint,
+  }))
+);
+
+nodeParser('ColumnNameList').setParser(
+  c.apply(
+    c.pipe(openParentParser, nonEmptyCommaSingleList(IdentifierParser), MaybeWhitespaceLikeParser, closeParentParser),
+    ([_openParent, columnNames, whitespaceBeforeCloseParent, _closeParent]) => ({ columnNames, whitespaceBeforeCloseParent })
+  )
+);
+
+nodeParser('CommentSyntax').setParser(c.oneOf(fragmentParser('Comment_Multiline'), fragmentParser('Comment_SingleLine')));
+
+fragmentParser('Comment_SingleLine').setParser(
+  c.apply(c.pipe(singleLineCommentStart, notNewLineParser, c.oneOf(newLineParser, c.eof())), ([_open, content, close]) => {
+    return { variant: 'SingleLine', content, close: close === null ? 'EndOfFile' : 'NewLine' };
+  })
+);
+
+fragmentParser('Comment_Multiline').setParser(
+  c.apply(c.manyBetween(multilineCommentStartParser, c.oneOf(notStarParser, starParser), multilineCommentEndParser), ([_open, items, _close]) => {
+    const content = items.join('');
+    return { variant: 'Multiline', content };
+  })
+);
+
+// TODO: CommitStmt
 
 // nodeParser('Whitespace').setParser(c.apply(whitespaceRawParser, (content) => ({ content })));
 
@@ -370,19 +685,6 @@ nodeParser('AttachStmt').setParser(
 //   c.apply(c.manyBetween(singleQuoteParser, c.oneOf(notSingleQuoteParser, doubleSingleQuoteParser), singleQuoteParser), ([_open, items, _close]) => ({
 //     content: items.map((v) => (v === DOUBLE_SINGLE_QUOTE ? SINGLE_QUOTE : v)).join(''),
 //   }))
-// );
-
-// fragmentParser('MultilineComment').setParser(
-//   c.apply(c.manyBetween(multilineCommentStartParser, c.oneOf(notStarParser, starParser), multilineCommentEndParser), ([_open, items, _close]) => {
-//     const content = items.join('');
-//     return { variant: 'Multiline', content };
-//   })
-// );
-
-// fragmentParser('SingleLineComment').setParser(
-//   c.apply(c.pipe(singleLineCommentStart, notNewLineParser, c.oneOf(newLineParser, c.eof())), ([_open, content, close]) => {
-//     return { variant: 'SingleLine', content, close: close === null ? 'EOF' : 'NewLine' };
-//   })
 // );
 
 // nodeParser('CommentSyntax').setParser(c.oneOf(fragmentParser('MultilineComment'), fragmentParser('SingleLineComment')));
@@ -600,57 +902,6 @@ nodeParser('AttachStmt').setParser(
 //     ),
 //     ([explain, stmt]) => {
 //       return { explain, stmt };
-//     }
-//   )
-// );
-
-// fragmentParser('AnalyzeStmtInner').setParser(
-//   c.apply(
-//     c.oneOf(
-//       c.pipe(WLParser, nodeParser('Identifier'), WLParser),
-//       c.pipe(WLParser, nodeParser('Identifier'), MaybeWlParser, dotParser, MaybeWlParser, nodeParser('Identifier'), MaybeWlParser)
-//     ),
-//     (res) => {
-//       if (res.length === 3) {
-//         const [schemaTableOtIndexNameWhitespace, schemaTableOtIndexName] = res;
-//         return { variant: 'Single', schemaTableOtIndexNameWhitespace, schemaTableOtIndexName };
-//       }
-//       const [schemaNameWhitespace, schemaName, dotWhitespace, _dot, indexOrTableNameWhitespace, indexOrTableName] = res;
-//       return {
-//         variant: 'WithSchema',
-//         schemaNameWhitespace,
-//         schemaName,
-//         dotWhitespace,
-//         indexOrTableName,
-//         indexOrTableNameWhitespace,
-//       };
-//     }
-//   )
-// );
-
-// nodeParser('AnalyzeStmt').setParser(c.apply(c.pipe(KeywordParser.ANALYZE, c.maybe(fragmentParser('AnalyzeStmtInner'))), ([_analyze, inner]) => ({ inner })));
-
-// nodeParser('AttachStmt').setParser(
-//   c.apply(
-//     c.pipe(
-//       KeywordParser.ATTACH,
-//       c.maybe(c.pipe(WLParser, KeywordParser.DATABASE)),
-//       WLParser,
-//       fragmentParser('Expr'),
-//       WLParser,
-//       KeywordParser.AS,
-//       WLParser,
-//       nodeParser('Identifier')
-//     ),
-//     ([_attach, database, exprWhitespace, expr, asWhitespace, _as, schemaNameWhitespace, schemaName]) => {
-//       return {
-//         database: mapIfExist(database, ([databaseWhitespace, _database]) => ({ databaseWhitespace })),
-//         exprWhitespace,
-//         expr,
-//         asWhitespace,
-//         schemaNameWhitespace,
-//         schemaName,
-//       };
 //     }
 //   )
 // );
