@@ -538,6 +538,61 @@ export function pipe<V, Ctx>(...parsers: Array<Parser<V, Ctx>>): Parser<Array<V>
   };
 }
 
+/**
+const r = num=>Array(num).fill(null).map((v,i)=>i);
+const res = r(21).map(v => v + 1).map(v => `export function applyPipe<${r(v).map(i => `R${i}`).join(', ')}, Out, C>(parsers: [${r(v).map(i => `Parser<R${i}, C>`).join(', ')}], transformer: Transformer<[${r(v).map(i => `R${i}`).join(', ')}], Out, C>): Parser<Out, C>;`).map(v=>`// prettier-ignore\n${v}`).join('\n');
+*/
+
+type Transformer<In, Out, Ctx> = (val: In, start: number, end: number, ctx: Ctx) => Out;
+
+// prettier-ignore
+export function applyPipe<R0, Out, C>(parsers: [Parser<R0, C>], transformer: Transformer<[R0], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>], transformer: Transformer<[R0, R1], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>], transformer: Transformer<[R0, R1, R2], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>], transformer: Transformer<[R0, R1, R2, R3], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>], transformer: Transformer<[R0, R1, R2, R3, R4], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>, Parser<R13, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>, Parser<R13, C>, Parser<R14, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>, Parser<R13, C>, Parser<R14, C>, Parser<R15, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>, Parser<R13, C>, Parser<R14, C>, Parser<R15, C>, Parser<R16, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>, Parser<R13, C>, Parser<R14, C>, Parser<R15, C>, Parser<R16, C>, Parser<R17, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>, Parser<R13, C>, Parser<R14, C>, Parser<R15, C>, Parser<R16, C>, Parser<R17, C>, Parser<R18, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>, Parser<R13, C>, Parser<R14, C>, Parser<R15, C>, Parser<R16, C>, Parser<R17, C>, Parser<R18, C>, Parser<R19, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19], Out, C>): Parser<Out, C>;
+// prettier-ignore
+export function applyPipe<R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20, Out, C>(parsers: [Parser<R0, C>, Parser<R1, C>, Parser<R2, C>, Parser<R3, C>, Parser<R4, C>, Parser<R5, C>, Parser<R6, C>, Parser<R7, C>, Parser<R8, C>, Parser<R9, C>, Parser<R10, C>, Parser<R11, C>, Parser<R12, C>, Parser<R13, C>, Parser<R14, C>, Parser<R15, C>, Parser<R16, C>, Parser<R17, C>, Parser<R18, C>, Parser<R19, C>, Parser<R20, C>], transformer: Transformer<[R0, R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R15, R16, R17, R18, R19, R20], Out, C>): Parser<Out, C>;
+// Impl
+export function applyPipe<V, Out, Ctx>(parsers: Array<Parser<V, Ctx>>, transformer: Transformer<Array<V>, Out, Ctx>): Parser<Out, Ctx>;
+export function applyPipe<V, Out, Ctx>(parsers: Array<Parser<V, Ctx>>, transformer: Transformer<any, Out, Ctx>): Parser<Out, Ctx> {
+  return apply(pipe(...parsers), transformer);
+}
+
 export type Keyed<K extends string, T> = { value: T; key: K };
 export type KeyedToObj<U> = U extends Keyed<infer K, infer T> ? { [L in K]: T } : {};
 type KtO<U> = KeyedToObj<U>;

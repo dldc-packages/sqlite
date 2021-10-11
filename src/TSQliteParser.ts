@@ -107,17 +107,20 @@ const notStarParser = createRegexp('NotStar', /^[^*]+/g);
 const singleLineCommentStart = createExact('--');
 const notNewLineParser = createRegexp('NotNewLine', /^[^\n]+/g);
 
-export const KeywordParser: { [K in typeof KEYWORDS[number]]: Parser<K, Ctx> } = Object.fromEntries(KEYWORDS.map((k) => [k, createKeyword(k)])) as any;
-
-interface NodeRule<K extends NodeKind> extends Parser<Node<K>, Ctx> {
-  setParser(parser: Parser<Complete<NodeData[K]>, Ctx>): void;
-}
-
 // prettier-ignore
 type VirtualNodes ='Add' | 'And' | 'Between' | 'BitwiseOr' | 'BitwiseShiftLeft' | 'BitwiseShiftRight' | 'Collate' | 'Concatenate' | 'Different' | 'Divide' | 'Equal' | 'Escape' | 'Glob' | 'GreaterOrEqualThan' | 'GreaterThan' | 'In' | 'Is' | 'IsNot' | 'IsNull' | 'Like' | 'LowerOrEqualThan' | 'LowerThan' | 'Match' | 'Modulo' | 'Multiply' | 'Not_Null' | 'Not' | 'NotNull' | 'Or' | 'Regexp' | 'Subtract';
 type NodeParserKeys = Exclude<NodeKind, VirtualNodes>;
 
 export const NodeParser: { [K in NodeParserKeys]?: NodeRule<K> } = {};
+
+export const KeywordParser: { [K in typeof KEYWORDS[number]]: Parser<K, Ctx> } = Object.fromEntries(KEYWORDS.map((k) => [k, createKeyword(k)])) as any;
+
+// prettier-ignore
+type NonCompleteNodes = 'CompoundOperator';
+
+interface NodeRule<K extends NodeKind> extends Parser<Node<K>, Ctx> {
+  setParser(parser: Parser<K extends NonCompleteNodes ? NodeData[K] : Complete<NodeData[K]>, Ctx>): void;
+}
 
 function nodeParser<K extends NodeParserKeys>(kind: K): NodeRule<K> {
   if (NodeParser[kind] === undefined) {
@@ -140,7 +143,7 @@ type FragmentParserKeys = Exclude<FragmentName, VirtualFragments>;
 export const FragmentParser: { [K in FragmentParserKeys]?: Rule<Fragment<K>, Ctx> } = {};
 
 // prettier-ignore
-type NonCompleteFragments = 'AggregateFunctionInvocation_Parameters' | 'AlterAction' | 'AnalyzeStmt_Target' | 'ColumnConstraint_Constraint' | 'Direction' | 'LiteralValue';
+type NonCompleteFragments = 'AggregateFunctionInvocation_Parameters' | 'AlterAction' | 'AnalyzeStmt_Target' | 'ColumnConstraint_Constraint' | 'Direction' | 'LiteralValue' | 'MaybeMaterialized' | 'CompoundSelectStmt_Item' | 'ConflictClause_OnConflict_Inner' | 'Temp' | 'CreateTableStmt_Definition';
 
 interface FragmentRule<K extends FragmentParserKeys> extends Parser<Fragment<K>, Ctx> {
   setParser(parser: Parser<K extends NonCompleteFragments ? Fragment<K> : Complete<Fragment<K>>, Ctx>): void;
@@ -179,25 +182,26 @@ fragmentParser('AggregateFunctionInvocation_Parameters').setParser(
 );
 
 fragmentParser('AggregateFunctionInvocation_Parameters_Star').setParser(
-  c.apply(c.pipe(MaybeWhitespaceLikeParser, starParser), ([whitespaceBeforeStar, _star]) => ({ variant: 'Star', whitespaceBeforeStar }))
+  c.applyPipe([MaybeWhitespaceLikeParser, starParser], ([whitespaceBeforeStar, _star]) => ({ variant: 'Star', whitespaceBeforeStar }))
 );
 
 fragmentParser('AggregateFunctionInvocation_Parameters_Exprs').setParser(
-  c.apply(
-    c.pipe(c.maybe(fragmentParser('AggregateFunctionInvocation_Parameters_Exprs_Distinct')), nonEmptyCommaSingleList(ExprParser)),
-    ([distinct, exprs]) => ({ variant: 'Exprs', distinct, exprs })
-  )
+  c.applyPipe([c.maybe(fragmentParser('AggregateFunctionInvocation_Parameters_Exprs_Distinct')), nonEmptyCommaSingleList(ExprParser)], ([distinct, exprs]) => ({
+    variant: 'Exprs',
+    distinct,
+    exprs,
+  }))
 );
 
 fragmentParser('AggregateFunctionInvocation_Parameters_Exprs_Distinct').setParser(
-  c.apply(c.pipe(MaybeWhitespaceLikeParser, KeywordParser.DISTINCT), ([whitespaceBeforeDistinctKeyword, distinctKeyword]) => ({
+  c.applyPipe([MaybeWhitespaceLikeParser, KeywordParser.DISTINCT], ([whitespaceBeforeDistinctKeyword, distinctKeyword]) => ({
     whitespaceBeforeDistinctKeyword,
     distinctKeyword,
   }))
 );
 
 fragmentParser('FilterClauseWithWhitespace').setParser(
-  c.apply(c.pipe(MaybeWhitespaceLikeParser, nodeParser('FilterClause')), ([whitespaceBefore, filterClause]) => ({ whitespaceBefore, filterClause }))
+  c.applyPipe([MaybeWhitespaceLikeParser, nodeParser('FilterClause')], ([whitespaceBefore, filterClause]) => ({ whitespaceBefore, filterClause }))
 );
 
 nodeParser('AlterTableStmt').setParser(
@@ -215,12 +219,12 @@ nodeParser('AlterTableStmt').setParser(
 );
 
 fragmentParser('SchemaTable').setParser(
-  c.apply(c.pipe(c.maybe(fragmentParser('SchemaItem_Schema')), IdentifierParser), ([schema, table]) => ({ schema, table }))
+  c.applyPipe([c.maybe(fragmentParser('SchemaItem_Schema')), IdentifierParser], ([schema, table]) => ({ schema, table }))
 );
 
 fragmentParser('SchemaItem_Schema').setParser(
-  c.apply(
-    c.pipe(IdentifierParser, MaybeWhitespaceLikeParser, dotParser, MaybeWhitespaceLikeParser),
+  c.applyPipe(
+    [IdentifierParser, MaybeWhitespaceLikeParser, dotParser, MaybeWhitespaceLikeParser],
     ([schemaName, whitespaceBeforeDot, _dot, whitespaceAfterDot]) => ({ schemaName, whitespaceBeforeDot, whitespaceAfterDot })
   )
 );
@@ -262,7 +266,7 @@ fragmentParser('AlterAction_RenameColumn').setParser(
 );
 
 fragmentParser('AlterTableStmt_Column').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.COLUMN), ([whitespaceBeforeColumnKeyword, columnKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.COLUMN], ([whitespaceBeforeColumnKeyword, columnKeyword]) => ({
     whitespaceBeforeColumnKeyword,
     columnKeyword,
   }))
@@ -291,13 +295,13 @@ fragmentParser('AlterAction_DropColumn').setParser(
 );
 
 nodeParser('AnalyzeStmt').setParser(
-  c.apply(c.pipe(KeywordParser.ANALYZE, c.maybe(fragmentParser('AnalyzeStmt_Target'))), ([analyzeKeyword, target]) => ({ analyzeKeyword, target }))
+  c.applyPipe([KeywordParser.ANALYZE, c.maybe(fragmentParser('AnalyzeStmt_Target'))], ([analyzeKeyword, target]) => ({ analyzeKeyword, target }))
 );
 
 fragmentParser('AnalyzeStmt_Target').setParser(c.oneOf(fragmentParser('AnalyzeStmt_Target_Single'), fragmentParser('AnalyzeStmt_Target_WithSchema')));
 
 fragmentParser('AnalyzeStmt_Target_Single').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, IdentifierParser), ([whitespaceBeforeName, name]) => ({ variant: 'Single', whitespaceBeforeName, name }))
+  c.applyPipe([WhitespaceLikeParser, IdentifierParser], ([whitespaceBeforeName, name]) => ({ variant: 'Single', whitespaceBeforeName, name }))
 );
 
 fragmentParser('AnalyzeStmt_Target_WithSchema').setParser(
@@ -329,7 +333,7 @@ nodeParser('AttachStmt').setParser(
 );
 
 fragmentParser('AttachStmt_Database').setParser(
-  c.apply(c.pipe(MaybeWhitespaceLikeParser, KeywordParser.DATABASE), ([whitespaceBeforeDatabaseKeyword, databaseKeyword]) => ({
+  c.applyPipe([MaybeWhitespaceLikeParser, KeywordParser.DATABASE], ([whitespaceBeforeDatabaseKeyword, databaseKeyword]) => ({
     whitespaceBeforeDatabaseKeyword,
     databaseKeyword,
   }))
@@ -346,7 +350,7 @@ nodeParser('BeginStmt').setParser(
 );
 
 fragmentParser('BeginStmt_Deferred').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.DEFERRED), ([whitespaceBeforeDeferredKeyword, deferredKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.DEFERRED], ([whitespaceBeforeDeferredKeyword, deferredKeyword]) => ({
     variant: 'Deferred',
     whitespaceBeforeDeferredKeyword,
     deferredKeyword,
@@ -354,7 +358,7 @@ fragmentParser('BeginStmt_Deferred').setParser(
 );
 
 fragmentParser('BeginStmt_Immediate').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.IMMEDIATE), ([whitespaceBeforeImmediateKeyword, immediateKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.IMMEDIATE], ([whitespaceBeforeImmediateKeyword, immediateKeyword]) => ({
     variant: 'Immediate',
     whitespaceBeforeImmediateKeyword,
     immediateKeyword,
@@ -362,7 +366,7 @@ fragmentParser('BeginStmt_Immediate').setParser(
 );
 
 fragmentParser('BeginStmt_Exclusive').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.EXCLUSIVE), ([whitespaceBeforeExclusiveKeyword, exclusiveKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.EXCLUSIVE], ([whitespaceBeforeExclusiveKeyword, exclusiveKeyword]) => ({
     variant: 'Exclusive',
     whitespaceBeforeExclusiveKeyword,
     exclusiveKeyword,
@@ -370,14 +374,14 @@ fragmentParser('BeginStmt_Exclusive').setParser(
 );
 
 fragmentParser('BeginStmt_Transaction').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.TRANSACTION), ([whitespaceBeforeTransactionKeyword, transactionKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.TRANSACTION], ([whitespaceBeforeTransactionKeyword, transactionKeyword]) => ({
     whitespaceBeforeTransactionKeyword,
     transactionKeyword,
   }))
 );
 
 nodeParser('ColumnConstraint').setParser(
-  c.apply(c.pipe(fragmentParser('ColumnConstraint_Name'), fragmentParser('ColumnConstraint_Constraint')), ([constraintName, constraint]) => ({
+  c.applyPipe([fragmentParser('ColumnConstraint_Name'), fragmentParser('ColumnConstraint_Constraint')], ([constraintName, constraint]) => ({
     constraintName,
     constraint,
   }))
@@ -426,7 +430,7 @@ fragmentParser('ColumnConstraint_Constraint_PrimaryKey').setParser(
 fragmentParser('Direction').setParser(c.oneOf(fragmentParser('Direction_Asc'), fragmentParser('Direction_Desc')));
 
 fragmentParser('Direction_Asc').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.ASC), ([whitespaceBeforeAscKeyword, ascKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.ASC], ([whitespaceBeforeAscKeyword, ascKeyword]) => ({
     variant: 'Asc',
     whitespaceBeforeAscKeyword,
     ascKeyword,
@@ -434,7 +438,7 @@ fragmentParser('Direction_Asc').setParser(
 );
 
 fragmentParser('Direction_Desc').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.DESC), ([whitespaceBeforeDescKeyword, descKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.DESC], ([whitespaceBeforeDescKeyword, descKeyword]) => ({
     variant: 'Desc',
     whitespaceBeforeDescKeyword,
     descKeyword,
@@ -442,7 +446,7 @@ fragmentParser('Direction_Desc').setParser(
 );
 
 fragmentParser('Autoincrement').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.AUTOINCREMENT), ([whitespaceBeforeAutoincrementKeyword, autoincrementKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.AUTOINCREMENT], ([whitespaceBeforeAutoincrementKeyword, autoincrementKeyword]) => ({
     whitespaceBeforeAutoincrementKeyword,
     autoincrementKeyword,
   }))
@@ -574,7 +578,7 @@ fragmentParser('GeneratedAlways').setParser(
 );
 
 fragmentParser('ColumnConstraint_Constraint_As_Stored').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.STORED), ([whitespaceBeforeStoredKeyword, storedKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.STORED], ([whitespaceBeforeStoredKeyword, storedKeyword]) => ({
     variant: 'Stored',
     whitespaceBeforeStoredKeyword,
     storedKeyword,
@@ -582,7 +586,7 @@ fragmentParser('ColumnConstraint_Constraint_As_Stored').setParser(
 );
 
 fragmentParser('ColumnConstraint_Constraint_As_Virtual').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, KeywordParser.VIRTUAL), ([whitespaceBeforeVirtualKeyword, virtualKeyword]) => ({
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.VIRTUAL], ([whitespaceBeforeVirtualKeyword, virtualKeyword]) => ({
     variant: 'Virtual',
     whitespaceBeforeVirtualKeyword,
     virtualKeyword,
@@ -600,19 +604,19 @@ nodeParser('ColumnDef').setParser(
 );
 
 fragmentParser('ColumnDef_TypeName').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, nodeParser('TypeName')), ([whitespaceBeforeTypeName, typeName]) => ({ whitespaceBeforeTypeName, typeName }))
+  c.applyPipe([WhitespaceLikeParser, nodeParser('TypeName')], ([whitespaceBeforeTypeName, typeName]) => ({ whitespaceBeforeTypeName, typeName }))
 );
 
 fragmentParser('ColumnDef_ColumnConstraint').setParser(
-  c.apply(c.pipe(WhitespaceLikeParser, nodeParser('ColumnConstraint')), ([whitespaceBeforeColumnConstraint, columnConstraint]) => ({
+  c.applyPipe([WhitespaceLikeParser, nodeParser('ColumnConstraint')], ([whitespaceBeforeColumnConstraint, columnConstraint]) => ({
     whitespaceBeforeColumnConstraint,
     columnConstraint,
   }))
 );
 
 nodeParser('ColumnNameList').setParser(
-  c.apply(
-    c.pipe(openParentParser, nonEmptyCommaSingleList(IdentifierParser), MaybeWhitespaceLikeParser, closeParentParser),
+  c.applyPipe(
+    [openParentParser, nonEmptyCommaSingleList(IdentifierParser), MaybeWhitespaceLikeParser, closeParentParser],
     ([_openParent, columnNames, whitespaceBeforeCloseParent, _closeParent]) => ({ columnNames, whitespaceBeforeCloseParent })
   )
 );
@@ -620,7 +624,7 @@ nodeParser('ColumnNameList').setParser(
 nodeParser('CommentSyntax').setParser(c.oneOf(fragmentParser('Comment_Multiline'), fragmentParser('Comment_SingleLine')));
 
 fragmentParser('Comment_SingleLine').setParser(
-  c.apply(c.pipe(singleLineCommentStart, notNewLineParser, c.oneOf(newLineParser, c.eof())), ([_open, content, close]) => {
+  c.applyPipe([singleLineCommentStart, notNewLineParser, c.oneOf(newLineParser, c.eof())], ([_open, content, close]) => {
     return { variant: 'SingleLine', content, close: close === null ? 'EndOfFile' : 'NewLine' };
   })
 );
@@ -632,9 +636,404 @@ fragmentParser('Comment_Multiline').setParser(
   })
 );
 
-// TODO: CommitStmt
+nodeParser('CommitStmt').setParser(
+  c.applyPipe(
+    [c.oneOf(fragmentParser('CommitStmt_Action_Commit'), fragmentParser('CommitStmt_Action_End')), c.maybe(fragmentParser('CommitStmt_Transaction'))],
+    ([action, transaction]) => ({ action, transaction })
+  )
+);
 
-// nodeParser('Whitespace').setParser(c.apply(whitespaceRawParser, (content) => ({ content })));
+fragmentParser('CommitStmt_Action_Commit').setParser(c.apply(KeywordParser.COMMIT, (commitKeyword) => ({ variant: 'Commit', commitKeyword })));
+
+fragmentParser('CommitStmt_Action_End').setParser(c.apply(KeywordParser.END, (endKeyword) => ({ variant: 'End', endKeyword })));
+
+fragmentParser('CommitStmt_Transaction').setParser(
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.TRANSACTION], ([whitespaceBeforeTransactionKeyword, transactionKeyword]) => ({
+    whitespaceBeforeTransactionKeyword,
+    transactionKeyword,
+  }))
+);
+
+nodeParser('CommonTableExpression').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('tableName', IdentifierParser),
+      key('columnNames', fragmentParser('ColumnNames')),
+      key('whitespaceBeforeAsKeyword', WhitespaceLikeParser),
+      key('asKeyword', KeywordParser.AS),
+      key('materialized', fragmentParser('MaybeMaterialized')),
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('whitespaceBeforeSelect', MaybeWhitespaceLikeParser),
+      key('select', nodeParser('SelectStmt')),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+fragmentParser('ColumnNames').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('columnNames', nonEmptyCommaSingleList(IdentifierParser)),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+fragmentParser('MaybeMaterialized').setParser(c.oneOf(fragmentParser('Materialized'), fragmentParser('NotMaterialized')));
+
+fragmentParser('Materialized').setParser(
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.MATERIALIZED], ([whitespaceBeforeMaterializedKeyword, materializedKeyword]) => ({
+    variant: 'Materialized',
+    whitespaceBeforeMaterializedKeyword,
+    materializedKeyword,
+  }))
+);
+
+fragmentParser('NotMaterialized').setParser(
+  c.applyPipe(
+    [WhitespaceLikeParser, KeywordParser.NOT, WhitespaceLikeParser, KeywordParser.MATERIALIZED],
+    ([whitespaceBeforeNotKeyword, notKeyword, whitespaceBeforeMaterializedKeyword, materializedKeyword]) => ({
+      variant: 'NotMaterialized',
+      whitespaceBeforeNotKeyword,
+      notKeyword,
+      whitespaceBeforeMaterializedKeyword,
+      materializedKeyword,
+    })
+  )
+);
+
+nodeParser('CompoundOperator').setParser(
+  c.oneOf(
+    fragmentParser('CompoundOperator_Union'),
+    fragmentParser('CompoundOperator_UnionAll'),
+    fragmentParser('CompoundOperator_Intersect'),
+    fragmentParser('CompoundOperator_Except')
+  )
+);
+
+fragmentParser('CompoundOperator_Union').setParser(c.apply(KeywordParser.UNION, (unionKeyword) => ({ variant: 'Union', unionKeyword })));
+
+fragmentParser('CompoundOperator_UnionAll').setParser(
+  c.applyPipe([KeywordParser.UNION, WhitespaceLikeParser, KeywordParser.ALL], ([unionKeyword, whitespaceBeforeAllKeyword, allKeyword]) => ({
+    variant: 'UnionAll',
+    unionKeyword,
+    whitespaceBeforeAllKeyword,
+    allKeyword,
+  }))
+);
+
+fragmentParser('CompoundOperator_Intersect').setParser(c.apply(KeywordParser.INTERSECT, (intersectKeyword) => ({ variant: 'Intersect', intersectKeyword })));
+
+fragmentParser('CompoundOperator_Except').setParser(c.apply(KeywordParser.EXCEPT, (exceptKeyword) => ({ variant: 'Except', exceptKeyword })));
+
+nodeParser('CompoundSelectStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('with', fragmentParser('StmtWith')),
+      key('select', nodeParser('SelectCore')),
+      key('compoundSelects', nonEmptyList(fragmentParser('CompoundSelectStmt_Item'))),
+      key('orderBy', fragmentParser('OrderBy')),
+      key('limit', fragmentParser('Limit'))
+    )
+  )
+);
+
+fragmentParser('StmtWith').setParser(
+  c.applyPipe(
+    [KeywordParser.WITH, fragmentParser('StmtWith_Recursive'), nonEmptyCommaSingleList(nodeParser('CommonTableExpression')), WhitespaceLikeParser],
+    ([withKeyword, recursive, commonTableExpressions, whitespaceAfter]) => ({ withKeyword, recursive, commonTableExpressions, whitespaceAfter })
+  )
+);
+
+fragmentParser('StmtWith_Recursive').setParser(
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.RECURSIVE], ([whitespaceBeforeRecursiveKeyword, recursiveKeyword]) => ({
+    whitespaceBeforeRecursiveKeyword,
+    recursiveKeyword,
+  }))
+);
+
+fragmentParser('CompoundSelectStmt_Item').setParser(
+  c.oneOf(
+    fragmentParser('CompoundSelectStmt_Item_Union'),
+    fragmentParser('CompoundSelectStmt_Item_UnionAll'),
+    fragmentParser('CompoundSelectStmt_Item_Intersect'),
+    fragmentParser('CompoundSelectStmt_Item_Except')
+  )
+);
+
+fragmentParser('CompoundSelectStmt_Item_Union').setParser(
+  c.keyed({ variant: 'Union' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeUnionKeyword', WhitespaceLikeParser),
+      key('unionKeyword', KeywordParser.UNION),
+      key('whitespaceBeforeSelect', WhitespaceLikeParser),
+      key('select', nodeParser('SelectCore'))
+    )
+  )
+);
+
+fragmentParser('CompoundSelectStmt_Item_UnionAll').setParser(
+  c.keyed({ variant: 'UnionAll' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeUnionKeyword', WhitespaceLikeParser),
+      key('unionKeyword', KeywordParser.UNION),
+      key('whitespaceBeforeAllKeyword', WhitespaceLikeParser),
+      key('allKeyword', KeywordParser.ALL),
+      key('whitespaceBeforeSelect', WhitespaceLikeParser),
+      key('select', nodeParser('SelectCore'))
+    )
+  )
+);
+
+fragmentParser('CompoundSelectStmt_Item_Intersect').setParser(
+  c.keyed({ variant: 'Intersect' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeIntersectKeyword', WhitespaceLikeParser),
+      key('intersectKeyword', KeywordParser.INTERSECT),
+      key('whitespaceBeforeSelect', WhitespaceLikeParser),
+      key('select', nodeParser('SelectCore'))
+    )
+  )
+);
+
+fragmentParser('CompoundSelectStmt_Item_Except').setParser(
+  c.keyed({ variant: 'Except' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeExceptKeyword', WhitespaceLikeParser),
+      key('exceptKeyword', KeywordParser.EXCEPT),
+      key('whitespaceBeforeSelect', WhitespaceLikeParser),
+      key('select', nodeParser('SelectCore'))
+    )
+  )
+);
+
+fragmentParser('OrderBy').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOrderKeyword', WhitespaceLikeParser),
+      key('orderKeyword', KeywordParser.ORDER),
+      key('whitespaceBeforeByKeyword', WhitespaceLikeParser),
+      key('byKeyword', KeywordParser.BY),
+      key('orderingTerms', nonEmptyCommaSingleList(nodeParser('OrderingTerm')))
+    )
+  )
+);
+
+fragmentParser('Limit').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeLimitKeyword', WhitespaceLikeParser),
+      key('limitKeyword', KeywordParser.LIMIT),
+      key('whitespaceBeforeExpr', WhitespaceLikeParser),
+      key('expr', ExprParser),
+      key('inner', c.oneOf(fragmentParser('Limit_Offset'), fragmentParser('Limit_Expr')))
+    )
+  )
+);
+
+fragmentParser('Limit_Offset').setParser(
+  c.keyed({ variant: 'Offset' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOffsetKeyword', WhitespaceLikeParser),
+      key('offsetKeyword', KeywordParser.OFFSET),
+      key('whitespaceBeforeExpr', WhitespaceLikeParser),
+      key('expr', ExprParser)
+    )
+  )
+);
+
+fragmentParser('Limit_Expr').setParser(
+  c.keyed({ variant: 'Expr' }, (key) =>
+    c.keyedPipe(key('whitespaceBeforeComma', WhitespaceLikeParser), commaParser, key('whitespaceBeforeExpr', WhitespaceLikeParser), key('expr', ExprParser))
+  )
+);
+
+nodeParser('ConflictClause').setParser(c.apply(fragmentParser('ConflictClause_OnConflict'), (onConflict) => ({ onConflict })));
+
+fragmentParser('ConflictClause_OnConflict').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('onKeyword', KeywordParser.ON),
+      key('whitespaceBeforeConflictKeyword', WhitespaceLikeParser),
+      key('conflictKeyword', KeywordParser.CONFLICT),
+      key('inner', fragmentParser('ConflictClause_OnConflict_Inner'))
+    )
+  )
+);
+
+fragmentParser('ConflictClause_OnConflict_Inner').setParser(
+  c.oneOf(
+    fragmentParser('ConflictClause_OnConflict_Inner_Rollback'),
+    fragmentParser('ConflictClause_OnConflict_Inner_Abort'),
+    fragmentParser('ConflictClause_OnConflict_Inner_Fail'),
+    fragmentParser('ConflictClause_OnConflict_Inner_Ignore'),
+    fragmentParser('ConflictClause_OnConflict_Inner_Replace')
+  )
+);
+
+fragmentParser('ConflictClause_OnConflict_Inner_Rollback').setParser(
+  c.keyed({ variant: 'Rollback' }, (key) =>
+    c.keyedPipe(key('whitespaceBeforeRollbackKeyword', WhitespaceLikeParser), key('rollbackKeyword', KeywordParser.ROLLBACK))
+  )
+);
+
+fragmentParser('ConflictClause_OnConflict_Inner_Abort').setParser(
+  c.keyed({ variant: 'Abort' }, (key) => c.keyedPipe(key('whitespaceBeforeAbortKeyword', WhitespaceLikeParser), key('abortKeyword', KeywordParser.ABORT)))
+);
+
+fragmentParser('ConflictClause_OnConflict_Inner_Fail').setParser(
+  c.keyed({ variant: 'Fail' }, (key) => c.keyedPipe(key('whitespaceBeforeFailKeyword', WhitespaceLikeParser), key('failKeyword', KeywordParser.FAIL)))
+);
+
+fragmentParser('ConflictClause_OnConflict_Inner_Ignore').setParser(
+  c.keyed({ variant: 'Ignore' }, (key) => c.keyedPipe(key('whitespaceBeforeIgnoreKeyword', WhitespaceLikeParser), key('ignoreKeyword', KeywordParser.IGNORE)))
+);
+
+fragmentParser('ConflictClause_OnConflict_Inner_Replace').setParser(
+  c.keyed({ variant: 'Replace' }, (key) =>
+    c.keyedPipe(key('whitespaceBeforeReplaceKeyword', WhitespaceLikeParser), key('replaceKeyword', KeywordParser.REPLACE))
+  )
+);
+
+nodeParser('CreateIndexStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('createKeyword', KeywordParser.CREATE),
+      key('unique', fragmentParser('Unique')),
+      key('whitespaceBeforeIndexKeyword', WhitespaceLikeParser),
+      key('indexKeyword', KeywordParser.INDEX),
+      key('ifNotExists', fragmentParser('IfNotExists')),
+      key('whitespaceBeforeIndex', WhitespaceLikeParser),
+      key('index', fragmentParser('SchemaIndex')),
+      key('whitespaceBeforeOnKeyword', WhitespaceLikeParser),
+      key('onKeyword', KeywordParser.ON),
+      key('whitespaceBeforeTableName', WhitespaceLikeParser),
+      key('tableName', IdentifierParser),
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('indexedColumns', nonEmptyCommaSingleList(nodeParser('IndexedColumn'))),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser,
+      key('where', fragmentParser('Where'))
+    )
+  )
+);
+
+fragmentParser('Unique').setParser(
+  c.applyPipe([WhitespaceLikeParser, KeywordParser.UNIQUE], ([whitespaceBeforeUniqueKeyword, uniqueKeyword]) => ({
+    whitespaceBeforeUniqueKeyword,
+    uniqueKeyword,
+  }))
+);
+
+fragmentParser('IfNotExists').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeIfKeyword', WhitespaceLikeParser),
+      key('ifKeyword', KeywordParser.IF),
+      key('whitespaceBeforeNotKeyword', WhitespaceLikeParser),
+      key('notKeyword', KeywordParser.NOT),
+      key('whitespaceBeforeExistsKeyword', WhitespaceLikeParser),
+      key('existsKeyword', KeywordParser.EXISTS)
+    )
+  )
+);
+
+fragmentParser('SchemaIndex').setParser(c.applyPipe([fragmentParser('SchemaItem_Schema'), IdentifierParser], ([schema, index]) => ({ schema, index })));
+
+fragmentParser('Where').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeWhereKeyword', WhitespaceLikeParser),
+      key('whereKeyword', KeywordParser.WHERE),
+      key('whitespaceBeforeExpr', WhitespaceLikeParser),
+      key('expr', ExprParser)
+    )
+  )
+);
+
+nodeParser('CreateTableStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('createKeyword', KeywordParser.CREATE),
+      key('temp', fragmentParser('Temp')),
+      key('whitespaceBeforeTableKeyword', WhitespaceLikeParser),
+      key('tableKeyword', KeywordParser.TABLE),
+      key('ifNotExists', fragmentParser('IfNotExists')),
+      key('whitespaceBeforeTable', WhitespaceLikeParser),
+      key('table', fragmentParser('SchemaTable')),
+      key('definition', fragmentParser('CreateTableStmt_Definition'))
+    )
+  )
+);
+
+fragmentParser('Temp').setParser(c.oneOf(fragmentParser('Temp_Temp'), fragmentParser('Temp_Temporary')));
+
+fragmentParser('Temp_Temp').setParser(
+  c.keyed({ variant: 'Temp' }, (key) => c.keyedPipe(key('whitespaceBeforeTempKeyword', WhitespaceLikeParser), key('tempKeyword', KeywordParser.TEMP)))
+);
+
+fragmentParser('Temp_Temporary').setParser(
+  c.keyed({ variant: 'Temporary' }, (key) =>
+    c.keyedPipe(key('whitespaceBeforeTemporaryKeyword', WhitespaceLikeParser), key('temporaryKeyword', KeywordParser.TEMPORARY))
+  )
+);
+
+fragmentParser('CreateTableStmt_Definition').setParser(c.oneOf(fragmentParser('CreateTable_AsDef'), fragmentParser('CreateTable_ColumnsDef')));
+
+fragmentParser('CreateTable_AsDef').setParser(
+  c.keyed({ variant: 'As' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeAsKeyword', WhitespaceLikeParser),
+      key('asKeyword', KeywordParser.AS),
+      key('whitespaceBeforeSelectStmt', WhitespaceLikeParser),
+      key('selectStmt', nodeParser('SelectStmt'))
+    )
+  )
+);
+
+fragmentParser('CreateTable_ColumnsDef').setParser(
+  c.keyed({ variant: 'Columns' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('columnDefs', nonEmptyCommaSingleList(nodeParser('ColumnDef'))),
+      key('tableConstraints', c.many(fragmentParser('CreateTable_Constraint'))),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser,
+      key('withoutRowId', fragmentParser('WithoutRowId'))
+    )
+  )
+);
+
+fragmentParser('CreateTable_Constraint').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeComma', MaybeWhitespaceLikeParser),
+      commaParser,
+      key('whitespaceBeforeTableConstraint', MaybeWhitespaceLikeParser),
+      key('tableConstraint', nodeParser('TableConstraint'))
+    )
+  )
+);
+
+fragmentParser('WithoutRowId').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeWithoutKeyword', WhitespaceLikeParser),
+      key('withoutKeyword', KeywordParser.WITHOUT),
+      key('whitespaceBeforeRowidKeyword', WhitespaceLikeParser),
+      key('rowidKeyword', KeywordParser.ROWID)
+    )
+  )
+);
+
+// TODO: CreateTriggerStmt
 
 // fragmentParser('IdentifierBasic').setParser(
 //   c.apply(
@@ -1664,6 +2063,128 @@ fragmentParser('Comment_Multiline').setParser(
 //   )
 // );
 
+nodeParser('Whitespace').setParser(c.apply(whitespaceRawParser, (content) => ({ content })));
+
+// Functions
+
+function createContext(): Ctx {
+  const ranges: Ranges = new Map();
+  return {
+    ranges,
+    createNode<K extends NodeKind>(kind: K, start: number, end: number, data: NodeData[K]): Node<K> {
+      const node: Node<K> = { kind, ...data } as any;
+      ranges.set(node, { start, end });
+      return node;
+    },
+  };
+}
+
+function createExact<T extends string>(str: T): Parser<T, Ctx> {
+  return c.exact<T, Ctx>(str);
+}
+
+function createRegexp(name: string, reg: RegExp): Parser<string, Ctx> {
+  return c.named(`Regexp(${name})`, c.regexp<Ctx>(reg));
+}
+
+function createKeyword<T extends string>(str: T): Parser<T, Ctx> {
+  return c.keyword<T, Ctx>(str);
+}
+
+function mapIfExist<T, U>(val: T | undefined | null, mapper: (val: T) => U): U | undefined {
+  return val === undefined || val == null ? undefined : mapper(val);
+}
+
+function expectNever(val: never): never {
+  throw new Error(`Unexpected never ${val}`);
+}
+
+function nonEmptyList<T>(itemParser: Parser<T, Ctx>): Parser<NonEmptyList<T>, Ctx> {
+  const parser = c.many(itemParser, { allowEmpty: false });
+  return {
+    parse: (parentPath, input, parent, ctx) => {
+      const path = [...parentPath, 'NonEmptyList'];
+      const next = parser.parse(path, input, parent, ctx);
+      if (next.type === 'Failure') {
+        return next;
+      }
+      const result: NonEmptyList<T> = { head: next.value[0], tail: next.value.slice(1) };
+      return ParseSuccess(input.position, next.rest, result);
+    },
+  };
+}
+
+function nonEmptyListSepBy<T, Sep>(itemParser: Parser<T, Ctx>, sepParser: Parser<Sep, Ctx>): Parser<NonEmptyListSepBy<T, Sep>, Ctx> {
+  const parser = c.manySepBy(itemParser, sepParser, { allowEmpty: false, allowTrailing: false });
+  return {
+    parse: (parentPath, input, parent, ctx) => {
+      const path = [...parentPath, 'NonEmptyListSepBy'];
+      const next = parser.parse(path, input, parent, ctx);
+      if (next.type === 'Failure') {
+        return next;
+      }
+      if (next.value === null) {
+        return ParseFailure(input.position, path, 'Empty not allowed', next.ifError);
+      }
+      const result: NonEmptyListSepBy<T, Sep> = { head: next.value.head, tail: next.value.tail };
+      return ParseSuccess(input.position, next.rest, result);
+    },
+  };
+}
+
+function nonEmptyCommaList<T>(itemParser: Parser<T, Ctx>): Parser<NonEmptyCommaList<T>, Ctx> {
+  return nonEmptyListSepBy(
+    itemParser,
+    c.apply(c.pipe(MaybeWhitespaceLikeParser, commaParser), ([whitespaceBeforeComma]) => ({ whitespaceBeforeComma }))
+  );
+}
+
+function nonEmptyCommaSingleList<T>(itemParser: Parser<T, Ctx>): Parser<NonEmptyCommaListSingle<T>, Ctx> {
+  return nonEmptyListSepBy(
+    c.apply(c.pipe(MaybeWhitespaceLikeParser, itemParser), ([whitespaceBeforeItem, item]) => ({ whitespaceBeforeItem, item })),
+    c.apply(c.pipe(MaybeWhitespaceLikeParser, commaParser), ([whitespaceBeforeComma]) => ({ whitespaceBeforeComma }))
+  );
+}
+
+function manySepByResultToArray<T>(result: c.ManySepByResult<T, any>): Array<T> {
+  if (result === null) {
+    return [];
+  }
+  return [result.head, ...result.tail.map((v) => v.item)];
+}
+
+// function exprChainItemOpExprParser<Variant extends string>(
+//   variant: Variant,
+//   opParser: Parser<string, Ctx>,
+//   wlParser: Parser<Fragment<'WhitespaceLike'> | undefined, Ctx>
+// ): Parser<ExprChain_Item_OpExpr<Variant>, Ctx> {
+//   return c.apply(
+//     c.pipe(wlParser, opParser, wlParser, fragmentParser('ExprBase')),
+//     ([whitespaceBeforeOperator, _op, whitespaceBeforeExpr, expr]): ExprChain_Item_OpExpr<Variant> => ({
+//       variant,
+//       whitespaceBeforeOperator,
+//       whitespaceBeforeExpr,
+//       expr,
+//     })
+//   );
+// }
+
+// function exprChainItemMaybeNotOpExprParser<Variant extends string>(
+//   variant: Variant,
+//   opParser: Parser<string, Ctx>
+// ): Parser<ExprChain_Item_MaybeNotOpExpr<Variant>, Ctx> {
+//   return c.apply(
+//     c.pipe(WhitespaceLikeParser, opParser, c.maybe(fragmentParser('Not')), WhitespaceLikeParser, fragmentParser('ExprBase')),
+//     ([whitespaceBeforeOperator, _op, not, whitespaceBeforeExpr, expr]): ExprChain_Item_MaybeNotOpExpr<Variant> => ({
+//       variant,
+//       whitespaceBeforeOperator,
+//       not,
+//       whitespaceBeforeExpr,
+//       expr,
+//     })
+//   );
+// }
+
 // function mergeParts(left: ExprPart, right: ExprPart, parentPath: Array<string>, ctx: Ctx): { type: 'Success'; part: ExprPart } | ParseResultFailure {
 //   const start = left._result.start;
 //   const end = right._result.end;
@@ -1868,124 +2389,4 @@ fragmentParser('Comment_Multiline').setParser(
 //     return 0;
 //   }
 //   return OperatorPrecedence[part.variant];
-// }
-
-// Functions
-
-function createContext(): Ctx {
-  const ranges: Ranges = new Map();
-  return {
-    ranges,
-    createNode<K extends NodeKind>(kind: K, start: number, end: number, data: NodeData[K]): Node<K> {
-      const node: Node<K> = { kind, ...data } as any;
-      ranges.set(node, { start, end });
-      return node;
-    },
-  };
-}
-
-function createExact<T extends string>(str: T): Parser<T, Ctx> {
-  return c.exact<T, Ctx>(str);
-}
-
-function createRegexp(name: string, reg: RegExp): Parser<string, Ctx> {
-  return c.named(`Regexp(${name})`, c.regexp<Ctx>(reg));
-}
-
-function createKeyword<T extends string>(str: T): Parser<T, Ctx> {
-  return c.keyword<T, Ctx>(str);
-}
-
-function mapIfExist<T, U>(val: T | undefined | null, mapper: (val: T) => U): U | undefined {
-  return val === undefined || val == null ? undefined : mapper(val);
-}
-
-function expectNever(val: never): never {
-  throw new Error(`Unexpected never ${val}`);
-}
-
-function nonEmptyList<T>(itemParser: Parser<T, Ctx>): Parser<NonEmptyList<T>, Ctx> {
-  const parser = c.many(itemParser, { allowEmpty: false });
-  return {
-    parse: (parentPath, input, parent, ctx) => {
-      const path = [...parentPath, 'NonEmptyList'];
-      const next = parser.parse(path, input, parent, ctx);
-      if (next.type === 'Failure') {
-        return next;
-      }
-      const result: NonEmptyList<T> = { head: next.value[0], tail: next.value.slice(1) };
-      return ParseSuccess(input.position, next.rest, result);
-    },
-  };
-}
-
-function nonEmptyListSepBy<T, Sep>(itemParser: Parser<T, Ctx>, sepParser: Parser<Sep, Ctx>): Parser<NonEmptyListSepBy<T, Sep>, Ctx> {
-  const parser = c.manySepBy(itemParser, sepParser, { allowEmpty: false, allowTrailing: false });
-  return {
-    parse: (parentPath, input, parent, ctx) => {
-      const path = [...parentPath, 'NonEmptyListSepBy'];
-      const next = parser.parse(path, input, parent, ctx);
-      if (next.type === 'Failure') {
-        return next;
-      }
-      if (next.value === null) {
-        return ParseFailure(input.position, path, 'Empty not allowed', next.ifError);
-      }
-      const result: NonEmptyListSepBy<T, Sep> = { head: next.value.head, tail: next.value.tail };
-      return ParseSuccess(input.position, next.rest, result);
-    },
-  };
-}
-
-function nonEmptyCommaList<T>(itemParser: Parser<T, Ctx>): Parser<NonEmptyCommaList<T>, Ctx> {
-  return nonEmptyListSepBy(
-    itemParser,
-    c.apply(c.pipe(MaybeWhitespaceLikeParser, commaParser), ([whitespaceBeforeComma]) => ({ whitespaceBeforeComma }))
-  );
-}
-
-function nonEmptyCommaSingleList<T>(itemParser: Parser<T, Ctx>): Parser<NonEmptyCommaListSingle<T>, Ctx> {
-  return nonEmptyListSepBy(
-    c.apply(c.pipe(MaybeWhitespaceLikeParser, itemParser), ([whitespaceBeforeItem, item]) => ({ whitespaceBeforeItem, item })),
-    c.apply(c.pipe(MaybeWhitespaceLikeParser, commaParser), ([whitespaceBeforeComma]) => ({ whitespaceBeforeComma }))
-  );
-}
-
-function manySepByResultToArray<T>(result: c.ManySepByResult<T, any>): Array<T> {
-  if (result === null) {
-    return [];
-  }
-  return [result.head, ...result.tail.map((v) => v.item)];
-}
-
-// function exprChainItemOpExprParser<Variant extends string>(
-//   variant: Variant,
-//   opParser: Parser<string, Ctx>,
-//   wlParser: Parser<Fragment<'WhitespaceLike'> | undefined, Ctx>
-// ): Parser<ExprChain_Item_OpExpr<Variant>, Ctx> {
-//   return c.apply(
-//     c.pipe(wlParser, opParser, wlParser, fragmentParser('ExprBase')),
-//     ([whitespaceBeforeOperator, _op, whitespaceBeforeExpr, expr]): ExprChain_Item_OpExpr<Variant> => ({
-//       variant,
-//       whitespaceBeforeOperator,
-//       whitespaceBeforeExpr,
-//       expr,
-//     })
-//   );
-// }
-
-// function exprChainItemMaybeNotOpExprParser<Variant extends string>(
-//   variant: Variant,
-//   opParser: Parser<string, Ctx>
-// ): Parser<ExprChain_Item_MaybeNotOpExpr<Variant>, Ctx> {
-//   return c.apply(
-//     c.pipe(WhitespaceLikeParser, opParser, c.maybe(fragmentParser('Not')), WhitespaceLikeParser, fragmentParser('ExprBase')),
-//     ([whitespaceBeforeOperator, _op, not, whitespaceBeforeExpr, expr]): ExprChain_Item_MaybeNotOpExpr<Variant> => ({
-//       variant,
-//       whitespaceBeforeOperator,
-//       not,
-//       whitespaceBeforeExpr,
-//       expr,
-//     })
-//   );
 // }
