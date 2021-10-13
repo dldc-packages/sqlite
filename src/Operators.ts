@@ -40,9 +40,9 @@ type OtherOperators =
   | 'Like'
   | 'Regexp'
   | 'Glob'
-  | 'IsNull'
+  | 'Isnull'
+  | 'Notnull'
   | 'NotNull'
-  | 'Not_Null'
   | 'Not'
   | 'And'
   | 'Or';
@@ -64,9 +64,9 @@ export const OperatorPrecedence: Record<UnaryOperator | BinaryOperator | OtherOp
   Like: 3,
   Regexp: 3,
   Glob: 3,
-  IsNull: 3,
+  Isnull: 3,
+  Notnull: 3,
   NotNull: 3,
-  Not_Null: 3,
 
   GreaterThan: 4,
   LowerThan: 4,

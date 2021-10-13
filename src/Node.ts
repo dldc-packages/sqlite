@@ -228,6 +228,262 @@ export type NodeData = {
     view: Fragment<'SchemaView'>;
   };
   // Expr
+  Or: {
+    leftExpr: Fragment<'ExprP01'>;
+    whitespaceBeforeOrKeyword?: WhitespaceLike;
+    orKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP01'>;
+  };
+  And: {
+    leftExpr: Fragment<'ExprP02'>;
+    whitespaceBeforeAndKeyword?: WhitespaceLike;
+    andKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP02'>;
+  };
+  Not: {
+    notKeyword?: string;
+    whitespaceBeforeExpr?: WhitespaceLike;
+    expr: Fragment<'ExprP03'>;
+  };
+  Equal: {
+    leftExpr: Fragment<'ExprP04'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    operator: '==' | '=';
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP04'>;
+  };
+  Different: {
+    leftExpr: Fragment<'ExprP04'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    operator: '!=' | '<>';
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP04'>;
+  };
+  Is: {
+    leftExpr: Fragment<'ExprP04'>;
+    whitespaceBeforeIsKeyword?: WhitespaceLike;
+    isKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP04'>;
+  };
+  IsNot: {
+    leftExpr: Fragment<'ExprP04'>;
+    whitespaceBeforeIsKeyword?: WhitespaceLike;
+    isKeyword?: string;
+    whitespaceBeforeNotKeyword?: WhitespaceLike;
+    notKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP04'>;
+  };
+  Between: {
+    expr: Fragment<'ExprP04'>;
+    not?: Fragment<'Not'>;
+    whitespaceBeforeBetweenKeyword?: WhitespaceLike;
+    betweenKeyword?: string;
+    whitespaceBeforeBetweenExpr?: WhitespaceLike;
+    betweenExpr: Fragment<'ExprP04'>;
+    whitespaceBeforeAndKeyword?: WhitespaceLike;
+    andKeyword?: string;
+    whitespaceBeforeAndExpr?: WhitespaceLike;
+    andExpr: Fragment<'ExprP04'>;
+  };
+  In: {
+    expr: Fragment<'ExprP04'>;
+    not?: Fragment<'Not'>;
+    whitespaceBeforeInKeyword?: WhitespaceLike;
+    inKeyword?: string;
+    values: Fragment<'In_Values'>;
+  };
+  Match: {
+    leftExpr: Fragment<'ExprP04'>;
+    not?: Fragment<'Not'>;
+    whitespaceBeforeMatchKeyword?: WhitespaceLike;
+    matchKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP04'>;
+  };
+  Like: {
+    leftExpr: Fragment<'ExprP04'>;
+    not?: Fragment<'Not'>;
+    whitespaceBeforeLikeKeyword?: WhitespaceLike;
+    likeKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP04'>;
+    escape?: Fragment<'Like_Escape'>;
+  };
+  Glob: {
+    leftExpr: Fragment<'ExprP04'>;
+    not?: Fragment<'Not'>;
+    whitespaceBeforeGlobKeyword?: WhitespaceLike;
+    globKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP04'>;
+  };
+  Regexp: {
+    leftExpr: Fragment<'ExprP04'>;
+    not?: Fragment<'Not'>;
+    whitespaceBeforeRegexpKeyword?: WhitespaceLike;
+    regexpKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP04'>;
+  };
+  Isnull: {
+    expr: Fragment<'ExprP04'>;
+    whitespaceBeforeIsnullKeyword?: WhitespaceLike;
+    isnullKeyword?: string;
+  };
+  Notnull: {
+    expr: Fragment<'ExprP04'>;
+    whitespaceBeforeNotnullKeyword?: WhitespaceLike;
+    notnullKeyword?: string;
+  };
+  NotNull: {
+    expr: Fragment<'ExprP04'>;
+    whitespaceBeforeNotKeyword?: WhitespaceLike;
+    notKeyword?: string;
+    whitespaceBeforeNullKeyword?: WhitespaceLike;
+    nullKeyword?: string;
+  };
+  LowerThan: {
+    leftExpr: Fragment<'ExprP05'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP05'>;
+  };
+  GreaterThan: {
+    leftExpr: Fragment<'ExprP05'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP05'>;
+  };
+  LowerOrEqualThan: {
+    leftExpr: Fragment<'ExprP05'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP05'>;
+  };
+  GreaterOrEqualThan: {
+    leftExpr: Fragment<'ExprP05'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP05'>;
+  };
+  Escape: {
+    escapeKeyword?: string;
+    whitespaceBeforeExpr?: WhitespaceLike;
+    expr: Fragment<'ExprP06'>;
+  };
+  BitwiseAnd: {
+    leftExpr: Fragment<'ExprP07'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP07'>;
+  };
+  BitwiseOr: {
+    leftExpr: Fragment<'ExprP07'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP07'>;
+  };
+  BitwiseShiftLeft: {
+    leftExpr: Fragment<'ExprP07'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP07'>;
+  };
+  BitwiseShiftRight: {
+    leftExpr: Fragment<'ExprP07'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP07'>;
+  };
+  Add: {
+    leftExpr: Fragment<'ExprP08'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP08'>;
+  };
+  Subtract: {
+    leftExpr: Fragment<'ExprP08'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP08'>;
+  };
+  Multiply: {
+    leftExpr: Fragment<'ExprP09'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP09'>;
+  };
+  Divide: {
+    leftExpr: Fragment<'ExprP09'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP09'>;
+  };
+  Modulo: {
+    leftExpr: Fragment<'ExprP09'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP09'>;
+  };
+  Concatenate: {
+    leftExpr: Fragment<'ExprP10'>;
+    whitespaceBeforeOperator?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprP10'>;
+  };
+  Collate: {
+    expr: Fragment<'ExprP11'>;
+    whitespaceBeforeCollateKeyword?: WhitespaceLike;
+    collateKeyword?: string;
+    whitespaceBeforeCollationName?: WhitespaceLike;
+    collationName: Identifier;
+  };
+  BitwiseNegation: {
+    whitespaceBeforeExpr?: WhitespaceLike;
+    expr: Fragment<'ExprP12'>;
+  };
+  Plus: {
+    whitespaceBeforeExpr?: WhitespaceLike;
+    expr: Fragment<'ExprP12'>;
+  };
+  Minus: {
+    whitespaceBeforeExpr?: WhitespaceLike;
+    expr: Fragment<'ExprP12'>;
+  };
+  NumericLiteral: Fragment<'NumericLiteral_Integer' | 'NumericLiteral_Float' | 'NumericLiteral_Hex'>;
+  StringLiteral: {
+    content: string;
+  };
+  BlobLiteral: {
+    content: string;
+    xCase: 'lowercase' | 'uppercase';
+  };
+  Null: {
+    nullKeyword?: string;
+  };
+  True: {
+    trueKeyword?: string;
+  };
+  False: {
+    falseKeyword?: string;
+  };
+  CurrentTime: {
+    currentTimeKeyword?: string;
+  };
+  CurrentDate: {
+    currentDateKeyword?: string;
+  };
+  CurrentTimestamp: {
+    currentTimestampKeyword?: string;
+  };
+  Identifier: Fragment<'Identifier_Basic' | 'Identifier_Brackets' | 'Identifier_DoubleQuote' | 'Identifier_Backtick'>;
+  BindParameter: Fragment<
+    'BindParameter_Indexed' | 'BindParameter_Numbered' | 'BindParameter_AtNamed' | 'BindParameter_ColonNamed' | 'BindParameter_DollarNamed'
+  >;
   Column: {
     table?: Fragment<'SchemaTable'>;
     columnName: Identifier;
@@ -268,250 +524,6 @@ export type NodeData = {
     else?: Fragment<'Case_Else'>;
     whitespaceBeforeEndKeyword?: WhitespaceLike;
     endKeyword?: string;
-  };
-  Null: {};
-  True: {};
-  False: {};
-  CurrentTime: {};
-  CurrentDate: {};
-  CurrentTimestamp: {};
-  Identifier: Fragment<'Identifier_Basic' | 'Identifier_Brackets' | 'Identifier_DoubleQuote' | 'Identifier_Backtick'>;
-  StringLiteral: {
-    content: string;
-  };
-  BlobLiteral: {
-    content: string;
-    xCase: 'lowercase' | 'uppercase';
-  };
-  NumericLiteral: Fragment<'NumericLiteral_Integer' | 'NumericLiteral_Float' | 'NumericLiteral_Hex'>;
-  BindParameter: Fragment<
-    'BindParameter_Indexed' | 'BindParameter_Numbered' | 'BindParameter_AtNamed' | 'BindParameter_ColonNamed' | 'BindParameter_DollarNamed'
-  >;
-  BitwiseNegation: {
-    whitespaceBeforeExpr?: WhitespaceLike;
-    expr: Fragment<'ExprP12'>;
-  };
-  Plus: {
-    whitespaceBeforeExpr?: WhitespaceLike;
-    expr: Fragment<'ExprP12'>;
-  };
-  Minus: {
-    whitespaceBeforeExpr?: WhitespaceLike;
-    expr: Fragment<'ExprP12'>;
-  };
-  Collate: {
-    expr: Fragment<'ExprP11'>;
-    whitespaceBeforeCollateKeyword?: WhitespaceLike;
-    collateKeyword?: string;
-    whitespaceBeforeCollationName?: WhitespaceLike;
-    collationName: Identifier;
-  };
-  Concatenate: {
-    leftExpr: Fragment<'ExprP10'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP10'>;
-  };
-  Multiply: {
-    leftExpr: Fragment<'ExprP09'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP09'>;
-  };
-  Divide: {
-    leftExpr: Fragment<'ExprP09'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP09'>;
-  };
-  Modulo: {
-    leftExpr: Fragment<'ExprP09'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP09'>;
-  };
-  Add: {
-    leftExpr: Fragment<'ExprP08'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP08'>;
-  };
-  Subtract: {
-    leftExpr: Fragment<'ExprP08'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP08'>;
-  };
-  BitwiseAnd: {
-    leftExpr: Fragment<'ExprP07'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP07'>;
-  };
-  BitwiseOr: {
-    leftExpr: Fragment<'ExprP07'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP07'>;
-  };
-  BitwiseShiftLeft: {
-    leftExpr: Fragment<'ExprP07'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP07'>;
-  };
-  BitwiseShiftRight: {
-    leftExpr: Fragment<'ExprP07'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP07'>;
-  };
-  Escape: {
-    escapeKeyword?: string;
-    whitespaceBeforeExpr?: WhitespaceLike;
-    expr: Fragment<'ExprP06'>;
-  };
-  GreaterThan: {
-    leftExpr: Fragment<'ExprP05'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP05'>;
-  };
-  LowerThan: {
-    leftExpr: Fragment<'ExprP05'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP05'>;
-  };
-  GreaterOrEqualThan: {
-    leftExpr: Fragment<'ExprP05'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP05'>;
-  };
-  LowerOrEqualThan: {
-    leftExpr: Fragment<'ExprP05'>;
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP05'>;
-  };
-  Equal: {
-    leftExpr: Fragment<'ExprP04'>;
-    operator: '==' | '=';
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP04'>;
-  };
-  Different: {
-    leftExpr: Fragment<'ExprP04'>;
-    operator: '!=' | '<>';
-    whitespaceBeforeOperator?: WhitespaceLike;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP04'>;
-  };
-  Is: {
-    leftExpr: Fragment<'ExprP04'>;
-    whitespaceBeforeIsKeyword?: WhitespaceLike;
-    isKeyword?: string;
-    whitespaceBeforeRight?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP04'>;
-  };
-  IsNot: {
-    leftExpr: Fragment<'ExprP04'>;
-    whitespaceBeforeIsKeyword?: WhitespaceLike;
-    isKeyword?: string;
-    whitespaceBeforeNotKeyword?: WhitespaceLike;
-    notKeyword?: string;
-    whitespaceBeforeRight?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP04'>;
-  };
-  Between: {
-    expr: Fragment<'ExprP04'>;
-    not?: Fragment<'Between_Not'>;
-    whitespaceBeforeBetweenKeyword?: WhitespaceLike;
-    betweenKeyword?: string;
-    whitespaceBeforeBetweenExpr?: WhitespaceLike;
-    betweenExpr: Fragment<'ExprP04'>;
-    whitespaceBeforeAndKeyword?: WhitespaceLike;
-    andKeyword?: string;
-    whitespaceBeforeAndExpr?: WhitespaceLike;
-    andExpr: Fragment<'ExprP04'>;
-  };
-  In: {
-    expr: Fragment<'ExprP04'>;
-    not?: Fragment<'In_Not'>;
-    whitespaceBeforeInKeyword?: WhitespaceLike;
-    inKeyword?: string;
-    values: Fragment<'In_Values'>;
-  };
-  Like: {
-    leftExpr: Fragment<'ExprP04'>;
-    not?: Fragment<'Not'>;
-    whitespaceBeforeLikeKeyword?: WhitespaceLike;
-    likeKeyword?: string;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP04'>;
-    escape?: Fragment<'Like_Escape'>;
-  };
-  Glob: {
-    leftExpr: Fragment<'ExprP04'>;
-    not?: Fragment<'Not'>;
-    whitespaceBeforeGlobKeyword?: WhitespaceLike;
-    globKeyword?: string;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP04'>;
-  };
-  Regexp: {
-    leftExpr: Fragment<'ExprP04'>;
-    not?: Fragment<'Not'>;
-    whitespaceBeforeRegexpKeyword?: WhitespaceLike;
-    regexpKeyword?: string;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP04'>;
-  };
-  Match: {
-    leftExpr: Fragment<'ExprP04'>;
-    not?: Fragment<'Not'>;
-    whitespaceBeforeMatchKeyword?: WhitespaceLike;
-    matchKeyword?: string;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP04'>;
-  };
-  Isnull: {
-    expr: Fragment<'ExprP04'>;
-    whitespaceBeforeIsnullKeyword?: WhitespaceLike;
-    isnullKeyword?: string;
-  };
-  Notnull: {
-    expr: Fragment<'ExprP04'>;
-    whitespaceBeforeNotnullKeyword?: WhitespaceLike;
-    notnullKeyword?: string;
-  };
-  NotNull: {
-    expr: Fragment<'ExprP04'>;
-    whitespaceBeforeNotKeyword?: WhitespaceLike;
-    notKeyword?: string;
-    whitespaceBeforeNullKeyword?: WhitespaceLike;
-    nullKeyword?: string;
-  };
-  Not: {
-    notKeyword?: string;
-    whitespaceBeforeExpr?: WhitespaceLike;
-    expr: Fragment<'ExprP03'>;
-  };
-  And: {
-    leftExpr: Fragment<'ExprP02'>;
-    whitespaceBeforeAndKeyword?: WhitespaceLike;
-    andKeyword?: string;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP02'>;
-  };
-  Or: {
-    leftExpr: Fragment<'ExprP01'>;
-    whitespaceBeforeOrKeyword?: WhitespaceLike;
-    orKeyword?: string;
-    whitespaceBeforeRightExpr?: WhitespaceLike;
-    rightExpr: Fragment<'ExprP01'>;
   };
   // Expr END
   FactoredSelectStmt: {

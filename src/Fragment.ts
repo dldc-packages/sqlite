@@ -183,7 +183,6 @@ type FragmentData = {
     whitespaceBeforeLiteralValue?: WhitespaceLike;
     literalValue: Fragment<'LiteralValue'>;
   };
-  LiteralValue: Node<'NumericLiteral' | 'StringLiteral' | 'BlobLiteral' | 'Null' | 'True' | 'False' | 'CurrentTime' | 'CurrentDate' | 'CurrentTimestamp'>;
   ColumnConstraint_Constraint_DefaultSignedNumber: {
     variant: 'DefaultSignedNumber';
     defaultKeyword?: string;
@@ -500,7 +499,7 @@ type FragmentData = {
   };
   CreateTriggerStmt_Action_Update_Of: {
     whitespaceBeforeOfKeyword?: WhitespaceLike;
-    ofKeywpord?: string;
+    ofKeyword?: string;
     columnNames: NonEmptyCommaListSingle<Identifier>;
   };
   CreateTriggerStmt_ForEachRow: {
@@ -545,120 +544,14 @@ type FragmentData = {
     whitespaceBeforeExistsKeyword?: WhitespaceLike;
     existsKeyword?: string;
   };
-  // Expr Parts
-  Select_Exists: {
-    not?: Fragment<'Select_Exists_Not'>;
-    existsKeyword?: string;
-    whitespaceAfterExistsKeyword?: WhitespaceLike;
-  };
-  Select_Exists_Not: {
-    notKeyword?: string;
-    whitespaceAfterNotKeyword?: WhitespaceLike;
-  };
-  FunctionInvocation_Parameters: Fragment<'FunctionInvocation_Parameters_Star' | 'FunctionInvocation_Parameters_Exprs'>;
-  FunctionInvocation_Parameters_Star: {
-    variant: 'Star';
-    whitespaceBeforeStar?: WhitespaceLike;
-  };
-  FunctionInvocation_Parameters_Exprs: {
-    variant: 'Exprs';
-    distinct?: Fragment<'FunctionInvocation_Parameters_Distinct'>;
-    exprs: NonEmptyCommaListSingle<Expr>;
-  };
-  FunctionInvocation_Parameters_Distinct: {
-    whitespaceBeforeDistinctKeyword?: WhitespaceLike;
-    distinctKeyword?: string;
-  };
-  OverClauseWithWhitespace: {
-    whitespaceBeforeOverClause?: WhitespaceLike;
-    overClause: Node<'OverClause'>;
-  };
-  Case_Expr: {
-    whitespaceBefore?: WhitespaceLike;
-    expr?: Expr;
-  };
-  Case_Item: {
-    whitespaceBeforeWhenKeyword?: WhitespaceLike;
-    whenKeyword?: string;
-    whitespaceBeforeWhenExpr?: WhitespaceLike;
-    whenExpr: Expr;
-    whitespaceBeforeThenKeyword?: WhitespaceLike;
-    thenKeyword?: string;
-    whitespaceBeforeThenExpr?: WhitespaceLike;
-    thenExpr: Expr;
-  };
-  Case_Else: {
-    whitespaceBeforeElseKeyword?: WhitespaceLike;
-    elseKeyword?: string;
-    whitespaceBeforeExpr?: WhitespaceLike;
-    expr: Expr;
-  };
-  Identifier_Basic: {
-    variant: 'Basic';
-    name: string;
-  };
-  Identifier_Brackets: {
-    variant: 'Brackets';
-    name: string;
-  };
-  Identifier_DoubleQuote: {
-    variant: 'DoubleQuote';
-    name: string;
-  };
-  Identifier_Backtick: {
-    variant: 'Backtick';
-    name: string;
-  };
-  NumericLiteral_Integer: {
-    variant: 'Integer';
-    interger: number;
-    exponent?: Fragment<'Exponent'>;
-  };
-  Exponent: {
-    raw: string;
-    value: number;
-  };
-  NumericLiteral_Float: {
-    variant: 'Float';
-    value: number;
-    integral?: number;
-    fractional: number;
-    exponent?: Fragment<'Exponent'>;
-  };
-  NumericLiteral_Hex: {
-    variant: 'Hex';
-    value: number;
-    xCase: 'lowercase' | 'uppercase';
-  };
-  BindParameter_Indexed: {
-    variant: 'Indexed';
-  };
-  BindParameter_Numbered: {
-    variant: 'Numbered';
-    number: number;
-  };
-  BindParameter_AtNamed: {
-    variant: 'AtNamed';
-    name: string;
-    suffix?: string;
-  };
-  BindParameter_ColonNamed: {
-    variant: 'ColonNamed';
-    name: string;
-    suffix?: string;
-  };
-  BindParameter_DollarNamed: {
-    variant: 'DollarNamed';
-    name: string;
-    suffix?: string;
-  };
-  Between_Not: {
-    whitespaceBeforeNotKeyword?: WhitespaceLike;
-    notKeyword?: string;
-  };
-  In_Not: {
-    whitespaceBeforeNot?: WhitespaceLike;
-  };
+  // Expr
+  Expr: Fragment<'ExprP01'>;
+  ExprP01: Fragment<'ExprP02'> | Node<'Or'>;
+  ExprP02: Fragment<'ExprP03'> | Node<'And'>;
+  ExprP03: Fragment<'ExprP04'> | Node<'Not'>;
+  ExprP04:
+    | Fragment<'ExprP05'>
+    | Node<'Equal' | 'Different' | 'Is' | 'IsNot' | 'Between' | 'In' | 'Match' | 'Like' | 'Glob' | 'Regexp' | 'Isnull' | 'Notnull' | 'NotNull'>;
   In_Values: Fragment<'In_Values_List' | 'In_Values_TableName' | 'In_Value_TableFunctionInvocation'>;
   In_Values_List: {
     variant: 'List';
@@ -701,10 +594,133 @@ type FragmentData = {
     whitespaceBeforeEscape?: WhitespaceLike;
     escape: Node<'Escape'>;
   };
+  ExprP05: Fragment<'ExprP06'> | Node<'LowerThan' | 'GreaterThan' | 'LowerOrEqualThan' | 'GreaterOrEqualThan'>;
+  ExprP06: Fragment<'ExprP07'> | Node<'Escape'>;
+  ExprP07: Fragment<'ExprP08'> | Node<'BitwiseAnd' | 'BitwiseOr' | 'BitwiseShiftLeft' | 'BitwiseShiftRight'>;
+  ExprP08: Fragment<'ExprP09'> | Node<'Add' | 'Subtract'>;
+  ExprP09: Fragment<'ExprP10'> | Node<'Multiply' | 'Divide' | 'Modulo'>;
+  ExprP10: Fragment<'ExprP11'> | Node<'Concatenate'>;
+  ExprP11: Fragment<'ExprP12'> | Node<'Collate'>;
+  ExprP12: Fragment<'ExprP13'> | Node<'BitwiseNegation' | 'Plus' | 'Minus'>;
+  ExprP13:
+    | Fragment<'LiteralValue'>
+    | Node<'Identifier' | 'BindParameter' | 'Column' | 'Select' | 'FunctionInvocation' | 'Parenthesis' | 'CastAs' | 'Case' | 'RaiseFunction'>;
+  LiteralValue: Node<'NumericLiteral' | 'StringLiteral' | 'BlobLiteral' | 'Null' | 'True' | 'False' | 'CurrentTime' | 'CurrentDate' | 'CurrentTimestamp'>;
+  NumericLiteral_Integer: {
+    variant: 'Integer';
+    interger: number;
+    exponent?: Fragment<'Exponent'>;
+  };
+  Exponent: {
+    raw: string;
+    value: number;
+  };
+  NumericLiteral_Float: {
+    variant: 'Float';
+    value: number;
+    integral?: number;
+    fractional: number;
+    exponent?: Fragment<'Exponent'>;
+  };
+  ParameterName: {
+    name: string;
+    suffix?: string;
+  };
+  NumericLiteral_Hex: {
+    variant: 'Hex';
+    value: number;
+    xCase: 'lowercase' | 'uppercase';
+  };
+  Identifier_Basic: {
+    variant: 'Basic';
+    name: string;
+  };
+  Identifier_Brackets: {
+    variant: 'Brackets';
+    name: string;
+  };
+  Identifier_DoubleQuote: {
+    variant: 'DoubleQuote';
+    name: string;
+  };
+  Identifier_Backtick: {
+    variant: 'Backtick';
+    name: string;
+  };
+  BindParameter_Indexed: {
+    variant: 'Indexed';
+  };
+  BindParameter_Numbered: {
+    variant: 'Numbered';
+    number: number;
+  };
+  BindParameter_AtNamed: {
+    variant: 'AtNamed';
+    name: string;
+    suffix?: string;
+  };
+  BindParameter_ColonNamed: {
+    variant: 'ColonNamed';
+    name: string;
+    suffix?: string;
+  };
+  BindParameter_DollarNamed: {
+    variant: 'DollarNamed';
+    name: string;
+    suffix?: string;
+  };
+  Select_Exists: {
+    not?: Fragment<'Select_Exists_Not'>;
+    existsKeyword?: string;
+    whitespaceAfterExistsKeyword?: WhitespaceLike;
+  };
+  Select_Exists_Not: {
+    notKeyword?: string;
+    whitespaceAfterNotKeyword?: WhitespaceLike;
+  };
+  FunctionInvocation_Parameters: Fragment<'FunctionInvocation_Parameters_Star' | 'FunctionInvocation_Parameters_Exprs'>;
+  FunctionInvocation_Parameters_Star: {
+    variant: 'Star';
+    whitespaceBeforeStar?: WhitespaceLike;
+  };
+  FunctionInvocation_Parameters_Exprs: {
+    variant: 'Exprs';
+    distinct?: Fragment<'FunctionInvocation_Parameters_Distinct'>;
+    exprs: NonEmptyCommaListSingle<Expr>;
+  };
+  FunctionInvocation_Parameters_Distinct: {
+    whitespaceBeforeDistinctKeyword?: WhitespaceLike;
+    distinctKeyword?: string;
+  };
+  OverClauseWithWhitespace: {
+    whitespaceBeforeOverClause?: WhitespaceLike;
+    overClause: Node<'OverClause'>;
+  };
+  Case_Expr: {
+    whitespaceBeforeExpr?: WhitespaceLike;
+    expr?: Expr;
+  };
+  Case_Item: {
+    whitespaceBeforeWhenKeyword?: WhitespaceLike;
+    whenKeyword?: string;
+    whitespaceBeforeWhenExpr?: WhitespaceLike;
+    whenExpr: Expr;
+    whitespaceBeforeThenKeyword?: WhitespaceLike;
+    thenKeyword?: string;
+    whitespaceBeforeThenExpr?: WhitespaceLike;
+    thenExpr: Expr;
+  };
+  Case_Else: {
+    whitespaceBeforeElseKeyword?: WhitespaceLike;
+    elseKeyword?: string;
+    whitespaceBeforeExpr?: WhitespaceLike;
+    expr: Expr;
+  };
   // Used for parsing Expr
   ExprBase:
     | Fragment<'LiteralValue'>
     | Node<
+        | 'Identifier'
         | 'BitwiseNegation'
         | 'Plus'
         | 'Minus'
@@ -860,7 +876,7 @@ type FragmentData = {
     variant: 'Is';
     whitespaceBeforeIsKeyword?: WhitespaceLike;
     isKeyword?: string;
-    whitespaceBeforeRight?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
     rightExpr: Fragment<'ExprBase'>;
   };
   ExprChain_Item_IsNot: {
@@ -869,20 +885,22 @@ type FragmentData = {
     isKeyword?: string;
     whitespaceBeforeNotKeyword?: WhitespaceLike;
     notKeyword?: string;
-    whitespaceBeforeRight?: WhitespaceLike;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
     rightExpr: Fragment<'ExprBase'>;
   };
   ExprChain_Item_Between: {
     variant: 'Between';
-    not?: Fragment<'Between_Not'>;
+    not?: Fragment<'Not'>;
     whitespaceBeforeBetweenKeyword?: WhitespaceLike;
     betweenKeyword?: string;
     whitespaceBeforeBetweenExpr?: WhitespaceLike;
     betweenExpr: Fragment<'ExprBase'>;
+    // used while resolving precedence
+    and?: Fragment<'ExprChain_Item_And'>;
   };
   ExprChain_Item_In: {
     variant: 'In';
-    not?: Fragment<'In_Not'>;
+    not?: Fragment<'Not'>;
     whitespaceBeforeInKeyword?: WhitespaceLike;
     inKeyword?: string;
     values: Fragment<'In_Values'>;
@@ -894,6 +912,8 @@ type FragmentData = {
     likeKeyword?: string;
     whitespaceBeforeRightExpr?: WhitespaceLike;
     rightExpr: Fragment<'ExprBase'>;
+    // used while resolving precedence
+    escape?: Fragment<'Like_Escape'>;
   };
   ExprChain_Item_Escape: {
     variant: 'Escape';
@@ -945,8 +965,10 @@ type FragmentData = {
   };
   ExprChain_Item_Not: {
     variant: 'Not';
-    whitespaceBeforeExpr?: WhitespaceLike;
-    expr: Fragment<'ExprBase'>;
+    whitespaceBeforeNotKeyword?: WhitespaceLike;
+    notKeyword?: string;
+    whitespaceBeforeRightExpr?: WhitespaceLike;
+    rightExpr: Fragment<'ExprBase'>;
   };
   // used both for AND and BETWEEN AND
   ExprChain_Item_And: {
@@ -1069,8 +1091,8 @@ type FragmentData = {
   FrameSpec_Inner: Fragment<'FrameSpec_Inner_Between' | 'FrameSpec_Inner_UnboundedPreceding' | 'FrameSpec_Inner_Preceding' | 'FrameSpec_Inner_CurrentRow'>;
   FrameSpec_Inner_Between: {
     variant: 'Between';
-    betweenKeyword?: string;
     whitespaceBeforeBetweenKeyword?: WhitespaceLike;
+    betweenKeyword?: string;
     left: Fragment<'FrameSpec_Between_Item'>;
     whitespaceBeforeAndKeyword?: WhitespaceLike;
     andKeyword?: string;
@@ -1080,28 +1102,28 @@ type FragmentData = {
     'FrameSpec_Between_Item_UnboundedPreceding' | 'FrameSpec_Between_Item_Preceding' | 'FrameSpec_Between_Item_CurrentRow' | 'FrameSpec_Between_Item_Following'
   >;
   FrameSpec_Between_Item_UnboundedPreceding: {
-    varient: 'UnboundedPreceding';
+    variant: 'UnboundedPreceding';
     whitespaceBeforeUnboundedKeyword?: WhitespaceLike;
     unboundedKeyword?: string;
     whitespaceBeforePrecedingKeyword?: WhitespaceLike;
     precedingKeyword?: string;
   };
   FrameSpec_Between_Item_Preceding: {
-    varient: 'Preceding';
+    variant: 'Preceding';
     whitespaceBeforeExpr?: WhitespaceLike;
     expr: Expr;
     whitespaceBeforePrecedingKeyword?: WhitespaceLike;
     precedingKeyword?: string;
   };
   FrameSpec_Between_Item_CurrentRow: {
-    varient: 'CurrentRow';
+    variant: 'CurrentRow';
     whitespaceBeforeCurrentKeyword?: WhitespaceLike;
     currentKeyword?: string;
     whitespaceBeforeRowKeyword?: WhitespaceLike;
     rowKeyword?: string;
   };
   FrameSpec_Between_Item_Following: {
-    varient: 'Following';
+    variant: 'Following';
     whitespaceBeforeExpr?: WhitespaceLike;
     expr: Expr;
     whitespaceBeforeFollowingKeyword?: WhitespaceLike;
@@ -1135,8 +1157,8 @@ type FragmentData = {
     excludeKeyword?: string;
     whitespaceBeforeNoKeyword?: WhitespaceLike;
     noKeyword?: string;
-    whitespaceBeforeOtherKeyword?: WhitespaceLike;
-    otherKeyword?: string;
+    whitespaceBeforeOthersKeyword?: WhitespaceLike;
+    othersKeyword?: string;
   };
   FrameSpec_Exclude_CurrentRow: {
     variant: 'CurrentRow';
@@ -1944,23 +1966,6 @@ type FragmentData = {
     select: Node<'SelectStmt'>;
     whitespaceBeforeCloseParent?: WhitespaceLike;
   };
-  // Used for typing to enforce Precedence with types
-  Expr: Fragment<'ExprP01'>;
-  ExprP01: Fragment<'ExprP02'> | Node<'Or'>;
-  ExprP02: Fragment<'ExprP03'> | Node<'And'>;
-  ExprP03: Fragment<'ExprP04'> | Node<'Not'>;
-  ExprP04:
-    | Fragment<'ExprP05'>
-    | Node<'Equal' | 'Different' | 'Is' | 'IsNot' | 'Between' | 'In' | 'Match' | 'Like' | 'Glob' | 'Regexp' | 'Isnull' | 'Notnull' | 'NotNull'>;
-  ExprP05: Fragment<'ExprP06'> | Node<'LowerThan' | 'GreaterThan' | 'LowerOrEqualThan' | 'GreaterOrEqualThan'>;
-  ExprP06: Fragment<'ExprP07'> | Node<'Escape'>;
-  ExprP07: Fragment<'ExprP08'> | Node<'BitwiseAnd' | 'BitwiseOr' | 'BitwiseShiftLeft' | 'BitwiseShiftRight'>;
-  ExprP08: Fragment<'ExprP09'> | Node<'Add' | 'Subtract'>;
-  ExprP09: Fragment<'ExprP10'> | Node<'Multiply' | 'Divide' | 'Modulo'>;
-  ExprP10: Fragment<'ExprP11'> | Node<'Concatenate'>;
-  ExprP11: Fragment<'ExprP12'> | Node<'Collate'>;
-  ExprP12: Fragment<'ExprP13'> | Node<'BitwiseNegation' | 'Plus' | 'Minus'>;
-  ExprP13: Fragment<'LiteralValue'> | Node<'BindParameter' | 'Column' | 'Select' | 'FunctionInvocation' | 'Parenthesis' | 'CastAs' | 'Case' | 'RaiseFunction'>;
 };
 
 export type FragmentName = keyof FragmentData;

@@ -330,24 +330,17 @@ export function exact<T extends string, Ctx>(str: T): Parser<T, Ctx> {
 }
 
 // like exact but case incensitive
-export function keyword<T extends string, Ctx>(str: T): Parser<T, Ctx> {
-  return {
-    parse(parentPath, input) {
-      const path = [...parentPath, `Keyword(${printString(str)})`];
-      if (input.empty) {
-        return ParseFailure(input.position, path, `EOF reached`);
-      }
-      const peek = input.peek(str.length);
-      if (peek.length < str.length) {
-        return ParseFailure(input.position, path, `Remaining text is shorter than '${str}'`);
-      }
-      if (peek.toUpperCase() !== str.toUpperCase()) {
-        return ParseFailure(input.position, path, `'${printString(peek.toUpperCase())}' is not equal to '${printString(str.toUpperCase())}'`);
-      }
-      const nextInput = input.skip(str.length);
-      return ParseSuccess(input.position, nextInput, str);
-    },
-  };
+export function keyword<Ctx>(regex: RegExp, str: string): Parser<string, Ctx> {
+  return transform(regexp(regex), (result, parentPath) => {
+    const path = [...parentPath, `Keyword(${printString(str)})`];
+    if (result.type === 'Failure') {
+      return ParseFailure(result.pos, path, `Keyword Regexp did not match.`);
+    }
+    if (result.value.toUpperCase() !== str.toUpperCase()) {
+      return ParseFailure(result.start, path, `'${printString(result.value.toUpperCase())}' is not equal to '${printString(str.toUpperCase())}'`);
+    }
+    return ParseSuccess(result.start, result.rest, result.value);
+  });
 }
 
 export function eof<Ctx>(): Parser<null, Ctx> {
