@@ -669,6 +669,11 @@ type FragmentData = {
     name: string;
     suffix?: string;
   };
+  Column_Table: {
+    table: Fragment<'SchemaTable'>;
+    whitespaceBeforeDot?: WhitespaceLike;
+    whitespaceAfter?: WhitespaceLike;
+  };
   Select_Exists: {
     not?: Fragment<'Select_Exists_Not'>;
     existsKeyword?: string;

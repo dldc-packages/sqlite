@@ -124,6 +124,7 @@ export function manySepBy<T, Sep, Ctx>(
       // parse first
       const tracker = resultTracker();
       const firstItem = itemParser.parse(itemPath, current, parent, ctx);
+
       tracker.update(firstItem);
       if (firstItem.type === 'Failure') {
         if (allowEmpty) {

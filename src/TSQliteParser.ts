@@ -956,7 +956,7 @@ nodeParser('CreateTableStmt').setParser(
       key('temp', c.maybe(fragmentParser('Temp'))),
       key('whitespaceBeforeTableKeyword', WhitespaceLikeParser),
       key('tableKeyword', KeywordParser.TABLE),
-      key('ifNotExists', fragmentParser('IfNotExists')),
+      key('ifNotExists', c.maybe(fragmentParser('IfNotExists'))),
       key('whitespaceBeforeTable', WhitespaceLikeParser),
       key('table', fragmentParser('SchemaTable')),
       key('definition', fragmentParser('CreateTableStmt_Definition'))
@@ -1536,7 +1536,18 @@ fragmentParser('BindParameter_DollarNamed').setParser(
   }))
 );
 
-nodeParser('Column').setParser(c.keyed((key) => c.keyedPipe(key('table', fragmentParser('SchemaTable')), key('columnName', IdentifierParser))));
+nodeParser('Column').setParser(c.keyed((key) => c.keyedPipe(key('table', c.maybe(fragmentParser('Column_Table'))), key('columnName', IdentifierParser))));
+
+fragmentParser('Column_Table').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('table', fragmentParser('SchemaTable')),
+      key('whitespaceBeforeDot', MaybeWhitespaceLikeParser),
+      dotParser,
+      key('whitespaceAfter', MaybeWhitespaceLikeParser)
+    )
+  )
+);
 
 nodeParser('Select').setParser(
   c.keyed((key) =>
@@ -1569,11 +1580,11 @@ nodeParser('FunctionInvocation').setParser(
       key('functionName', IdentifierParser),
       key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
       openParentParser,
-      key('parameters', fragmentParser('FunctionInvocation_Parameters')),
+      key('parameters', c.maybe(fragmentParser('FunctionInvocation_Parameters'))),
       key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
       closeParentParser,
-      key('filterClause', fragmentParser('FilterClauseWithWhitespace')),
-      key('overClause', fragmentParser('OverClauseWithWhitespace'))
+      key('filterClause', c.maybe(fragmentParser('FilterClauseWithWhitespace'))),
+      key('overClause', c.maybe(fragmentParser('OverClauseWithWhitespace')))
     )
   )
 );
@@ -1583,7 +1594,7 @@ fragmentParser('FunctionInvocation_Parameters').setParser(
 );
 
 fragmentParser('FunctionInvocation_Parameters_Star').setParser(
-  c.keyed({ variant: 'Star' }, (key) => c.keyedPipe(key('whitespaceBeforeStar', WhitespaceLikeParser), starParser))
+  c.keyed({ variant: 'Star' }, (key) => c.keyedPipe(key('whitespaceBeforeStar', MaybeWhitespaceLikeParser), starParser))
 );
 
 fragmentParser('FunctionInvocation_Parameters_Exprs').setParser(
@@ -3319,7 +3330,7 @@ fragmentParser('SqlStmt_Item').setParser(
 );
 
 nodeParser('SqlStmtList').setParser(
-  c.applyPipe([c.manySepBy(fragmentParser('SqlStmtList_Item'), semicolonParser), eofParser], ([items]) => {
+  c.applyPipe([c.manySepBy(fragmentParser('SqlStmtList_Item'), semicolonParser, { allowEmpty: false }), eofParser], ([items]) => {
     const list = manySepByResultToArray(items);
     if (list.length === 1 && list[0].variant === 'Empty') {
       return { items: [] };
@@ -3329,7 +3340,7 @@ nodeParser('SqlStmtList').setParser(
 );
 
 fragmentParser('SqlStmtList_Item').setParser(
-  c.apply(c.maybe(c.oneOf(fragmentParser('SqlStmtList_Item_Stmt'), fragmentParser('SqlStmtList_Item_Whitespace'))), (item) => {
+  c.apply(c.maybe(c.oneOf(fragmentParser('SqlStmtList_Item_Whitespace'), fragmentParser('SqlStmtList_Item_Stmt'))), (item) => {
     if (item === undefined) {
       return { variant: 'Empty' };
     }

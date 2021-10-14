@@ -69,6 +69,12 @@ test('should parse expression', () => {
   expect(TSQliteParser.parseAdvanced(FragmentParser.Expr, '`anger` > 0').result.kind).toBe('GreaterThan');
 });
 
+// test('should parse expression', () => {
+//   const res = TSQliteParser.parseAdvanced(FragmentParser.Expr, 'NEW.cust_addr');
+//   expect(res.result.kind).toBe('Identifier');
+//   expect(res.rest).toBe(null);
+// });
+
 test('should parse whitespace', () => {
   expect(TSQliteParser.parseAdvanced(FragmentParser.WhitespaceLike, '\n').result).toEqual([{ kind: 'Whitespace', content: '\n' }]);
 });
@@ -93,17 +99,51 @@ test('should parse create index as stmt', () => {
   ).toEqual('CreateIndexStmt');
 });
 
-test('should parse uncommon-aliases', () => {
-  expect(
-    TSQliteParser.parseSqlStmtList(`
-      select
-        hat.*,
-        COUNT( *) as pants
-      from
-        hats hat
-    `).result
-  ).toEqual(null);
+test('should parse function expression', () => {
+  const res = TSQliteParser.parseAdvanced(NodeParser.FunctionInvocation, `count ( * )`);
+  expect(res.result.kind).toEqual('FunctionInvocation');
+  expect(res.rest).toBe(null);
 });
+
+test('should parse result column', () => {
+  const res = TSQliteParser.parseAdvanced(NodeParser.ResultColumn, `count( * )`);
+  expect(res.result.kind).toEqual('ResultColumn');
+  expect(res.rest).toBe(null);
+});
+
+test('should parse more result column', () => {
+  const res1 = TSQliteParser.parseAdvanced(NodeParser.ResultColumn, `"hat".*`);
+  expect(res1.result.kind).toEqual('ResultColumn');
+  expect(res1.rest).toBe(null);
+
+  const res2 = TSQliteParser.parseAdvanced(NodeParser.ResultColumn, `COUNT(*) as pants`);
+  expect(res2.result.kind).toEqual('ResultColumn');
+  expect(res2.rest).toBe(null);
+});
+
+test('should parse select', () => {
+  const res = TSQliteParser.parseAdvanced(NodeParser.SelectStmt, `select count( * ) from hats`);
+  expect(res.result.kind).toEqual('SelectStmt');
+  expect(res.rest).toBe(null);
+});
+
+// test('should parse create-table/basic-create-table.sql', () => {
+//   const res = TSQliteParser.parseAdvanced(
+//     NodeParser.CreateTriggerStmt,
+//     `
+//       CREATE TRIGGER cust_addr_chng
+//       INSTEAD OF UPDATE OF cust_addr ON customer_address
+//       WHEN cust_addr NOT NULL
+//       BEGIN
+//         UPDATE customer
+//         SET cust_addr = NEW.cust_addr
+//         WHERE cust_id = NEW.cust_id;
+//       END
+//     `.trim()
+//   );
+//   expect(res.result.kind).toEqual('SqlStmtList');
+//   expect(res.rest).toBe(null);
+// });
 
 // test('should parse create index', () => {
 //   const file = 'CREATE INDEX `bees`.`hive_state`\nON `hive` (`happiness` ASC, `anger` DESC)\nWHERE `anger` > 0';

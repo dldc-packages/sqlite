@@ -485,7 +485,7 @@ export type NodeData = {
     'BindParameter_Indexed' | 'BindParameter_Numbered' | 'BindParameter_AtNamed' | 'BindParameter_ColonNamed' | 'BindParameter_DollarNamed'
   >;
   Column: {
-    table?: Fragment<'SchemaTable'>;
+    table?: Fragment<'Column_Table'>;
     columnName: Identifier;
   };
   Select: {
