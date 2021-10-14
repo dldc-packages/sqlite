@@ -5,7 +5,7 @@ import { TSQliteError, TSQliteParser } from '../src/mod';
 
 const SQL_FILES_PATH = path.resolve(process.cwd(), 'tests', 'sql');
 
-describe('Parse SQL files', () => {
+describe.skip('Parse SQL files', () => {
   const sqlFiles = glob.sync(SQL_FILES_PATH + '/**/*.sql');
 
   let passed: Array<string> = [];

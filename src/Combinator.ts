@@ -609,7 +609,7 @@ export function keyed<T extends Record<string, any>, Inject extends Partial<T>, 
 ): Parser<T, Ctx>;
 export function keyed<T extends Record<string, any>, Ctx>(runner: (keyFn: KeyFn<T, Ctx>) => Parser<T, Ctx>): Parser<T, Ctx>;
 export function keyed<Ctx>(arg1: any, arg2?: any): Parser<any, Ctx> {
-  const [inject, runner] = arg2 ? [arg1, arg2] : [{}, arg2];
+  const [inject, runner] = arg2 ? [arg1, arg2] : [{}, arg1];
   const keyFn = (key: any, parser: Parser<any, Ctx>): any => {
     return keyValue(key as any, parser) as any;
   };

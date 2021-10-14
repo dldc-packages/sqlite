@@ -1478,15 +1478,14 @@ type FragmentData = {
     whitespaceBeforeCollationName?: WhitespaceLike;
     collationName: Identifier;
   };
-  ReindexStmt_Table: {
-    variant: 'Table';
-    whitespaceBeforeTable?: WhitespaceLike;
-    table: Fragment<'SchemaTable'>;
+  ReindexStmt_TableOrIndex: {
+    variant: 'TableOrIndex';
+    whitespaceBeforeTableOrIndex?: WhitespaceLike;
+    tableOrIndex: Fragment<'SchemaTableOrIndex'>;
   };
-  ReindexStmt_Index: {
-    variant: 'Index';
-    whitespaceBeforeIndex?: WhitespaceLike;
-    index: Fragment<'SchemaIndex'>;
+  SchemaTableOrIndex: {
+    schema?: Fragment<'SchemaItem_Schema'>;
+    tableOrIndex: Identifier;
   };
   Savepoint: {
     whitespaceBeforeSavepointKeyword?: WhitespaceLike;
@@ -1563,8 +1562,8 @@ type FragmentData = {
     allKeyword?: string;
   };
   SelectCore_Select_From: {
-    fromKeyword?: string;
     whitespaceBeforeFromKeyword?: WhitespaceLike;
+    fromKeyword?: string;
     inner: Fragment<'SelectCore_Select_From_TableOrSubquery' | 'SelectCore_Select_From_Join'>;
   };
   SelectCore_Select_From_TableOrSubquery: {
@@ -1781,6 +1780,14 @@ type FragmentData = {
     whitespaceBeforeJoinClause?: WhitespaceLike;
     joinClause: Node<'JoinClause'>;
     whitespaceBeforeCloseParent?: WhitespaceLike;
+  };
+  TypeName_Name: {
+    head: string;
+    tail?: Array<Fragment<'TypeName_Name_Tail'>>;
+  };
+  TypeName_Name_Tail: {
+    whitespaceBeforeName?: WhitespaceLike;
+    name: string;
   };
   TypeName_Size: {
     whitespaceBeforeOpenParent?: WhitespaceLike;

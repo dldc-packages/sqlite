@@ -120,7 +120,7 @@ export const NodeParser: { [K in NodeParserKeys]: NodeRule<K> } = NodeParserInte
 export const KeywordParser: { [K in typeof KEYWORDS[number]]: Parser<K, Ctx> } = Object.fromEntries(KEYWORDS.map((k) => [k, createKeyword(k)])) as any;
 
 // prettier-ignore
-type NonCompleteNodes = 'CompoundOperator' | 'NumericLiteral' | 'BindParameter';
+type NonCompleteNodes = 'CompoundOperator' | 'NumericLiteral' | 'BindParameter' | 'JoinConstraint' | 'JoinOperator' | 'ResultColumn' | 'SelectCore' | 'TableOrSubquery';
 
 interface NodeRule<K extends NodeKind> extends Parser<Node<K>, Ctx> {
   setParser(parser: Parser<K extends NonCompleteNodes ? NodeData[K] : Complete<NodeData[K]>, Ctx>): void;
@@ -141,7 +141,7 @@ function nodeParser<K extends NodeParserKeys>(kind: K): NodeRule<K> {
 }
 
 // prettier-ignore
-type VirtualFragments = 'ExprP01' | 'ExprP02' | 'ExprP03' | 'ExprP04' | 'ExprP05' | 'ExprP06' | 'ExprP07' | 'ExprP08' | 'ExprP09' | 'ExprP10' | 'ExprP11' | 'ExprP12' | 'ExprP13';
+type VirtualFragments = 'ExprP01' | 'ExprP02' | 'ExprP03' | 'ExprP04' | 'ExprP05' | 'ExprP06' | 'ExprP07' | 'ExprP08' | 'ExprP09' | 'ExprP10' | 'ExprP11' | 'ExprP12' | 'ExprP13' | 'SqlStmtList_Item_Empty';
 type FragmentParserKeys = Exclude<FragmentName, VirtualFragments>;
 
 const FragmentParserInternal: { [K in FragmentParserKeys]?: Rule<Fragment<K>, Ctx> } = {};
@@ -149,7 +149,7 @@ const FragmentParserInternal: { [K in FragmentParserKeys]?: Rule<Fragment<K>, Ct
 export const FragmentParser: { [K in FragmentParserKeys]: Rule<Fragment<K>, Ctx> } = FragmentParserInternal as any;
 
 // prettier-ignore
-type NonCompleteFragments = 'AggregateFunctionInvocation_Parameters' | 'AlterAction' | 'AnalyzeStmt_Target' | 'ColumnConstraint_Constraint' | 'Direction' | 'LiteralValue' | 'MaybeMaterialized' | 'CompoundSelectStmt_Item' | 'ConflictClause_OnConflict_Inner' | 'Temp' | 'CreateTableStmt_Definition' | 'CreateTriggerStmt_Modifier' | 'CreateTriggerStmt_Action' | 'ExprBase' | 'FunctionInvocation_Parameters' | 'ExprChain_Item' | 'In_Values' | 'In_Values_List_Items' | 'Expr' | 'ForeignKeyClause_Item' | 'ForeignKeyClause_Item_On_Action' | 'FrameSpec_Type' | 'FrameSpec_Inner' | 'FrameSpec_Between_Item' | 'FrameSpec_Exclude' | 'InsertStmt_Method' | 'InsertStmt_Data';
+type NonCompleteFragments = 'AggregateFunctionInvocation_Parameters' | 'AlterAction' | 'AnalyzeStmt_Target' | 'ColumnConstraint_Constraint' | 'Direction' | 'LiteralValue' | 'MaybeMaterialized' | 'CompoundSelectStmt_Item' | 'ConflictClause_OnConflict_Inner' | 'Temp' | 'CreateTableStmt_Definition' | 'CreateTriggerStmt_Modifier' | 'CreateTriggerStmt_Action' | 'ExprBase' | 'FunctionInvocation_Parameters' | 'ExprChain_Item' | 'In_Values' | 'In_Values_List_Items' | 'Expr' | 'ForeignKeyClause_Item' | 'ForeignKeyClause_Item_On_Action' | 'FrameSpec_Type' | 'FrameSpec_Inner' | 'FrameSpec_Between_Item' | 'FrameSpec_Exclude' | 'InsertStmt_Method' | 'InsertStmt_Data' | 'PragmaStmt_Value' | 'PragmaValue' | 'ReturningClause_Item' | 'SqlStmtList_Item' | 'SqlStmt_Item' | 'UpdateOr';
 
 interface FragmentRule<K extends FragmentParserKeys> extends Parser<Fragment<K>, Ctx> {
   setParser(parser: Parser<K extends NonCompleteFragments ? Fragment<K> : Complete<Fragment<K>>, Ctx>): void;
@@ -1987,6 +1987,10 @@ fragmentParser('In_Value_TableFunctionInvocation').setParser(
   )
 );
 
+fragmentParser('SchemaFunction').setParser(
+  c.applyPipe([c.maybe(fragmentParser('SchemaItem_Schema')), IdentifierParser], ([schema, functionName]) => ({ schema, function: functionName }))
+);
+
 fragmentParser('ExprChain_Item_Like').setParser(
   c.keyed({ variant: 'Like', escape: undefined }, (key) =>
     c.keyedPipe(
@@ -2654,7 +2658,268 @@ fragmentParser('InsertStmt_Data_DefaultValues').setParser(
   )
 );
 
-// TODO: JoinClause
+nodeParser('JoinClause').setParser(
+  c.keyed((key) => c.keyedPipe(key('tableOrSubquery', nodeParser('TableOrSubquery')), key('join', c.maybe(c.many(fragmentParser('JoinClause_JoinItem'))))))
+);
+
+fragmentParser('JoinClause_JoinItem').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeJoinOperator', WhitespaceLikeParser),
+      key('joinOperator', nodeParser('JoinOperator')),
+      key('whitespaceBeforeTableOrSubquery', WhitespaceLikeParser),
+      key('tableOrSubquery', nodeParser('TableOrSubquery')),
+      key('joinConstraint', c.maybe(fragmentParser('JoinClause_JoinItem_JoinConstraint')))
+    )
+  )
+);
+
+fragmentParser('JoinClause_JoinItem_JoinConstraint').setParser(
+  c.keyed((key) => c.keyedPipe(key('whitespaceBeforeJoinConstraint', WhitespaceLikeParser), key('joinConstraint', nodeParser('JoinConstraint'))))
+);
+
+nodeParser('JoinConstraint').setParser(c.oneOf(fragmentParser('JoinConstraint_On'), fragmentParser('JoinConstraint_Using')));
+
+fragmentParser('JoinConstraint_On').setParser(
+  c.keyed({ variant: 'On' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOnKeyword', WhitespaceLikeParser),
+      key('onKeyword', KeywordParser.ON),
+      key('whitespaceBeforeExpr', WhitespaceLikeParser),
+      key('expr', ExprParser)
+    )
+  )
+);
+
+fragmentParser('JoinConstraint_Using').setParser(
+  c.keyed({ variant: 'Using' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeUsingKeyword', WhitespaceLikeParser),
+      key('usingKeyword', KeywordParser.USING),
+      key('whitespaceBeforeOpenParent', WhitespaceLikeParser),
+      key('columnNames', nonEmptyCommaSingleList(IdentifierParser)),
+      key('whitespaceBeforeCloseParent', WhitespaceLikeParser)
+    )
+  )
+);
+
+nodeParser('JoinOperator').setParser(c.oneOf(fragmentParser('JoinOperator_Comma'), fragmentParser('JoinOperator_Join')));
+
+fragmentParser('JoinOperator_Comma').setParser(c.apply(commaParser, () => ({ variant: 'Comma' })));
+
+fragmentParser('JoinOperator_Join').setParser(
+  c.keyed({ variant: 'Join' }, (key) =>
+    c.keyedPipe(
+      key('natural', c.maybe(fragmentParser('JoinOperator_Join_Natural'))),
+      key('join', c.oneOf(fragmentParser('JoinOperator_Join_Left'), fragmentParser('JoinOperator_Join_Inner'), fragmentParser('JoinOperator_Join_Cross'))),
+      key('joinKeyword', KeywordParser.JOIN)
+    )
+  )
+);
+
+fragmentParser('JoinOperator_Join_Natural').setParser(
+  c.keyed((key) => c.keyedPipe(key('naturalKeyword', KeywordParser.NATURAL), key('whitespaceAfterNaturalKeyword', WhitespaceLikeParser)))
+);
+
+fragmentParser('JoinOperator_Join_Left').setParser(
+  c.keyed({ variant: 'Left' }, (key) =>
+    c.keyedPipe(
+      key('leftKeyword', KeywordParser.LEFT),
+      key('whitespaceAfterLeftKeyword', WhitespaceLikeParser),
+      key('outer', c.maybe(fragmentParser('JoinOperator_Join_Left_Outer')))
+    )
+  )
+);
+
+fragmentParser('JoinOperator_Join_Left_Outer').setParser(
+  c.keyed((key) => c.keyedPipe(key('outerKeyword', KeywordParser.OUTER), key('whitespaceAfterOuterKeyword', WhitespaceLikeParser)))
+);
+
+fragmentParser('JoinOperator_Join_Inner').setParser(
+  c.keyed({ variant: 'Inner' }, (key) => c.keyedPipe(key('innerKeyword', KeywordParser.INNER), key('whitespaceAfterInnerKeyword', WhitespaceLikeParser)))
+);
+
+fragmentParser('JoinOperator_Join_Cross').setParser(
+  c.keyed({ variant: 'Cross' }, (key) => c.keyedPipe(key('crossKeyword', KeywordParser.CROSS), key('whitespaceAfterCrossKeyword', WhitespaceLikeParser)))
+);
+
+nodeParser('OrderingTerm').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('expr', ExprParser),
+      key('collate', c.maybe(fragmentParser('CollationName'))),
+      key('direction', c.maybe(fragmentParser('Direction'))),
+      key('nulls', c.maybe(c.oneOf(fragmentParser('OrderingTerm_NullsFirst'), fragmentParser('OrderingTerm_NullsLast'))))
+    )
+  )
+);
+
+fragmentParser('OrderingTerm_NullsFirst').setParser(
+  c.keyed({ variant: 'NullsFirst' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeNullsKeyword', WhitespaceLikeParser),
+      key('nullsKeyword', KeywordParser.NULLS),
+      key('whitespaceBeforeFirstKeyword', WhitespaceLikeParser),
+      key('firstKeyword', KeywordParser.FIRST)
+    )
+  )
+);
+
+fragmentParser('OrderingTerm_NullsLast').setParser(
+  c.keyed({ variant: 'NullsLast' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeNullsKeyword', WhitespaceLikeParser),
+      key('nullsKeyword', KeywordParser.NULLS),
+      key('whitespaceBeforeLastKeyword', WhitespaceLikeParser),
+      key('lastKeyword', KeywordParser.LAST)
+    )
+  )
+);
+
+nodeParser('OverClause').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(key('overKeyword', KeywordParser.OVER), key('window', c.oneOf(fragmentParser('OverClause_WindowName'), fragmentParser('OverClause_Window'))))
+  )
+);
+
+fragmentParser('OverClause_WindowName').setParser(
+  c.keyed({ variant: 'WindowName' }, (key) => c.keyedPipe(key('whitespaceBeforeWindowName', WhitespaceLikeParser), key('windowName', IdentifierParser)))
+);
+
+fragmentParser('OverClause_Window').setParser(
+  c.keyed({ variant: 'Window' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('baseWindowName', c.maybe(fragmentParser('OverClause_BaseWindowName'))),
+      key('partitionBy', c.maybe(fragmentParser('OverClause_PartitionBy'))),
+      key('orderBy', c.maybe(fragmentParser('OverClause_OrderBy'))),
+      key('frameSpec', c.maybe(fragmentParser('OverClause_FrameSpec'))),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+fragmentParser('OverClause_BaseWindowName').setParser(
+  c.keyed((key) => c.keyedPipe(key('whitespaceBeforeBaseWindowName', WhitespaceLikeParser), key('baseWindowName', IdentifierParser)))
+);
+
+fragmentParser('OverClause_PartitionBy').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforePartitionKeyword', WhitespaceLikeParser),
+      key('partitionKeyword', KeywordParser.PARTITION),
+      key('whitespaceBeforeByKeyword', WhitespaceLikeParser),
+      key('byKeyword', KeywordParser.BY),
+      key('exprs', nonEmptyCommaSingleList(ExprParser))
+    )
+  )
+);
+
+fragmentParser('OverClause_OrderBy').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOrderKeyword', WhitespaceLikeParser),
+      key('orderKeyword', KeywordParser.ORDER),
+      key('whitespaceBeforeByKeyword', WhitespaceLikeParser),
+      key('byKeyword', KeywordParser.BY),
+      key('orderingTerms', nonEmptyCommaSingleList(nodeParser('OrderingTerm')))
+    )
+  )
+);
+
+fragmentParser('OverClause_FrameSpec').setParser(
+  c.keyed((key) => c.keyedPipe(key('whitespaceBeforeFrameSpec', WhitespaceLikeParser), key('frameSpec', nodeParser('FrameSpec'))))
+);
+
+nodeParser('PragmaStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('pragmaKeyword', KeywordParser.PRAGMA),
+      key('whitespaceBeforePragma', WhitespaceLikeParser),
+      key('pragma', fragmentParser('SchemaPragma')),
+      key('value', fragmentParser('PragmaStmt_Value'))
+    )
+  )
+);
+
+fragmentParser('SchemaPragma').setParser(
+  c.applyPipe([c.maybe(fragmentParser('SchemaItem_Schema')), IdentifierParser], ([schema, pragma]) => ({ schema, pragma }))
+);
+
+fragmentParser('PragmaStmt_Value').setParser(c.oneOf(fragmentParser('PragmaStmt_Value_Equal'), fragmentParser('PragmaStmt_Value_Call')));
+
+fragmentParser('PragmaStmt_Value_Equal').setParser(
+  c.keyed({ variant: 'Equal' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeEqual', MaybeWhitespaceLikeParser),
+      equalParser,
+      key('whitespaceBeforePragmaValue', MaybeWhitespaceLikeParser),
+      key('pragmaValue', fragmentParser('PragmaValue'))
+    )
+  )
+);
+
+fragmentParser('PragmaStmt_Value_Call').setParser(
+  c.keyed({ variant: 'Call' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('whitespaceBeforePragmaValue', MaybeWhitespaceLikeParser),
+      key('pragmaValue', fragmentParser('PragmaValue')),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+fragmentParser('PragmaValue').setParser(c.oneOf(nodeParser('SignedNumber'), nodeParser('StringLiteral')));
+
+nodeParser('QualifiedTableName').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('table', fragmentParser('SchemaTable')),
+      key('alias', c.maybe(fragmentParser('QualifiedTableName_Alias'))),
+      key('inner', c.maybe(c.oneOf(fragmentParser('QualifiedTableName_IndexedBy'), fragmentParser('QualifiedTableName_NotIndexed'))))
+    )
+  )
+);
+
+fragmentParser('QualifiedTableName_Alias').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeAsKeyword', WhitespaceLikeParser),
+      key('asKeyword', KeywordParser.AS),
+      key('whitespaceBeforeAlias', WhitespaceLikeParser),
+      key('alias', IdentifierParser)
+    )
+  )
+);
+
+fragmentParser('QualifiedTableName_IndexedBy').setParser(
+  c.keyed({ variant: 'IndexedBy' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeIndexedKeyword', WhitespaceLikeParser),
+      key('indexedKeyword', KeywordParser.INDEXED),
+      key('whitespaceBeforeByKeyword', WhitespaceLikeParser),
+      key('byKeyword', KeywordParser.BY),
+      key('whitespaceBeforeIndexName', WhitespaceLikeParser),
+      key('indexName', IdentifierParser)
+    )
+  )
+);
+
+fragmentParser('QualifiedTableName_NotIndexed').setParser(
+  c.keyed({ variant: 'NotIndexed' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeNotKeyword', WhitespaceLikeParser),
+      key('notKeyword', KeywordParser.NOT),
+      key('whitespaceBeforeIndexedKeyword', WhitespaceLikeParser),
+      key('indexedKeyword', KeywordParser.INDEXED)
+    )
+  )
+);
 
 nodeParser('RaiseFunction').setParser(
   c.keyed((key) =>
@@ -2720,11 +2985,375 @@ fragmentParser('RaiseFunction_Fail').setParser(
   )
 );
 
-// fragmentParser('SqlStmtListItem').setParser(
+// SKIP RecursiveCte for now
+
+nodeParser('ReindexStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('reindexKeyword', KeywordParser.REINDEX),
+      key('target', c.oneOf(fragmentParser('ReindexStmt_CollationName'), fragmentParser('ReindexStmt_TableOrIndex')))
+    )
+  )
+);
+
+fragmentParser('ReindexStmt_CollationName').setParser(
+  c.keyed({ variant: 'CollationName' }, (key) =>
+    c.keyedPipe(key('whitespaceBeforeCollationName', WhitespaceLikeParser), key('collationName', IdentifierParser))
+  )
+);
+
+fragmentParser('ReindexStmt_TableOrIndex').setParser(
+  c.keyed({ variant: 'TableOrIndex' }, (key) =>
+    c.keyedPipe(key('whitespaceBeforeTableOrIndex', WhitespaceLikeParser), key('tableOrIndex', fragmentParser('SchemaTableOrIndex')))
+  )
+);
+
+fragmentParser('SchemaTableOrIndex').setParser(
+  c.applyPipe([c.maybe(fragmentParser('SchemaItem_Schema')), IdentifierParser], ([schema, tableOrIndex]) => ({ schema, tableOrIndex }))
+);
+
+nodeParser('ReleaseStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('releaseKeyword', KeywordParser.RELEASE),
+      key('savepoint', c.maybe(fragmentParser('Savepoint'))),
+      key('whitespaceBeforeSavepointName', WhitespaceLikeParser),
+      key('savepointName', IdentifierParser)
+    )
+  )
+);
+
+fragmentParser('Savepoint').setParser(
+  c.keyed((key) => c.keyedPipe(key('whitespaceBeforeSavepointKeyword', WhitespaceLikeParser), key('savepointKeyword', KeywordParser.SAVEPOINT)))
+);
+
+nodeParser('ResultColumn').setParser(
+  c.oneOf(fragmentParser('ResultColumn_Star'), fragmentParser('ResultColumn_TableStar'), fragmentParser('ResultColumn_Expr'))
+);
+
+fragmentParser('ResultColumn_Star').setParser(c.apply(starParser, () => ({ variant: 'Star' })));
+
+fragmentParser('ResultColumn_TableStar').setParser(
+  c.keyed({ variant: 'TableStar' }, (key) =>
+    c.keyedPipe(
+      key('tableName', IdentifierParser),
+      key('whitespaceBeforeDot', MaybeWhitespaceLikeParser),
+      dotParser,
+      key('whitespaceBeforeStar', MaybeWhitespaceLikeParser),
+      starParser
+    )
+  )
+);
+
+fragmentParser('ResultColumn_Expr').setParser(
+  c.keyed({ variant: 'Expr' }, (key) => c.keyedPipe(key('expr', ExprParser), key('alias', c.maybe(fragmentParser('ResultColumn_Expr_Alias')))))
+);
+
+fragmentParser('ResultColumn_Expr_Alias').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(key('as', c.maybe(fragmentParser('As'))), key('whitespaceBeforeColumnAlias', WhitespaceLikeParser), key('columnAlias', IdentifierParser))
+  )
+);
+
+fragmentParser('As').setParser(c.keyed((key) => c.keyedPipe(key('whitespaceBeforeAsKeyword', WhitespaceLikeParser), key('asKeyword', KeywordParser.AS))));
+
+nodeParser('ReturningClause').setParser(
+  c.keyed((key) => c.keyedPipe(key('returningKeyword', KeywordParser.RETURNING), key('items', nonEmptyCommaList(fragmentParser('ReturningClause_Item')))))
+);
+
+fragmentParser('ReturningClause_Item').setParser(c.oneOf(fragmentParser('ReturningClause_Item_Star'), fragmentParser('ReturningClause_Item_Expr')));
+
+fragmentParser('ReturningClause_Item_Star').setParser(
+  c.keyed({ variant: 'Star' }, (key) => c.keyedPipe(key('whitespaceBeforeStar', MaybeWhitespaceLikeParser), starParser))
+);
+
+fragmentParser('ReturningClause_Item_Expr').setParser(
+  c.keyed({ variant: 'Expr' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeExpr', WhitespaceLikeParser),
+      key('expr', ExprParser),
+      key('alias', c.maybe(fragmentParser('ReturningClause_Item_Expr_Alias')))
+    )
+  )
+);
+
+fragmentParser('ReturningClause_Item_Expr_Alias').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(key('as', c.maybe(fragmentParser('As'))), key('whitespaceBeforeColumnAlias', WhitespaceLikeParser), key('columnAlias', IdentifierParser))
+  )
+);
+
+nodeParser('RollbackStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('rollbackKeyword', KeywordParser.ROLLBACK),
+      key('transaction', c.maybe(fragmentParser('RollbackStmt_Transaction'))),
+      key('to', c.maybe(fragmentParser('RollbackStmt_To')))
+    )
+  )
+);
+
+fragmentParser('RollbackStmt_Transaction').setParser(
+  c.keyed((key) => c.keyedPipe(key('whitespaceBeforeTransactionKeyword', WhitespaceLikeParser), key('transactionKeyword', KeywordParser.TRANSACTION)))
+);
+
+fragmentParser('RollbackStmt_To').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeToKeyword', WhitespaceLikeParser),
+      key('toKeyword', KeywordParser.TO),
+      key('savepoint', c.maybe(fragmentParser('Savepoint'))),
+      key('whitespaceBeforeSavepointName', WhitespaceLikeParser),
+      key('savepointName', IdentifierParser)
+    )
+  )
+);
+
+nodeParser('SavepointStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('savepointKeyword', KeywordParser.SAVEPOINT),
+      key('whitespaceBeforeSavepointName', WhitespaceLikeParser),
+      key('savepointName', IdentifierParser)
+    )
+  )
+);
+
+nodeParser('SelectCore').setParser(c.oneOf(fragmentParser('SelectCore_Select'), fragmentParser('SelectCore_Values')));
+
+fragmentParser('SelectCore_Select').setParser(
+  c.keyed({ variant: 'Select' }, (key) =>
+    c.keyedPipe(
+      key('selectKeyword', KeywordParser.SELECT),
+      key('distinct', c.maybe(c.oneOf(fragmentParser('SelectCore_Select_Distinct'), fragmentParser('SelectCore_Select_All')))),
+      key('resultColumns', nonEmptyCommaSingleList(nodeParser('ResultColumn'))),
+      key('from', c.maybe(fragmentParser('SelectCore_Select_From'))),
+      key('where', c.maybe(fragmentParser('Where'))),
+      key('groupBy', c.maybe(fragmentParser('SelectCore_Select_GroupBy'))),
+      key('window', c.maybe(fragmentParser('SelectCore_Select_Window')))
+    )
+  )
+);
+
+fragmentParser('SelectCore_Select_Distinct').setParser(
+  c.keyed({ variant: 'Distinct' }, (key) =>
+    c.keyedPipe(key('whitespaceBeforeDistinctKeyword', WhitespaceLikeParser), key('distinctKeyword', KeywordParser.DISTINCT))
+  )
+);
+
+fragmentParser('SelectCore_Select_All').setParser(
+  c.keyed({ variant: 'All' }, (key) => c.keyedPipe(key('whitespaceBeforeAllKeyword', WhitespaceLikeParser), key('allKeyword', KeywordParser.DISTINCT)))
+);
+
+fragmentParser('SelectCore_Select_From').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeFromKeyword', WhitespaceLikeParser),
+      key('fromKeyword', KeywordParser.FROM),
+      key('inner', c.oneOf(fragmentParser('SelectCore_Select_From_TableOrSubquery'), fragmentParser('SelectCore_Select_From_Join')))
+    )
+  )
+);
+
+fragmentParser('SelectCore_Select_From_TableOrSubquery').setParser(
+  c.apply(nonEmptyCommaSingleList(nodeParser('TableOrSubquery')), (tableOrSubqueries) => ({ variant: 'TableOrSubquery', tableOrSubqueries }))
+);
+
+fragmentParser('SelectCore_Select_From_Join').setParser(
+  c.keyed({ variant: 'Join' }, (key) => c.keyedPipe(key('whitespaceBeforeJoinClause', WhitespaceLikeParser), key('joinClause', nodeParser('JoinClause'))))
+);
+
+fragmentParser('SelectCore_Select_GroupBy').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeGroupKeyword', WhitespaceLikeParser),
+      key('groupKeyword', KeywordParser.GROUP),
+      key('whitespaceBeforeByKeyword', WhitespaceLikeParser),
+      key('byKeyword', KeywordParser.BY),
+      key('exprs', nonEmptyCommaSingleList(ExprParser)),
+      key('having', c.maybe(fragmentParser('SelectCore_Select_GroupBy_Having')))
+    )
+  )
+);
+
+fragmentParser('SelectCore_Select_GroupBy_Having').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeHavingKeyword', WhitespaceLikeParser),
+      key('havingKeyword', KeywordParser.HAVING),
+      key('whitespaceBeforeExpr', WhitespaceLikeParser),
+      key('expr', ExprParser)
+    )
+  )
+);
+
+fragmentParser('SelectCore_Select_Window').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeWindowKeyword', WhitespaceLikeParser),
+      key('windowKeyword', KeywordParser.WINDOW),
+      key('windows', nonEmptyCommaList(fragmentParser('SelectCore_Select_Window_Item')))
+    )
+  )
+);
+
+fragmentParser('SelectCore_Select_Window_Item').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeWindowName', WhitespaceLikeParser),
+      key('windowName', IdentifierParser),
+      key('whitespaceBeforeAsKeyword', WhitespaceLikeParser),
+      key('asKeyword', KeywordParser.AS),
+      key('whitespaceBeforeWindowDefn', WhitespaceLikeParser),
+      key('windowDefn', nodeParser('WindowDefn'))
+    )
+  )
+);
+
+fragmentParser('SelectCore_Values').setParser(
+  c.keyed({ variant: 'Values' }, (key) =>
+    c.keyedPipe(key('valuesKeyword', KeywordParser.VALUES), key('values', nonEmptyCommaList(fragmentParser('SelectCore_Values_Item'))))
+  )
+);
+
+fragmentParser('SelectCore_Values_Item').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('items', nonEmptyCommaSingleList(ExprParser)),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+nodeParser('SelectStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('with', c.maybe(fragmentParser('StmtWith'))),
+      key('select', nodeParser('SelectCore')),
+      key('compoundSelects', c.maybe(c.many(fragmentParser('SelectStmt_CompoundSelectsItem')))),
+      key('orderBy', c.maybe(fragmentParser('OrderBy'))),
+      key('limit', c.maybe(fragmentParser('Limit')))
+    )
+  )
+);
+
+fragmentParser('SelectStmt_CompoundSelectsItem').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeCompoundOperator', WhitespaceLikeParser),
+      key('compoundOperator', nodeParser('CompoundOperator')),
+      key('whitespaceBeforeSelect', WhitespaceLikeParser),
+      key('select', nodeParser('SelectCore'))
+    )
+  )
+);
+
+nodeParser('SignedNumber').setParser(
+  c.keyed((key) => c.keyedPipe(key('sign', c.maybe(fragmentParser('SignedNumber_Sign'))), key('numericLiteral', nodeParser('NumericLiteral'))))
+);
+
+fragmentParser('SignedNumber_Sign').setParser(
+  c.applyPipe([c.oneOf(plusParser, dashParser), MaybeWhitespaceLikeParser], ([sign, whitespaceAfterSign]) => ({
+    variant: sign === '+' ? 'Plus' : 'Minus',
+    whitespaceAfterSign,
+  }))
+);
+
+nodeParser('SqlStmt').setParser(
+  c.keyed((key) => c.keyedPipe(key('explain', c.maybe(fragmentParser('SqlStmt_Explain'))), key('stmt', fragmentParser('SqlStmt_Item'))))
+);
+
+fragmentParser('SqlStmt_Explain').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('explainKeyword', KeywordParser.EXPLAIN),
+      key('queryPlan', c.maybe(fragmentParser('SqlStmt_Explain_QueryPlan'))),
+      key('whitespaceAfter', WhitespaceLikeParser)
+    )
+  )
+);
+
+fragmentParser('SqlStmt_Explain_QueryPlan').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeQueryKeyword', WhitespaceLikeParser),
+      key('queryKeyword', KeywordParser.QUERY),
+      key('whitespaceBeforePlanKeyword', WhitespaceLikeParser),
+      key('planKeyword', KeywordParser.PLAN)
+    )
+  )
+);
+
+fragmentParser('SqlStmt_Item').setParser(
+  c.oneOf<Fragment<'SqlStmt_Item'>, Ctx>(
+    nodeParser('AnalyzeStmt'),
+    nodeParser('AttachStmt'),
+    nodeParser('BeginStmt'),
+    nodeParser('CommitStmt'),
+    nodeParser('CreateIndexStmt'),
+    nodeParser('CreateTableStmt'),
+    nodeParser('CreateTriggerStmt'),
+    nodeParser('CreateViewStmt'),
+    nodeParser('CreateVirtualTableStmt'),
+    nodeParser('DeleteStmt'),
+    nodeParser('DeleteStmtLimited'),
+    nodeParser('DetachStmt'),
+    nodeParser('DropIndexStmt'),
+    nodeParser('DropTableStmt'),
+    nodeParser('DropTriggerStmt'),
+    nodeParser('DropViewStmt'),
+    nodeParser('InsertStmt'),
+    nodeParser('PragmaStmt'),
+    nodeParser('ReindexStmt'),
+    nodeParser('ReleaseStmt'),
+    nodeParser('RollbackStmt'),
+    nodeParser('SavepointStmt'),
+    nodeParser('SelectStmt'),
+    nodeParser('UpdateStmt'),
+    nodeParser('UpdateStmtLimited'),
+    nodeParser('VacuumStmt')
+  )
+);
+
+nodeParser('SqlStmtList').setParser(
+  c.applyPipe([c.manySepBy(fragmentParser('SqlStmtList_Item'), semicolonParser), eofParser], ([items]) => {
+    const list = manySepByResultToArray(items);
+    if (list.length === 1 && list[0].variant === 'Empty') {
+      return { items: [] };
+    }
+    return { items: list };
+  })
+);
+
+fragmentParser('SqlStmtList_Item').setParser(
+  c.apply(c.maybe(c.oneOf(fragmentParser('SqlStmtList_Item_Stmt'), fragmentParser('SqlStmtList_Item_Whitespace'))), (item) => {
+    if (item === undefined) {
+      return { variant: 'Empty' };
+    }
+    return item;
+  })
+);
+
+fragmentParser('SqlStmtList_Item_Stmt').setParser(
+  c.keyed({ variant: 'Stmt' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeStmt', MaybeWhitespaceLikeParser),
+      key('stmt', nodeParser('SqlStmt')),
+      key('whitespaceAfterStmt', MaybeWhitespaceLikeParser)
+    )
+  )
+);
+
+fragmentParser('SqlStmtList_Item_Whitespace').setParser(c.apply(WhitespaceLikeParser, (whitespace) => ({ variant: 'Whitespace', whitespace })));
+
+// fragmentParser('SqlStmtList_Item').setParser(
 //   c.apply(
 //     c.oneOf(
-//       c.pipe(MaybeWlParser, nodeParser('SqlStmt'), MaybeWlParser),
-//       c.apply(MaybeWlParser, (v) => ({ whitespaceLike: v }))
+//       c.pipe(MaybeWhitespaceLikeParser, nodeParser('SqlStmt'), MaybeWhitespaceLikeParser),
+//       c.apply(MaybeWhitespaceLikeParser, (v) => ({ whitespaceLike: v }))
 //     ),
 //     (item) => {
 //       if (Array.isArray(item)) {
@@ -2739,15 +3368,337 @@ fragmentParser('RaiseFunction_Fail').setParser(
 //   )
 // );
 
-// nodeParser('SqlStmtList').setParser(
-//   c.apply(c.pipe(c.manySepBy(fragmentParser('SqlStmtListItem'), semicolonParser), eofParser), ([items]) => {
-//     const list = manySepByResultToArray(items);
-//     if (list.length === 1 && list[0].variant === 'Empty') {
-//       return { items: [] };
-//     }
-//     return { items: list };
-//   })
-// );
+nodeParser('TableOrSubquery').setParser(
+  c.oneOf(
+    fragmentParser('TableOrSubquery_Table'),
+    fragmentParser('TableOrSubquery_TableFunctionInvocation'),
+    fragmentParser('TableOrSubquery_Select'),
+    fragmentParser('TableOrSubquery_TableOrSubqueries'),
+    fragmentParser('TableOrSubquery_Join')
+  )
+);
+
+fragmentParser('TableOrSubquery_Table').setParser(
+  c.keyed({ variant: 'Table' }, (key) =>
+    c.keyedPipe(
+      key('table', fragmentParser('SchemaTable')),
+      key('alias', c.maybe(fragmentParser('TableOrSubquery_Alias'))),
+      key('index', c.maybe(c.oneOf(fragmentParser('TableOrSubquery_Table_IndexedBy'), fragmentParser('TableOrSubquery_Table_NotIndexed'))))
+    )
+  )
+);
+
+fragmentParser('TableOrSubquery_Alias').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(key('as', c.maybe(fragmentParser('As'))), key('whitespaceBeforeTableAlias', WhitespaceLikeParser), key('tableAlias', IdentifierParser))
+  )
+);
+
+fragmentParser('TableOrSubquery_Table_IndexedBy').setParser(
+  c.keyed({ variant: 'IndexedBy' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeIndexedKeyword', WhitespaceLikeParser),
+      key('indexedKeyword', KeywordParser.INDEXED),
+      key('whitespaceBeforeByKeyword', WhitespaceLikeParser),
+      key('byKeyword', KeywordParser.BY),
+      key('whitespaceBeforeIndexName', WhitespaceLikeParser),
+      key('indexName', IdentifierParser)
+    )
+  )
+);
+
+fragmentParser('TableOrSubquery_Table_NotIndexed').setParser(
+  c.keyed({ variant: 'NotIndexed' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeNotKeyword', WhitespaceLikeParser),
+      key('notKeyword', KeywordParser.NOT),
+      key('whitespaceBeforeIndexedKeyword', WhitespaceLikeParser),
+      key('indexedKeyword', KeywordParser.INDEXED)
+    )
+  )
+);
+
+fragmentParser('TableOrSubquery_TableFunctionInvocation').setParser(
+  c.keyed({ variant: 'TableFunctionInvocation' }, (key) =>
+    c.keyedPipe(
+      key('function', fragmentParser('SchemaFunction')),
+      key('whitespaceBeforeOpenParent', MaybeWhitespaceLikeParser),
+      openParentParser,
+      key('parameters', nonEmptyCommaSingleList(ExprParser)),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser,
+      key('alias', c.maybe(fragmentParser('TableOrSubquery_Alias')))
+    )
+  )
+);
+
+fragmentParser('TableOrSubquery_Select').setParser(
+  c.keyed({ variant: 'Select' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeSelectStmt', WhitespaceLikeParser),
+      key('selectStmt', nodeParser('SelectStmt')),
+      key('whitespaceBeforeCloseParent', WhitespaceLikeParser),
+      key('alias', c.maybe(fragmentParser('TableOrSubquery_Alias')))
+    )
+  )
+);
+
+fragmentParser('TableOrSubquery_TableOrSubqueries').setParser(
+  c.keyed({ variant: 'TableOrSubqueries' }, (key) =>
+    c.keyedPipe(
+      openParentParser,
+      key('tableOrSubqueries', nonEmptyCommaSingleList(nodeParser('TableOrSubquery'))),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+fragmentParser('TableOrSubquery_Join').setParser(
+  c.keyed({ variant: 'Join' }, (key) =>
+    c.keyedPipe(
+      openParentParser,
+      key('whitespaceBeforeJoinClause', WhitespaceLikeParser),
+      key('joinClause', nodeParser('JoinClause')),
+      key('whitespaceBeforeCloseParent', MaybeWhitespaceLikeParser),
+      closeParentParser
+    )
+  )
+);
+
+nodeParser('TypeName').setParser(
+  c.keyed((key) => c.keyedPipe(key('name', fragmentParser('TypeName_Name')), key('size', c.maybe(fragmentParser('TypeName_Size')))))
+);
+
+fragmentParser('TypeName_Name').setParser(
+  c.keyed((key) => c.keyedPipe(key('head', typeNameItemParser), key('tail', c.maybe(c.many(fragmentParser('TypeName_Name_Tail'))))))
+);
+
+fragmentParser('TypeName_Name_Tail').setParser(
+  c.keyed((key) => c.keyedPipe(key('whitespaceBeforeName', WhitespaceLikeParser), key('name', typeNameItemParser)))
+);
+
+nodeParser('UpdateStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('with', c.maybe(fragmentParser('StmtWith'))),
+      key('updateKeyword', KeywordParser.UPDATE),
+      key('or', c.maybe(fragmentParser('UpdateOr'))),
+      key('whitespaceBeforeQualifiedTableName', WhitespaceLikeParser),
+      key('qualifiedTableName', nodeParser('QualifiedTableName')),
+      key('whitespaceBeforeSetKeyword', WhitespaceLikeParser),
+      key('setKeyword', KeywordParser.SET),
+      key('setItems', nonEmptyCommaList(fragmentParser('UpdateSetItems'))),
+      key('from', c.maybe(fragmentParser('UpdateFrom'))),
+      key('where', c.maybe(fragmentParser('Where'))),
+      key('returningClause', c.maybe(fragmentParser('ReturningClause')))
+    )
+  )
+);
+
+fragmentParser('UpdateOr').setParser(
+  c.oneOf(
+    fragmentParser('UpdateOr_Abort'),
+    fragmentParser('UpdateOr_Fail'),
+    fragmentParser('UpdateOr_Ignore'),
+    fragmentParser('UpdateOr_Replace'),
+    fragmentParser('UpdateOr_Rollback')
+  )
+);
+
+fragmentParser('UpdateOr_Abort').setParser(
+  c.keyed({ variant: 'Abort' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOrKeyword', WhitespaceLikeParser),
+      key('orKeyword', KeywordParser.OR),
+      key('whitespaceBeforeAbortKeyword', WhitespaceLikeParser),
+      key('abortKeyword', KeywordParser.ABORT)
+    )
+  )
+);
+
+fragmentParser('UpdateOr_Fail').setParser(
+  c.keyed({ variant: 'Fail' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOrKeyword', WhitespaceLikeParser),
+      key('orKeyword', KeywordParser.OR),
+      key('whitespaceBeforeFailKeyword', WhitespaceLikeParser),
+      key('failKeyword', KeywordParser.ABORT)
+    )
+  )
+);
+
+fragmentParser('UpdateOr_Ignore').setParser(
+  c.keyed({ variant: 'Ignore' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOrKeyword', WhitespaceLikeParser),
+      key('orKeyword', KeywordParser.OR),
+      key('whitespaceBeforeIgnoreKeyword', WhitespaceLikeParser),
+      key('ignoreKeyword', KeywordParser.ABORT)
+    )
+  )
+);
+
+fragmentParser('UpdateOr_Replace').setParser(
+  c.keyed({ variant: 'Replace' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOrKeyword', WhitespaceLikeParser),
+      key('orKeyword', KeywordParser.OR),
+      key('whitespaceBeforeReplaceKeyword', WhitespaceLikeParser),
+      key('replaceKeyword', KeywordParser.ABORT)
+    )
+  )
+);
+
+fragmentParser('UpdateOr_Rollback').setParser(
+  c.keyed({ variant: 'Rollback' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOrKeyword', WhitespaceLikeParser),
+      key('orKeyword', KeywordParser.OR),
+      key('whitespaceBeforeRollbackKeyword', WhitespaceLikeParser),
+      key('rollbackKeyword', KeywordParser.ABORT)
+    )
+  )
+);
+
+fragmentParser('UpdateFrom').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeFromKeyword', WhitespaceLikeParser),
+      key('fromKeyword', KeywordParser.FROM),
+      key('inner', c.oneOf(fragmentParser('UpdateFrom_TableOrSubquery'), fragmentParser('UpdateFrom_JoinClause')))
+    )
+  )
+);
+
+fragmentParser('UpdateFrom_TableOrSubquery').setParser(
+  c.apply(nonEmptyCommaSingleList(nodeParser('TableOrSubquery')), (tableOrSubqueries) => ({ variant: 'TableOrSubquery', tableOrSubqueries }))
+);
+
+fragmentParser('UpdateFrom_JoinClause').setParser(
+  c.keyed({ variant: 'JoinClause' }, (key) => c.keyedPipe(key('whitespaceBeforeJoinClause', WhitespaceLikeParser), key('joinClause', nodeParser('JoinClause'))))
+);
+
+nodeParser('UpdateStmtLimited').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('with', c.maybe(fragmentParser('StmtWith'))),
+      key('updateKeyword', KeywordParser.UPDATE),
+      key('or', c.maybe(fragmentParser('UpdateOr'))),
+      key('whitespaceBeforeQualifiedTableName', WhitespaceLikeParser),
+      key('qualifiedTableName', nodeParser('QualifiedTableName')),
+      key('whitespaceBeforeSet', WhitespaceLikeParser),
+      key('setItems', fragmentParser('UpdateSetItems')),
+      key('from', fragmentParser('UpdateFrom')),
+      key('where', c.maybe(fragmentParser('UpdateStmt_LimitedWhere'))),
+      key('orderBy', c.maybe(fragmentParser('OrderBy'))),
+      key('limit', c.maybe(fragmentParser('Limit')))
+    )
+  )
+);
+
+fragmentParser('UpdateSetItems').setParser(
+  nonEmptyCommaList(c.oneOf(fragmentParser('UpdateSetItems_ColumnName'), fragmentParser('UpdateSetItems_ColumnNameList')))
+);
+
+fragmentParser('UpdateSetItems_ColumnName').setParser(
+  c.keyed({ variant: 'ColumnName' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeColumnName', WhitespaceLikeParser),
+      key('columnName', IdentifierParser),
+      key('whitespaceBeforeEqual', MaybeWhitespaceLikeParser),
+      equalParser,
+      key('whitespaceBeforeExpr', MaybeWhitespaceLikeParser),
+      key('expr', ExprParser)
+    )
+  )
+);
+
+fragmentParser('UpdateSetItems_ColumnNameList').setParser(
+  c.keyed({ variant: 'ColumnNameList' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeColumnNameList', WhitespaceLikeParser),
+      key('columnNameList', nodeParser('ColumnNameList')),
+      key('whitespaceBeforeEqual', MaybeWhitespaceLikeParser),
+      equalParser,
+      key('whitespaceBeforeExpr', MaybeWhitespaceLikeParser),
+      key('expr', ExprParser)
+    )
+  )
+);
+
+nodeParser('UpsertClause').setParser(c.apply(nonEmptyList(fragmentParser('UpsertClause_Item')), (items) => ({ items })));
+
+fragmentParser('UpsertClause_Item').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('onKeyword', KeywordParser.ON),
+      key('whitespaceBeforeConflictKeyword', WhitespaceLikeParser),
+      key('conflictKeyword', KeywordParser.CONFLICT),
+      key('target', c.maybe(fragmentParser('UpsertClause_Item_Target'))),
+      key('whitespaceBeforeDoKeyword', WhitespaceLikeParser),
+      key('doKeyword', KeywordParser.DO),
+      key('inner', c.oneOf(fragmentParser('UpsertClause_Item_Nothing'), fragmentParser('UpsertClause_Item_UpdateSet')))
+    )
+  )
+);
+
+fragmentParser('UpsertClause_Item_Target').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeOpenParent', WhitespaceLikeParser),
+      openParentParser,
+      key('indexedColumns', nonEmptyCommaSingleList(nodeParser('IndexedColumn'))),
+      key('whitespaceBeforeCloseParent', WhitespaceLikeParser),
+      closeParentParser,
+      key('where', c.maybe(fragmentParser('Where')))
+    )
+  )
+);
+
+fragmentParser('UpsertClause_Item_Nothing').setParser(
+  c.keyed({ variant: 'Nothing' }, (key) =>
+    c.keyedPipe(key('whitespaceBeforeNothingKeyword', WhitespaceLikeParser), key('nothingKeyword', KeywordParser.NOTHING))
+  )
+);
+
+fragmentParser('UpsertClause_Item_UpdateSet').setParser(
+  c.keyed({ variant: 'UpdateSet' }, (key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeUpdateKeyword', WhitespaceLikeParser),
+      key('updateKeyword', KeywordParser.UPDATE),
+      key('whitespaceBeforeSetKeyword', WhitespaceLikeParser),
+      key('setKeyword', KeywordParser.SET),
+      key('setItems', fragmentParser('UpdateSetItems')),
+      key('where', c.maybe(fragmentParser('Where')))
+    )
+  )
+);
+
+nodeParser('VacuumStmt').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('vacuumKeyword', KeywordParser.VACUUM),
+      key('schemaName', c.maybe(fragmentParser('VacuumStmt_SchemaName'))),
+      key('into', c.maybe(fragmentParser('VacuumStmt_Into')))
+    )
+  )
+);
+
+fragmentParser('VacuumStmt_SchemaName').setParser(
+  c.keyed((key) => c.keyedPipe(key('whitespaceBeforeSchemaName', WhitespaceLikeParser), key('schemaName', IdentifierParser)))
+);
+
+fragmentParser('VacuumStmt_Into').setParser(
+  c.keyed((key) =>
+    c.keyedPipe(
+      key('whitespaceBeforeIntoKeyword', WhitespaceLikeParser),
+      key('intoKeyword', KeywordParser.INTO),
+      key('whitespaceBeforeFilename', WhitespaceLikeParser),
+      key('filename', nodeParser('StringLiteral'))
+    )
+  )
+);
 
 nodeParser('Whitespace').setParser(c.apply(whitespaceRawParser, (content) => ({ content })));
 

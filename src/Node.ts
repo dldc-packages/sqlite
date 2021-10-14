@@ -574,7 +574,7 @@ export type NodeData = {
   };
   JoinClause: {
     tableOrSubquery: Node<'TableOrSubquery'>;
-    join?: NonEmptyList<Fragment<'JoinClause_JoinItem'>>;
+    join?: Array<Fragment<'JoinClause_JoinItem'>>;
   };
   JoinConstraint: Fragment<'JoinConstraint_On' | 'JoinConstraint_Using'>;
   JoinOperator: Fragment<'JoinOperator_Comma' | 'JoinOperator_Join'>;
@@ -622,7 +622,7 @@ export type NodeData = {
   };
   ReindexStmt: {
     reindexKeyword?: string;
-    target?: Fragment<'ReindexStmt_CollationName' | 'ReindexStmt_Table' | 'ReindexStmt_Index'>;
+    target?: Fragment<'ReindexStmt_CollationName' | 'ReindexStmt_TableOrIndex'>;
   };
   ReleaseStmt: {
     releaseKeyword?: string;
@@ -688,10 +688,7 @@ export type NodeData = {
     | 'TableOrSubquery_Join'
   >;
   TypeName: {
-    names: {
-      head: string;
-      tail: Array<{ whitespaceBefaoreName?: WhitespaceLike; name: string }>;
-    };
+    name: Fragment<'TypeName_Name'>;
     size?: Fragment<'TypeName_Size'>;
   };
   UpdateStmt: {

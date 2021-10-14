@@ -13,17 +13,14 @@ test('should parse expression', () => {
   expect(TSQliteParser.parseAdvanced(FragmentParser.Expr, '5 > 3').result).toEqual({
     kind: 'GreaterThan',
     leftExpr: { exponent: undefined, interger: 5, kind: 'NumericLiteral', variant: 'Integer' },
-    operatorWhitespace: [{ content: ' ', kind: 'Whitespace' }],
     rightExpr: { exponent: undefined, interger: 3, kind: 'NumericLiteral', variant: 'Integer' },
-    rightExprWhitespace: [{ content: ' ', kind: 'Whitespace' }],
+    whitespaceBeforeOperator: [{ content: ' ', kind: 'Whitespace' }],
+    whitespaceBeforeRightExpr: [{ content: ' ', kind: 'Whitespace' }],
   });
 });
 
 test('should parse empty as SqlStmtList', () => {
-  expect(TSQliteParser.parseSqlStmtList('').result).toEqual({
-    items: [],
-    kind: 'SqlStmtList',
-  });
+  expect(TSQliteParser.parseSqlStmtList('').result).toEqual({ items: [], kind: 'SqlStmtList' });
 });
 
 test('should parse semicolon as two empty', () => {
@@ -57,14 +54,15 @@ test('Parse comment with semicolon', () => {
 
 test('should parse line comment', () => {
   expect(TSQliteParser.parseSqlStmtList('-- hello').result.items).toEqual([
-    { variant: 'Whitespace', whitespace: [{ kind: 'CommentSyntax', content: ' hello', variant: 'SingleLine', close: 'EOF' }] },
+    { variant: 'Whitespace', whitespace: [{ kind: 'CommentSyntax', content: ' hello', variant: 'SingleLine', close: 'EndOfFile' }] },
   ]);
 });
 
 test('should parse keyword', () => {
   expect(TSQliteParser.parseAdvanced(KeywordParser.CREATE, 'CREATE').result).toBe('CREATE');
-  expect(TSQliteParser.parseAdvanced(KeywordParser.CREATE, 'create').result).toBe('CREATE');
-  expect(TSQliteParser.parseAdvanced(KeywordParser.CREATE, 'Create').result).toBe('CREATE');
+  expect(TSQliteParser.parseAdvanced(KeywordParser.CREATE, 'create').result).toBe('create');
+  expect(TSQliteParser.parseAdvanced(KeywordParser.CREATE, 'Create').result).toBe('Create');
+  expect(() => TSQliteParser.parseAdvanced(KeywordParser.CREATE, 'Created')).toThrow();
 });
 
 test('should parse expression', () => {
@@ -82,12 +80,9 @@ test('should parse expression but not whitespace', () => {
 test('should parse indexed column', () => {
   expect(TSQliteParser.parseAdvanced(NodeParser.IndexedColumn, '`happiness` ASC').result).toEqual({
     collate: undefined,
-    column: {
-      expr: { columnName: { kind: 'Identifier', name: 'happiness', variant: 'Backtick' }, kind: 'Column', variant: 'ColumnWithoutTable' },
-      variant: 'Expr',
-    },
+    column: { columnName: { kind: 'Identifier', name: 'happiness', variant: 'Backtick' }, variant: 'Name' },
+    direction: { ascKeyword: 'ASC', variant: 'Asc', whitespaceBeforeAscKeyword: [{ content: ' ', kind: 'Whitespace' }] },
     kind: 'IndexedColumn',
-    order: { ascWhitespace: [{ content: ' ', kind: 'Whitespace' }], variant: 'Asc' },
   });
 });
 
@@ -96,6 +91,18 @@ test('should parse create index as stmt', () => {
     TSQliteParser.parseAdvanced(NodeParser.SqlStmt, 'CREATE INDEX `bees`.`hive_state`\nON `hive` (`happiness` ASC, `anger` DESC)\nWHERE `anger` > 0').result
       .stmt.kind
   ).toEqual('CreateIndexStmt');
+});
+
+test('should parse uncommon-aliases', () => {
+  expect(
+    TSQliteParser.parseSqlStmtList(`
+      select
+        hat.*,
+        COUNT( *) as pants
+      from
+        hats hat
+    `).result
+  ).toEqual(null);
 });
 
 // test('should parse create index', () => {
