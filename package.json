@@ -1,15 +1,15 @@
 {
-  "name": "tsqlite",
+  "name": "zensqlite",
   "version": "0.0.0",
   "description": "Type safe tooling for SQLite",
   "keywords": [],
-  "homepage": "https://github.com/etienne-dldc/tsqlite#readme",
+  "homepage": "https://github.com/etienne-dldc/zensqlite#readme",
   "bugs": {
-    "url": "https://github.com/etienne-dldc/tsqlite/issues"
+    "url": "https://github.com/etienne-dldc/zensqlite/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/etienne-dldc/tsqlite.git"
+    "url": "git+https://github.com/etienne-dldc/zensqlite.git"
   },
   "license": "MIT",
   "author": "Etienne Dldc",
