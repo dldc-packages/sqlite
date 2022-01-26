@@ -1,5 +1,0 @@
-SELECT *
-FROM a
-UNION
-SELECT *
-FROM b

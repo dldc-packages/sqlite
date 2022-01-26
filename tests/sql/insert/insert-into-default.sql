@@ -1,2 +1,0 @@
-INSERT INTO apples (a, b, c)
-DEFAULT VALUES
