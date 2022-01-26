@@ -1,4 +1,4 @@
-import { Variants, NonEmptyList } from './Utils';
+import { Variants, NonEmptyList } from './Utils.ts';
 
 export function createNode<K extends NodeKind>(kind: K, data: NodeData[K]): Node<K> {
   const node: Node<K> = { kind, ...data } as any;
