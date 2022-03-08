@@ -1,19 +1,15 @@
-import { printNode, createNode, Node, builder as b } from '../src/mod';
-
-function identifier(name: string): Node<'Identifier'> {
-  return createNode('Identifier', { variant: 'Backtick', name });
-}
+import { printNode, createNode, builder as b } from '../src/mod';
 
 test('Print AlterTableStmt', () => {
   const node = createNode('AlterTableStmt', {
-    table: identifier('users'),
+    table: b.Identifier('users'),
     action: {
       variant: 'RenameTo',
-      newTableName: identifier('users_new'),
+      newTableName: b.Identifier('users_new'),
     },
   });
 
-  expect(printNode(node)).toBe('ALTER TABLE `users` RENAME TO `users_new`');
+  expect(printNode(node)).toBe('ALTER TABLE users RENAME TO `users_new`');
 });
 
 test('Print Select', () => {
@@ -24,7 +20,7 @@ test('Print Select', () => {
       tablesOrSubqueries: [
         createNode('TableOrSubquery', {
           variant: 'Table',
-          table: identifier('users'),
+          table: b.Identifier('users'),
         }),
       ],
     },
@@ -35,7 +31,7 @@ test('Print Select', () => {
     ],
   });
 
-  expect(printNode(node)).toBe('SELECT * FROM `users`');
+  expect(printNode(node)).toBe('SELECT * FROM users');
 });
 
 test('Print Select using builder', () => {
@@ -50,9 +46,7 @@ test('Print Select using builder', () => {
     where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
   });
 
-  expect(printNode(node)).toBe(
-    "SELECT `users`.`id`, `users`.* FROM `users` LEFT JOIN `posts` ON `users`.`id` == `posts`.`user_id` WHERE `users`.`name` == 'azerty'"
-  );
+  expect(printNode(node)).toBe("SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.`user_id` WHERE users.name == 'azerty'");
 });
 
 test('Print join of table and subquery', () => {
@@ -67,16 +61,14 @@ test('Print join of table and subquery', () => {
           resultColumns: [b.ResultColumn.Star()],
           where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
         }),
-        `users`
+        'users'
       ),
       b.JoinConstraint.On(b.Expr.Equal(b.parseColumn('users.id'), b.parseColumn('posts.user_id')))
     ),
     resultColumns: [b.ResultColumn.Star()],
   });
 
-  expect(printNode(node)).toBe(
-    "SELECT * FROM `posts` INNER JOIN (SELECT * FROM `users` WHERE `users`.`name` == 'azerty') AS `users` ON `users`.`id` == `posts`.`user_id`"
-  );
+  expect(printNode(node)).toBe("SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.`user_id`");
 });
 
 test('CreateTableStmt', () => {
@@ -90,5 +82,5 @@ test('CreateTableStmt', () => {
     { strict: true, ifNotExists: true }
   );
 
-  expect(printNode(node)).toBe('CREATE TABLE IF NOT EXISTS `users` (`id` TEXT PRIMARY KEY, `name` TEXT, `email` TEXT UNIQUE NOT NULL) STRICT');
+  expect(printNode(node)).toBe('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL) STRICT');
 });

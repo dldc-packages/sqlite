@@ -23,13 +23,16 @@ export function arrayToOptionalNonEmptyArray<T>(arr: Array<T> | undefined): NonE
   return arrayToNonEmptyArray(arr);
 }
 
-export function Identifier(name: string | Id, variant: Id['variant'] = 'Backtick'): Id {
+const SIMPLE_IDENTIFIER_REG = /^[a-zA-Z][a-zA-Z0-9]*$/;
+
+export function Identifier(name: string | Id, variant?: Id['variant']): Id {
   if (typeof name !== 'string') {
     return name;
   }
+  const variantResolved: Id['variant'] = variant ?? (SIMPLE_IDENTIFIER_REG.test(name) ? 'Basic' : 'Backtick');
   return n.createNode('Identifier', {
     name,
-    variant,
+    variant: variantResolved,
   });
 }
 
@@ -80,7 +83,7 @@ type SelectFrom = Extract<Node<'SelectCore'>, { variant: 'Select' }>['from'];
 
 export type SelectStmtOptions = {
   distinct?: 'Distinct' | 'All';
-  resultColumns: NonEmptyArray<Node<'ResultColumn'>>;
+  resultColumns: Array<Node<'ResultColumn'>>;
   from: SelectFrom;
   where?: Exp;
   orderBy?: Node<'SelectStmt'>['orderBy'];
@@ -90,7 +93,14 @@ export type SelectStmtOptions = {
 
 export function SelectStmt({ distinct, resultColumns, from, where, limit, orderBy, groupBy }: SelectStmtOptions): Node<'SelectStmt'> {
   return n.createNode('SelectStmt', {
-    select: n.createNode('SelectCore', { variant: 'Select', distinct, resultColumns, from, where, groupBy }),
+    select: n.createNode('SelectCore', {
+      variant: 'Select',
+      distinct,
+      resultColumns: arrayToNonEmptyArray(resultColumns),
+      from,
+      where,
+      groupBy,
+    }),
     limit,
     orderBy,
   });
