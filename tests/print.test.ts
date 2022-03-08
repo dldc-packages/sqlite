@@ -1,4 +1,4 @@
-import { printNode, createNode, Node, nonEmptyList } from '../src/mod';
+import { printNode, createNode, Node, builder as b } from '../src/mod';
 
 function identifier(name: string): Node<'Identifier'> {
   return createNode('Identifier', { variant: 'Backtick', name });
@@ -20,20 +20,61 @@ test('Print Select', () => {
   const node = createNode('SelectCore', {
     variant: 'Select',
     from: {
-      variant: 'TableOrSubquery',
-      tableOrSubqueries: nonEmptyList(
+      variant: 'TablesOrSubqueries',
+      tablesOrSubqueries: [
         createNode('TableOrSubquery', {
           variant: 'Table',
           table: identifier('users'),
-        })
-      ),
+        }),
+      ],
     },
-    resultColumns: nonEmptyList(
+    resultColumns: [
       createNode('ResultColumn', {
         variant: 'Star',
-      })
-    ),
+      }),
+    ],
   });
 
   expect(printNode(node)).toBe('SELECT * FROM `users`');
+});
+
+test('Print Select using builder', () => {
+  const node = b.SelectStmt({
+    from: b.From.Join(
+      b.TableOrSubquery.Table('users'),
+      b.JoinOperator.Join('Left'),
+      b.TableOrSubquery.Table('posts'),
+      b.JoinConstraint.On(b.Expr.Equal(b.parseColumn('users.id'), b.parseColumn('posts.user_id')))
+    ),
+    resultColumns: [b.ResultColumn.parseColumn('users.id'), b.ResultColumn.TableStar('users')],
+    where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
+  });
+
+  expect(printNode(node)).toBe(
+    "SELECT `users`.`id`, `users`.* FROM `users` LEFT JOIN `posts` ON `users`.`id` == `posts`.`user_id` WHERE `users`.`name` == 'azerty'"
+  );
+});
+
+test('Print join of table and subquery', () => {
+  const node = b.SelectStmt({
+    from: b.From.Join(
+      b.TableOrSubquery.Table('posts'),
+      b.JoinOperator.Join('Inner'),
+      // Find user
+      b.TableOrSubquery.Select(
+        b.SelectStmt({
+          from: b.From.Table('users'),
+          resultColumns: [b.ResultColumn.Star()],
+          where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
+        }),
+        `users`
+      ),
+      b.JoinConstraint.On(b.Expr.Equal(b.parseColumn('users.id'), b.parseColumn('posts.user_id')))
+    ),
+    resultColumns: [b.ResultColumn.Star()],
+  });
+
+  expect(printNode(node)).toBe(
+    "SELECT * FROM `posts` INNER JOIN (SELECT * FROM `users` WHERE `users`.`name` == 'azerty') AS `users` ON `users`.`id` == `posts`.`user_id`"
+  );
 });

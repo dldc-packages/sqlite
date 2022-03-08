@@ -1,14 +1,13 @@
 import { Node, NodeKind } from './Node';
-import { join, joiner, mapMaybe, mapVariants, NonEmptyList, mapUnionString } from './Utils';
+import { join, joiner, mapMaybe, mapVariants, NonEmptyArray, mapUnionString } from './Utils';
 import { Keywords } from './Keyword';
 import { BinaryOperator, UnaryOperator } from './Operator';
 
-function printList<T>(list: NonEmptyList<T>, printer: (item: T) => string, sep: string = ', '): string {
-  const arr = [list.head, ...list.tail];
-  return joiner(sep, ...arr.map(printer));
+function printList<T>(list: NonEmptyArray<T>, printer: (item: T) => string, sep: string = ', '): string {
+  return joiner(sep, ...list.map(printer));
 }
 
-function printNodeList(list: NonEmptyList<Node>, sep: string = ', '): string {
+function printNodeList(list: NonEmptyArray<Node>, sep: string = ', '): string {
   return printList(list, printNode, sep);
 }
 
@@ -92,11 +91,11 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
             Keywords.PRIMARY,
             Keywords.KEY,
             direction && mapUnionString(direction, { Asc: Keywords.ASC, Desc: Keywords.DESC }),
-            p(conflictClause),
+            mapMaybe(conflictClause, p),
             autoincrement && Keywords.AUTOINCREMENT
           ),
-        NotNull: ({ conflictClause }) => join.space(Keywords.NOT, Keywords.NULL, p(conflictClause)),
-        Unique: ({ conflictClause }) => join.space(Keywords.UNIQUE, p(conflictClause)),
+        NotNull: ({ conflictClause }) => join.space(Keywords.NOT, Keywords.NULL, mapMaybe(conflictClause, p)),
+        Unique: ({ conflictClause }) => join.space(Keywords.UNIQUE, mapMaybe(conflictClause, p)),
         Check: ({ expr }) => join.space(Keywords.CHECK, parent(p(expr))),
         DefaultExpr: ({ expr }) => join.space(Keywords.DEFAULT, parent(p(expr))),
         DefaultLiteralValue: ({ literalValue }) => join.space(Keywords.DEFAULT, p(literalValue)),
@@ -553,7 +552,7 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
     });
   },
   Column: ({ table, columnName }) => {
-    return join.space(
+    return join.all(
       mapMaybe(table, ({ name, schema }) =>
         join.all(
           mapMaybe(schema, (s) => join.all(p(s), '.')),
@@ -766,14 +765,14 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
   JoinClause: ({ tableOrSubquery, joins }) => {
     return join.space(
       p(tableOrSubquery),
-      joins && printList(joins, ({ joinOperator, tableOrSubquery, joinConstraint }) => join.space(p(joinOperator), p(tableOrSubquery), p(joinConstraint)))
+      joins &&
+        printList(joins, ({ joinOperator, tableOrSubquery, joinConstraint }) => join.space(p(joinOperator), p(tableOrSubquery), mapMaybe(joinConstraint, p)))
     );
   },
   JoinConstraint: (node) => {
     return mapVariants(node, {
       On: ({ expr }) => join.space(Keywords.ON, p(expr)),
       Using: ({ columnNames }) => join.space(Keywords.USING, parent(printNodeList(columnNames))),
-      Empty: () => '',
     });
   },
   JoinOperator: (node) => {
@@ -932,7 +931,7 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
             join.space(
               Keywords.FROM,
               mapVariants(from, {
-                TableOrSubquery: ({ tableOrSubqueries }) => printNodeList(tableOrSubqueries),
+                TablesOrSubqueries: ({ tablesOrSubqueries }) => printNodeList(tablesOrSubqueries),
                 Join: ({ joinClause }) => p(joinClause),
               })
             )
@@ -1045,8 +1044,8 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
       constraintName && join.space(Keywords.CONSTRAINT, p(constraintName)),
       mapVariants(inner, {
         PrimaryKey: ({ indexedColumns, conflictClause }) =>
-          join.space(Keywords.PRIMARY, Keywords.KEY, parent(printNodeList(indexedColumns)), p(conflictClause)),
-        Unique: ({ indexedColumns, conflictClause }) => join.space(Keywords.UNIQUE, parent(printNodeList(indexedColumns)), p(conflictClause)),
+          join.space(Keywords.PRIMARY, Keywords.KEY, parent(printNodeList(indexedColumns)), mapMaybe(conflictClause, p)),
+        Unique: ({ indexedColumns, conflictClause }) => join.space(Keywords.UNIQUE, parent(printNodeList(indexedColumns)), mapMaybe(conflictClause, p)),
         Check: ({ expr }) => join.space(Keywords.CHECK, parent(p(expr))),
         ForeignKey: ({ columnNames, foreignKeyClause }) => join.space(Keywords.FOREIGN, Keywords.KEY, parent(printNodeList(columnNames)), p(foreignKeyClause)),
       })

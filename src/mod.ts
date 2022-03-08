@@ -1,5 +1,10 @@
+import * as builder from './Builder';
+
 export { printNode } from './Printer';
 export * from './Node';
 export * from './Operator';
-export { NonEmptyList, Variants, nonEmptyList } from './Utils';
+export { NonEmptyArray, Variants } from './Utils';
 export { Keyword, Keywords } from './Keyword';
+export type { ColumnConstraint_PrimaryKeyOptions, ColumnDefOptions, CreateTableStmtOptions, JoinItem, SelectStmtOptions, ValidTypeName } from './Builder';
+
+export { builder };
