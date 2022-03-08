@@ -148,11 +148,11 @@ export function TypeName(type: string | Node<'TypeName'>): Node<'TypeName'> {
   });
 }
 
-export type ColumnDefOptions = {
-  columnConstraints?: Array<Node<'ColumnConstraint'>>;
-};
-
-export function ColumnDef(name: string | Id, typeName?: ValidTypeName | Node<'TypeName'>, { columnConstraints }: ColumnDefOptions = {}): Node<'ColumnDef'> {
+export function ColumnDef(
+  name: string | Id,
+  typeName?: ValidTypeName | Node<'TypeName'>,
+  columnConstraints?: Array<Node<'ColumnConstraint'>>
+): Node<'ColumnDef'> {
   return n.createNode('ColumnDef', {
     columnName: Identifier(name),
     typeName: typeof typeName === 'string' ? TypeName(typeName) : typeName,

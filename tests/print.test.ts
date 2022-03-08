@@ -78,3 +78,17 @@ test('Print join of table and subquery', () => {
     "SELECT * FROM `posts` INNER JOIN (SELECT * FROM `users` WHERE `users`.`name` == 'azerty') AS `users` ON `users`.`id` == `posts`.`user_id`"
   );
 });
+
+test('CreateTableStmt', () => {
+  const node = b.CreateTableStmt(
+    'users',
+    [
+      b.ColumnDef('id', b.TypeName('TEXT'), [b.ColumnConstraint.PrimaryKey()]),
+      b.ColumnDef('name', b.TypeName('TEXT')),
+      b.ColumnDef('email', b.TypeName('TEXT'), [b.ColumnConstraint.Unique(), b.ColumnConstraint.NotNull()]),
+    ],
+    { strict: true, ifNotExists: true }
+  );
+
+  expect(printNode(node)).toBe('CREATE TABLE IF NOT EXISTS `users` (`id` TEXT PRIMARY KEY, `name` TEXT, `email` TEXT UNIQUE NOT NULL) STRICT');
+});
