@@ -24,11 +24,7 @@ export function mapMaybe<T, O>(val: T | null | undefined, mapper: (val: T) => O)
   return mapper(val);
 }
 
-export type NonEmptyList<T> = { head: T; tail: Array<T> };
-
-export function nonEmptyList<T>(head: T, ...tail: Array<T>): NonEmptyList<T> {
-  return { head, tail };
-}
+export type NonEmptyArray<T> = [T, ...T[]];
 
 export type Variants<T extends Record<string, any>> = {
   [K in keyof T]: T[K] & { variant: K };
