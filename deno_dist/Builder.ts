@@ -23,7 +23,7 @@ export function arrayToOptionalNonEmptyArray<T>(arr: Array<T> | undefined): NonE
   return arrayToNonEmptyArray(arr);
 }
 
-const SIMPLE_IDENTIFIER_REG = /^[a-zA-Z][a-zA-Z0-9]*$/;
+const SIMPLE_IDENTIFIER_REG = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
 
 export function Identifier(name: string | Id, variant?: Id['variant']): Id {
   if (typeof name !== 'string') {

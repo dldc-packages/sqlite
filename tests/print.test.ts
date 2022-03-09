@@ -9,7 +9,7 @@ test('Print AlterTableStmt', () => {
     },
   });
 
-  expect(printNode(node)).toBe('ALTER TABLE users RENAME TO `users_new`');
+  expect(printNode(node)).toBe('ALTER TABLE users RENAME TO users_new');
 });
 
 test('Print Select', () => {
@@ -46,7 +46,7 @@ test('Print Select using builder', () => {
     where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
   });
 
-  expect(printNode(node)).toBe("SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.`user_id` WHERE users.name == 'azerty'");
+  expect(printNode(node)).toBe("SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.user_id WHERE users.name == 'azerty'");
 });
 
 test('Print join of table and subquery', () => {
@@ -68,7 +68,7 @@ test('Print join of table and subquery', () => {
     resultColumns: [b.ResultColumn.Star()],
   });
 
-  expect(printNode(node)).toBe("SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.`user_id`");
+  expect(printNode(node)).toBe("SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.user_id");
 });
 
 test('CreateTableStmt', () => {
