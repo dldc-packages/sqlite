@@ -26,6 +26,21 @@ export function mapMaybe<T, O>(val: T | null | undefined, mapper: (val: T) => O)
 
 export type NonEmptyArray<T> = [T, ...T[]];
 
+export function arrayToNonEmptyArray<T>(arr: Array<T> | undefined): NonEmptyArray<T> {
+  if (arr === undefined || arr.length === 0) {
+    throw new Error('Expected non-empty array');
+  }
+  const [first, ...rest] = arr;
+  return [first, ...rest];
+}
+
+export function arrayToOptionalNonEmptyArray<T>(arr: Array<T> | undefined): NonEmptyArray<T> | undefined {
+  if (arr === undefined || arr.length === 0) {
+    return undefined;
+  }
+  return arrayToNonEmptyArray(arr);
+}
+
 export type Variants<T extends Record<string, any>> = {
   [K in keyof T]: T[K] & { variant: K };
 }[keyof T];
