@@ -84,3 +84,11 @@ test('CreateTableStmt', () => {
 
   expect(printNode(node)).toBe('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL) STRICT');
 });
+
+test('DeleteStmt', () => {
+  const node = b.DeleteStmt('users', {
+    where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
+  });
+
+  expect(printNode(node)).toBe("DELETE FROM users WHERE users.name == 'azerty'");
+});
