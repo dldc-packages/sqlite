@@ -1,6 +1,6 @@
 {
   "name": "zensqlite",
-  "version": "1.6.0",
+  "version": "1.6.1",
   "description": "Type safe tooling for SQLite",
   "keywords": [],
   "homepage": "https://github.com/etienne-dldc/zensqlite#readme",
