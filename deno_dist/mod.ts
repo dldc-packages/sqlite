@@ -13,6 +13,11 @@ export type {
   ValidTypeName,
   SelectFrom,
   InsertStmtOptions,
+  DeleteStmtOptions,
+  SetItem,
+  UpdateStmtOptions,
+  SetItems,
+  InsertStmtData,
 } from './builder/mod.ts';
 
 export { builder };

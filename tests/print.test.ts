@@ -92,3 +92,11 @@ test('DeleteStmt', () => {
 
   expect(printNode(node)).toBe("DELETE FROM users WHERE users.name == 'azerty'");
 });
+
+test('UpdateStmt', () => {
+  const node = b.UpdateStmt('users', {
+    setItems: [b.SetItems.ColumnName('foo', b.Expr.literal(42))],
+  });
+
+  expect(printNode(node)).toBe('UPDATE users SET foo = 42');
+});

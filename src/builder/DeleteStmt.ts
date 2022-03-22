@@ -13,7 +13,7 @@ export type DeleteStmtOptions = {
   orderBy?: NonEmptyArray<Node<'OrderingTerm'>>;
 };
 
-export function DeleteStmt(table: string | Id, { where, schema, limit, orderBy }: DeleteStmtOptions): n.Node<'DeleteStmtLimited'> {
+export function DeleteStmt(table: string | Id, { where, schema, limit, orderBy }: DeleteStmtOptions = {}): n.Node<'DeleteStmtLimited'> {
   return n.createNode('DeleteStmtLimited', {
     qualifiedTableName: n.createNode('QualifiedTableName', {
       table: Identifier(table),
