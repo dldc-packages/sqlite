@@ -303,8 +303,8 @@ export interface NodeData {
   NotNull: { expr: Expr };
   LowerThan: { leftExpr: Expr; rightExpr: Expr };
   GreaterThan: { leftExpr: Expr; rightExpr: Expr };
-  LowerOrEqualThan: { leftExpr: Expr; rightExpr: Expr };
-  GreaterOrEqualThan: { leftExpr: Expr; rightExpr: Expr };
+  LowerThanOrEqual: { leftExpr: Expr; rightExpr: Expr };
+  GreaterThanOrEqual: { leftExpr: Expr; rightExpr: Expr };
   BitwiseAnd: { leftExpr: Expr; rightExpr: Expr };
   BitwiseOr: { leftExpr: Expr; rightExpr: Expr };
   BitwiseShiftLeft: { leftExpr: Expr; rightExpr: Expr };
@@ -837,8 +837,8 @@ export type Expr =
       | 'NotNull'
       | 'LowerThan'
       | 'GreaterThan'
-      | 'LowerOrEqualThan'
-      | 'GreaterOrEqualThan'
+      | 'LowerThanOrEqual'
+      | 'GreaterThanOrEqual'
       | 'BitwiseAnd'
       | 'BitwiseOr'
       | 'BitwiseShiftLeft'

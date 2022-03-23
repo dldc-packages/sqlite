@@ -25,8 +25,8 @@ const BinaryOperatorsInternal = {
   BitwiseShiftRight: ['>>'],
   GreaterThan: ['>'],
   LowerThan: ['<'],
-  GreaterOrEqualThan: ['>='],
-  LowerOrEqualThan: ['<='],
+  GreaterThanOrEqual: ['>='],
+  LowerThanOrEqual: ['<='],
   Equal: ['==', '='],
   Different: ['!=', '<>'],
 } as const;

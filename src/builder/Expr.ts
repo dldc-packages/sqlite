@@ -176,6 +176,7 @@ export function literal(val: null | number | string | boolean): n.LiteralValue {
 export const Expr = {
   LiteralValue,
   literal,
+  Null: LiteralValue.Null,
   Or(leftExpr: Exp, rightExpr: Exp): Node<'Or'> {
     return n.createNode('Or', { leftExpr, rightExpr });
   },
@@ -276,11 +277,11 @@ export const Expr = {
   GreaterThan(leftExpr: Exp, rightExpr: Exp): Node<'GreaterThan'> {
     return n.createNode('GreaterThan', { leftExpr, rightExpr });
   },
-  LowerOrEqualThan(leftExpr: Exp, rightExpr: Exp): Node<'LowerOrEqualThan'> {
-    return n.createNode('LowerOrEqualThan', { leftExpr, rightExpr });
+  LowerThanOrEqual(leftExpr: Exp, rightExpr: Exp): Node<'LowerThanOrEqual'> {
+    return n.createNode('LowerThanOrEqual', { leftExpr, rightExpr });
   },
-  GreaterOrEqualThan(leftExpr: Exp, rightExpr: Exp): Node<'GreaterOrEqualThan'> {
-    return n.createNode('GreaterOrEqualThan', { leftExpr, rightExpr });
+  GreaterThanOrEqual(leftExpr: Exp, rightExpr: Exp): Node<'GreaterThanOrEqual'> {
+    return n.createNode('GreaterThanOrEqual', { leftExpr, rightExpr });
   },
   BitwiseAnd(leftExpr: Exp, rightExpr: Exp): Node<'BitwiseAnd'> {
     return n.createNode('BitwiseAnd', { leftExpr, rightExpr });
