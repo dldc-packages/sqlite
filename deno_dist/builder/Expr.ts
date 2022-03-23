@@ -176,6 +176,7 @@ export function literal(val: null | number | string | boolean): n.LiteralValue {
 export const Expr = {
   LiteralValue,
   literal,
+  Null: LiteralValue.Null,
   Or(leftExpr: Exp, rightExpr: Exp): Node<'Or'> {
     return n.createNode('Or', { leftExpr, rightExpr });
   },
