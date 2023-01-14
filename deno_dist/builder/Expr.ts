@@ -55,67 +55,85 @@ export function Column(column: string | { column: string | Id; table?: string | 
   });
 }
 
+export interface AggregateFunctionParams<Expr = Exp[]> {
+  distinct?: boolean;
+  params: Expr;
+}
+
+const AggregateFunctions = {
+  avg: (options: AggregateFunctionParams<Exp>) => AggregateFunctionInvocation('avg', options),
+  count: (options: AggregateFunctionParams<Exp>) => AggregateFunctionInvocation('count', options),
+  group_concat: (options: AggregateFunctionParams<Exp | [x: Exp, y: Exp]>) => AggregateFunctionInvocation('group_concat', options),
+  max: (options: AggregateFunctionParams<Exp>) => AggregateFunctionInvocation('max', options),
+  min: (options: AggregateFunctionParams<Exp>) => AggregateFunctionInvocation('min', options),
+  sum: (options: AggregateFunctionParams<Exp>) => AggregateFunctionInvocation('sum', options),
+  total: (options: AggregateFunctionParams<Exp>) => AggregateFunctionInvocation('total', options),
+  // JSON
+  json_group_array: (options: AggregateFunctionParams<Exp>) => AggregateFunctionInvocation('json_group_array', options),
+  json_group_object: (options: AggregateFunctionParams<[name: Exp, value: Exp]>) => AggregateFunctionInvocation('json_group_object', options),
+};
+
 // https://www.sqlite.org/lang_corefunc.html
-export type ScalarFunctions = {
-  abs: [x: Exp];
-  changes: [];
-  char: [x1: Exp, x2: Exp, ...xn: Exp[]];
-  coalesce: [x: Exp, y: Exp, ...yn: Exp[]];
-  format: [format: Exp, ...args: Exp[]];
-  glob: [x: Exp, y: Exp];
-  hex: [x: Exp];
-  ifnull: [x: Exp, y: Exp];
-  iif: [x: Exp, y: Exp, z: Exp];
-  instr: [x: Exp, y: Exp];
-  last_insert_rowid: [];
-  length: [x: Exp];
-  like: [x: Exp, y: Exp, z?: Exp];
-  likelihood: [x: Exp, y: Exp];
-  likely: [x: Exp];
-  load_extension: [x: Exp, y?: Exp];
-  lower: [x: Exp];
-  ltrim: [x: Exp, y?: Exp];
-  max: [x: Exp, y: Exp, ...yn: Exp[]];
-  min: [x: Exp, y: Exp, ...yn: Exp[]];
-  nullif: [x: Exp, y: Exp];
-  printf: [format: Exp, ...args: Exp[]];
-  quote: [x: Exp];
-  random: [];
-  randomblob: [n: Exp];
-  replace: [x: Exp, y: Exp, z: Exp];
-  round: [x: Exp, y?: Exp];
-  rtrim: [x: Exp, y?: Exp];
-  sign: [x: Exp];
-  soundex: [x: Exp];
-  sqlite_compileoption_get: [n: Exp];
-  sqlite_compileoption_used: [x: Exp];
-  sqlite_offset: [x: Exp];
-  sqlite_source_id: [];
-  sqlite_version: [];
-  substr: [x: Exp, y: Exp, z?: Exp];
-  substring: [x: Exp, y: Exp, z?: Exp];
-  total_changes: [];
-  trim: [x: Exp, y?: Exp];
-  typeof: [x: Exp];
-  unicode: [x: Exp];
-  unlikely: [x: Exp];
-  upper: [x: Exp];
-  zeroblob: [n: Exp];
+const ScalarFunctions = {
+  abs: (x: Exp) => FunctionInvocation('abs', x),
+  changes: () => FunctionInvocation('changes'),
+  char: (x1: Exp, x2: Exp, ...xn: Exp[]) => FunctionInvocation('char', x1, x2, ...xn),
+  coalesce: (x: Exp, y: Exp, ...yn: Exp[]) => FunctionInvocation('coalesce', x, y, ...yn),
+  format: (format: Exp, ...args: Exp[]) => FunctionInvocation('format', format, ...args),
+  glob: (x: Exp, y: Exp) => FunctionInvocation('glob', x, y),
+  hex: (x: Exp) => FunctionInvocation('hex', x),
+  ifnull: (x: Exp, y: Exp) => FunctionInvocation('ifnull', x, y),
+  iif: (x: Exp, y: Exp, z: Exp) => FunctionInvocation('iif', x, y, z),
+  instr: (x: Exp, y: Exp) => FunctionInvocation('instr', x, y),
+  last_insert_rowid: () => FunctionInvocation('last_insert_rowid'),
+  length: (x: Exp) => FunctionInvocation('length', x),
+  like: (x: Exp, y: Exp, z?: Exp) => (z ? FunctionInvocation('like', x, y, z) : FunctionInvocation('like', x, y)),
+  likelihood: (x: Exp, y: Exp) => FunctionInvocation('likelihood', x, y),
+  likely: (x: Exp) => FunctionInvocation('likely', x),
+  load_extension: (x: Exp, y?: Exp) => (y ? FunctionInvocation('load_extension', x, y) : FunctionInvocation('load_extension', x)),
+  lower: (x: Exp) => FunctionInvocation('lower', x),
+  ltrim: (x: Exp, y?: Exp) => (y ? FunctionInvocation('ltrim', x, y) : FunctionInvocation('ltrim', x)),
+  max: (x: Exp, y: Exp, ...yn: Exp[]) => FunctionInvocation('max', x, y, ...yn),
+  min: (x: Exp, y: Exp, ...yn: Exp[]) => FunctionInvocation('min', x, y, ...yn),
+  nullif: (x: Exp, y: Exp) => FunctionInvocation('nullif', x, y),
+  printf: (format: Exp, ...args: Exp[]) => FunctionInvocation('printf', format, ...args),
+  quote: (x: Exp) => FunctionInvocation('quote', x),
+  random: () => FunctionInvocation('random'),
+  randomblob: (n: Exp) => FunctionInvocation('randomblob', n),
+  replace: (x: Exp, y: Exp, z: Exp) => FunctionInvocation('replace', x, y, z),
+  round: (x: Exp, y?: Exp) => (y ? FunctionInvocation('round', x, y) : FunctionInvocation('round', x)),
+  rtrim: (x: Exp, y?: Exp) => (y ? FunctionInvocation('rtrim', x, y) : FunctionInvocation('rtrim', x)),
+  sign: (x: Exp) => FunctionInvocation('sign', x),
+  soundex: (x: Exp) => FunctionInvocation('soundex', x),
+  sqlite_compileoption_get: (n: Exp) => FunctionInvocation('sqlite_compileoption_get', n),
+  sqlite_compileoption_used: (x: Exp) => FunctionInvocation('sqlite_compileoption_used', x),
+  sqlite_offset: (x: Exp) => FunctionInvocation('sqlite_offset', x),
+  sqlite_source_id: () => FunctionInvocation('sqlite_source_id'),
+  sqlite_version: () => FunctionInvocation('sqlite_version'),
+  substr: (x: Exp, y: Exp, z?: Exp) => (z ? FunctionInvocation('substr', x, y, z) : FunctionInvocation('substr', x, y)),
+  substring: (x: Exp, y: Exp, z?: Exp) => (z ? FunctionInvocation('substring', x, y, z) : FunctionInvocation('substring', x, y)),
+  total_changes: () => FunctionInvocation('total_changes'),
+  trim: (x: Exp, y?: Exp) => (y ? FunctionInvocation('trim', x, y) : FunctionInvocation('trim', x)),
+  typeof: (x: Exp) => FunctionInvocation('typeof', x),
+  unicode: (x: Exp) => FunctionInvocation('unicode', x),
+  unlikely: (x: Exp) => FunctionInvocation('unlikely', x),
+  upper: (x: Exp) => FunctionInvocation('upper', x),
+  zeroblob: (n: Exp) => FunctionInvocation('zeroblob', n),
 
   // json functions
-  json: [x: Exp];
-  json_array: [value1: Exp, value2: Exp, ...valueN: Exp[]];
-  json_array_length: [json: Exp, path?: Exp];
-  json_extract: [json: Exp, path: Exp, ...pathN: Exp[]];
-  json_insert: [json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]];
-  json_object: [label1: Exp, value1: Exp, ...labelValueN: Exp[]];
-  json_patch: [json1: Exp, json2: Exp];
-  json_remove: [json: Exp, path: Exp, ...pathN: Exp[]];
-  json_replace: [json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]];
-  json_set: [json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]];
-  json_type: [json: Exp, path?: Exp];
-  json_valid: [json: Exp];
-  json_quote: [value: Exp];
+  json: (x: Exp) => FunctionInvocation('json', x),
+  json_array: (value1: Exp, value2: Exp, ...valueN: Exp[]) => FunctionInvocation('json_array', value1, value2, ...valueN),
+  json_array_length: (json: Exp, path?: Exp) => (path ? FunctionInvocation('json_array_length', json, path) : FunctionInvocation('json_array_length', json)),
+  json_extract: (json: Exp, path: Exp, ...pathN: Exp[]) => FunctionInvocation('json_extract', json, path, ...pathN),
+  json_insert: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) => FunctionInvocation('json_insert', json, path, value, ...pathValueN),
+  json_object: (label1: Exp, value1: Exp, ...labelValueN: Exp[]) => FunctionInvocation('json_object', label1, value1, ...labelValueN),
+  json_patch: (json1: Exp, json2: Exp) => FunctionInvocation('json_patch', json1, json2),
+  json_remove: (json: Exp, path: Exp, ...pathN: Exp[]) => FunctionInvocation('json_remove', json, path, ...pathN),
+  json_replace: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) => FunctionInvocation('json_replace', json, path, value, ...pathValueN),
+  json_set: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) => FunctionInvocation('json_set', json, path, value, ...pathValueN),
+  json_type: (json: Exp, path?: Exp) => (path ? FunctionInvocation('json_type', json, path) : FunctionInvocation('json_type', json)),
+  json_valid: (json: Exp) => FunctionInvocation('json_valid', json),
+  json_quote: (value: Exp) => FunctionInvocation('json_quote', value),
 };
 
 export const LiteralValue = {
@@ -358,7 +376,6 @@ export const Expr = {
   NotExists(selectStmt: Node<'SelectStmt'>): Node<'NotExists'> {
     return n.createNode('NotExists', { selectStmt });
   },
-  ScalarFunction,
   Parenthesis(first: Exp, ...other: Array<Exp>): Node<'Parenthesis'> {
     return n.createNode('Parenthesis', { exprs: [first, ...other] });
   },
@@ -368,6 +385,10 @@ export const Expr = {
   Case(expr: Exp | null, cases: NonEmptyArray<{ whenExpr: Exp; thenExpr: Exp }>, elseExpr?: Exp): Node<'Case'> {
     return n.createNode('Case', { expr: expr ?? undefined, cases, else: elseExpr });
   },
+  FunctionInvocation,
+  ScalarFunctions,
+  AggregateFunctionInvocation,
+  AggregateFunctions,
   RaiseFunction: {
     Ignore(): Node<'RaiseFunction'> {
       return n.createNode('RaiseFunction', { variant: 'Ignore' });
@@ -384,42 +405,9 @@ export const Expr = {
   },
 };
 
-function ScalarFunction<FName extends keyof ScalarFunctions>(name: FName, ...args: ScalarFunctions[FName]): Node<'FunctionInvocation'>;
-function ScalarFunction(name: string, ...args: Exp[]): Node<'FunctionInvocation'>;
-function ScalarFunction(name: string, ...args: Exp[]): Node<'FunctionInvocation'> {
-  return n.createNode('FunctionInvocation', {
-    functionName: Identifier(name),
-    parameters: args.length === 0 ? undefined : { variant: 'Exprs', exprs: arrayToNonEmptyArray(args) },
-  });
-}
-
-export interface AggregateFunctionParams<Expr = Exp[]> {
-  distinct?: boolean;
-  params: Expr;
-}
-
-type AggregateFunctions = {
-  avg: AggregateFunctionParams<Exp>;
-  count: AggregateFunctionParams<Exp>;
-  group_concat: AggregateFunctionParams<Exp | [x: Exp, y: Exp]>;
-  max: AggregateFunctionParams<Exp>;
-  min: AggregateFunctionParams<Exp>;
-  sum: AggregateFunctionParams<Exp>;
-  total: AggregateFunctionParams<Exp>;
-  // JSON
-  json_group_array: AggregateFunctionParams<Exp>;
-  json_group_object: AggregateFunctionParams<[name: Exp, value: Exp]>;
-};
-
-export function AggregateFunction<F extends keyof AggregateFunctions>(
-  name: F,
-  args: AggregateFunctions[F] | '*',
-  filterClause?: Node<'FilterClause'>
-): Node<'AggregateFunctionInvocation'>;
-export function AggregateFunction(name: string, args: AggregateFunctionParams | '*', filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'>;
-export function AggregateFunction(
+function AggregateFunctionInvocation(
   name: string,
-  args: AggregateFunctionParams<Exp | Exp[]> | '*',
+  args: { distinct?: boolean; params: Exp | Exp[] } | '*',
   filterClause?: Node<'FilterClause'>
 ): Node<'AggregateFunctionInvocation'> {
   if (args === '*') {
@@ -435,5 +423,12 @@ export function AggregateFunction(
     aggregateFunc: Identifier(name),
     parameters: { variant: 'Exprs', distinct, exprs: argsArr },
     filterClause,
+  });
+}
+
+function FunctionInvocation(name: string, ...args: Exp[]): Node<'FunctionInvocation'> {
+  return n.createNode('FunctionInvocation', {
+    functionName: Identifier(name),
+    parameters: args.length === 0 ? undefined : { variant: 'Exprs', exprs: arrayToNonEmptyArray(args) },
   });
 }
