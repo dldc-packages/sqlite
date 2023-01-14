@@ -14,6 +14,8 @@ export type BinaryOperatorRaw = typeof BinaryOperatorsInternal[BinaryOperator][n
 
 const BinaryOperatorsInternal = {
   Concatenate: ['||'],
+  ExtractJson: ['->'],
+  Extract: ['->>'],
   Multiply: ['*'],
   Divide: ['/'],
   Modulo: ['%'],

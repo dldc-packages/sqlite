@@ -481,6 +481,8 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
   Divide: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.Divide, p(rightExpr)),
   Modulo: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.Modulo, p(rightExpr)),
   Concatenate: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.Concatenate, p(rightExpr)),
+  Extract: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.Extract, p(rightExpr)),
+  ExtractJson: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.ExtractJson, p(rightExpr)),
   Collate: ({ expr, collationName }) => join.space(p(expr), Keywords.COLLATE, p(collationName)),
   BitwiseNegation: ({ expr }) => join.space(UnaryOperator.BitwiseNegation, p(expr)),
   Plus: ({ expr }) => join.space(UnaryOperator.Plus, p(expr)),

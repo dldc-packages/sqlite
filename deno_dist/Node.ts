@@ -270,11 +270,7 @@ export interface NodeData {
       List: { items?: NonEmptyArray<Expr> };
       Select: { selectStmt: Node<'SelectStmt'> };
       TableName: { schema?: Identifier; table: Identifier };
-      TableFunctionInvocation: {
-        schema?: Identifier;
-        functionName: Identifier;
-        parameters?: NonEmptyArray<Expr>;
-      };
+      TableFunctionInvocation: { schema?: Identifier; functionName: Identifier; parameters?: NonEmptyArray<Expr> };
     }>;
   };
   NotIn: {
@@ -283,11 +279,7 @@ export interface NodeData {
       List: { items?: NonEmptyArray<Expr> };
       Select: { selectStmt: Node<'SelectStmt'> };
       TableName: { schema?: Identifier; table: Identifier };
-      TableFunctionInvocation: {
-        schema?: Identifier;
-        functionName: Identifier;
-        parameters?: NonEmptyArray<Expr>;
-      };
+      TableFunctionInvocation: { schema?: Identifier; functionName: Identifier; parameters?: NonEmptyArray<Expr> };
     }>;
   };
   Match: { leftExpr: Expr; rightExpr: Expr };
@@ -315,6 +307,8 @@ export interface NodeData {
   Divide: { leftExpr: Expr; rightExpr: Expr };
   Modulo: { leftExpr: Expr; rightExpr: Expr };
   Concatenate: { leftExpr: Expr; rightExpr: Expr };
+  ExtractJson: { leftExpr: Expr; rightExpr: Expr };
+  Extract: { leftExpr: Expr; rightExpr: Expr };
   Collate: { expr: Expr; collationName: Identifier };
   BitwiseNegation: { expr: Expr };
   Plus: { expr: Expr };
@@ -849,6 +843,8 @@ export type Expr =
       | 'Divide'
       | 'Modulo'
       | 'Concatenate'
+      | 'Extract'
+      | 'ExtractJson'
       | 'Collate'
       | 'BitwiseNegation'
       | 'Plus'

@@ -101,16 +101,22 @@ export type ScalarFunctions = {
   unlikely: [x: Exp];
   upper: [x: Exp];
   zeroblob: [n: Exp];
-};
 
-function FunctionInvocation<FName extends keyof ScalarFunctions>(name: FName, ...args: ScalarFunctions[FName]): Node<'FunctionInvocation'>;
-function FunctionInvocation(name: string, ...args: Exp[]): Node<'FunctionInvocation'>;
-function FunctionInvocation(name: string, ...args: Exp[]): Node<'FunctionInvocation'> {
-  return n.createNode('FunctionInvocation', {
-    functionName: Identifier(name),
-    parameters: args.length === 0 ? undefined : { variant: 'Exprs', exprs: arrayToNonEmptyArray(args) },
-  });
-}
+  // json functions
+  json: [x: Exp];
+  json_array: [value1: Exp, value2: Exp, ...valueN: Exp[]];
+  json_array_length: [json: Exp, path?: Exp];
+  json_extract: [json: Exp, path: Exp, ...pathN: Exp[]];
+  json_insert: [json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]];
+  json_object: [label1: Exp, value1: Exp, ...labelValueN: Exp[]];
+  json_patch: [json1: Exp, json2: Exp];
+  json_remove: [json: Exp, path: Exp, ...pathN: Exp[]];
+  json_replace: [json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]];
+  json_set: [json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]];
+  json_type: [json: Exp, path?: Exp];
+  json_valid: [json: Exp];
+  json_quote: [value: Exp];
+};
 
 export const LiteralValue = {
   NumericLiteral: {
@@ -352,7 +358,7 @@ export const Expr = {
   NotExists(selectStmt: Node<'SelectStmt'>): Node<'NotExists'> {
     return n.createNode('NotExists', { selectStmt });
   },
-  FunctionInvocation,
+  ScalarFunction,
   Parenthesis(first: Exp, ...other: Array<Exp>): Node<'Parenthesis'> {
     return n.createNode('Parenthesis', { exprs: [first, ...other] });
   },
@@ -378,57 +384,56 @@ export const Expr = {
   },
 };
 
-export const AggregateFunction = {
-  Avg(val: Exp, distinct?: true, filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'> {
-    return n.createNode('AggregateFunctionInvocation', {
-      aggregateFunc: Identifier('avg'),
-      parameters: { variant: 'Exprs', distinct, exprs: [val] },
-      filterClause,
-    });
-  },
-  CountAll(filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'> {
-    return n.createNode('AggregateFunctionInvocation', { aggregateFunc: Identifier('count'), parameters: { variant: 'Star' }, filterClause });
-  },
-  Count(val: Exp, distinct?: true, filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'> {
-    return n.createNode('AggregateFunctionInvocation', {
-      aggregateFunc: Identifier('count'),
-      parameters: { variant: 'Exprs', distinct, exprs: [val] },
-      filterClause,
-    });
-  },
-  GroupConcat(val: Exp, separator?: Exp, distinct?: true, filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'> {
-    return n.createNode('AggregateFunctionInvocation', {
-      aggregateFunc: Identifier('group_concat'),
-      parameters: { variant: 'Exprs', distinct, exprs: separator ? [val, separator] : [val] },
-      filterClause,
-    });
-  },
-  Max(val: Exp, distinct?: true, filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'> {
-    return n.createNode('AggregateFunctionInvocation', {
-      aggregateFunc: Identifier('max'),
-      parameters: { variant: 'Exprs', distinct, exprs: [val] },
-      filterClause,
-    });
-  },
-  Min(val: Exp, distinct?: true, filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'> {
-    return n.createNode('AggregateFunctionInvocation', {
-      aggregateFunc: Identifier('min'),
-      parameters: { variant: 'Exprs', distinct, exprs: [val] },
-      filterClause,
-    });
-  },
-  Sum(val: Exp, distinct?: true, filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'> {
-    return n.createNode('AggregateFunctionInvocation', {
-      aggregateFunc: Identifier('sum'),
-      parameters: { variant: 'Exprs', distinct, exprs: [val] },
-      filterClause,
-    });
-  },
-  Total(val: Exp, distinct?: true, filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'> {
-    return n.createNode('AggregateFunctionInvocation', {
-      aggregateFunc: Identifier('total'),
-      parameters: { variant: 'Exprs', distinct, exprs: [val] },
-      filterClause,
-    });
-  },
+function ScalarFunction<FName extends keyof ScalarFunctions>(name: FName, ...args: ScalarFunctions[FName]): Node<'FunctionInvocation'>;
+function ScalarFunction(name: string, ...args: Exp[]): Node<'FunctionInvocation'>;
+function ScalarFunction(name: string, ...args: Exp[]): Node<'FunctionInvocation'> {
+  return n.createNode('FunctionInvocation', {
+    functionName: Identifier(name),
+    parameters: args.length === 0 ? undefined : { variant: 'Exprs', exprs: arrayToNonEmptyArray(args) },
+  });
+}
+
+export interface AggregateFunctionParams<Expr = Exp[]> {
+  distinct?: boolean;
+  params: Expr;
+}
+
+type AggregateFunctions = {
+  avg: AggregateFunctionParams<Exp>;
+  count: AggregateFunctionParams<Exp>;
+  group_concat: AggregateFunctionParams<Exp | [x: Exp, y: Exp]>;
+  max: AggregateFunctionParams<Exp>;
+  min: AggregateFunctionParams<Exp>;
+  sum: AggregateFunctionParams<Exp>;
+  total: AggregateFunctionParams<Exp>;
+  // JSON
+  json_group_array: AggregateFunctionParams<Exp>;
+  json_group_object: AggregateFunctionParams<[name: Exp, value: Exp]>;
 };
+
+export function AggregateFunction<F extends keyof AggregateFunctions>(
+  name: F,
+  args: AggregateFunctions[F] | '*',
+  filterClause?: Node<'FilterClause'>
+): Node<'AggregateFunctionInvocation'>;
+export function AggregateFunction(name: string, args: AggregateFunctionParams | '*', filterClause?: Node<'FilterClause'>): Node<'AggregateFunctionInvocation'>;
+export function AggregateFunction(
+  name: string,
+  args: AggregateFunctionParams<Exp | Exp[]> | '*',
+  filterClause?: Node<'FilterClause'>
+): Node<'AggregateFunctionInvocation'> {
+  if (args === '*') {
+    return n.createNode('AggregateFunctionInvocation', {
+      aggregateFunc: Identifier(name),
+      parameters: { variant: 'Star' },
+      filterClause,
+    });
+  }
+  const distinct = args.distinct === true ? true : undefined;
+  const argsArr = arrayToNonEmptyArray(Array.isArray(args.params) ? args.params : [args.params]);
+  return n.createNode('AggregateFunctionInvocation', {
+    aggregateFunc: Identifier(name),
+    parameters: { variant: 'Exprs', distinct, exprs: argsArr },
+    filterClause,
+  });
+}
