@@ -1,5 +1,5 @@
 import * as n from '../Node';
-import { NonEmptyArray } from '../Utils';
+import { arrayToNonEmptyArray, NonEmptyArray } from '../Utils';
 import { TypeName, ValidTypeName } from './CreateTableStmt';
 
 type Id = n.Identifier;
@@ -55,60 +55,62 @@ export function Column(column: string | { column: string | Id; table?: string | 
   });
 }
 
-export const FunctionInvocation = {
-  // abs(X)
-  // changes()
-  // char(X1,X2,...,XN)
-  // coalesce(X,Y,...)
-  // format(FORMAT,...)
-  // glob(X,Y)
-  // hex(X)
-  // ifnull(X,Y)
-  // iif(X,Y,Z)
-  // instr(X,Y)
-  // last_insert_rowid()
-  // length(X)
-  // like(X,Y)
-  // like(X,Y,Z)
-  // likelihood(X,Y)
-  // likely(X)
-  // load_extension(X)
-  // load_extension(X,Y)
-  // lower(X)
-  // ltrim(X)
-  // ltrim(X,Y)
-  // max(X,Y,...)
-  // min(X,Y,...)
-  // nullif(X,Y)
-  // printf(FORMAT,...)
-  // quote(X)
-  // random()
-  // randomblob(N)
-  // replace(X,Y,Z)
-  // round(X)
-  // round(X,Y)
-  // rtrim(X)
-  // rtrim(X,Y)
-  // sign(X)
-  // soundex(X)
-  // sqlite_compileoption_get(N)
-  // sqlite_compileoption_used(X)
-  // sqlite_offset(X)
-  // sqlite_source_id()
-  // sqlite_version()
-  // substr(X,Y)
-  // substr(X,Y,Z)
-  // substring(X,Y)
-  // substring(X,Y,Z)
-  // total_changes()
-  // trim(X)
-  // trim(X,Y)
-  // typeof(X)
-  // unicode(X)
-  // unlikely(X)
-  // upper(X)
-  // zeroblob(N)
+// https://www.sqlite.org/lang_corefunc.html
+export type ScalarFunctions = {
+  abs: [x: Exp];
+  changes: [];
+  char: [x1: Exp, x2: Exp, ...xn: Exp[]];
+  coalesce: [x: Exp, y: Exp, ...yn: Exp[]];
+  format: [format: Exp, ...args: Exp[]];
+  glob: [x: Exp, y: Exp];
+  hex: [x: Exp];
+  ifnull: [x: Exp, y: Exp];
+  iif: [x: Exp, y: Exp, z: Exp];
+  instr: [x: Exp, y: Exp];
+  last_insert_rowid: [];
+  length: [x: Exp];
+  like: [x: Exp, y: Exp, z?: Exp];
+  likelihood: [x: Exp, y: Exp];
+  likely: [x: Exp];
+  load_extension: [x: Exp, y?: Exp];
+  lower: [x: Exp];
+  ltrim: [x: Exp, y?: Exp];
+  max: [x: Exp, y: Exp, ...yn: Exp[]];
+  min: [x: Exp, y: Exp, ...yn: Exp[]];
+  nullif: [x: Exp, y: Exp];
+  printf: [format: Exp, ...args: Exp[]];
+  quote: [x: Exp];
+  random: [];
+  randomblob: [n: Exp];
+  replace: [x: Exp, y: Exp, z: Exp];
+  round: [x: Exp, y?: Exp];
+  rtrim: [x: Exp, y?: Exp];
+  sign: [x: Exp];
+  soundex: [x: Exp];
+  sqlite_compileoption_get: [n: Exp];
+  sqlite_compileoption_used: [x: Exp];
+  sqlite_offset: [x: Exp];
+  sqlite_source_id: [];
+  sqlite_version: [];
+  substr: [x: Exp, y: Exp, z?: Exp];
+  substring: [x: Exp, y: Exp, z?: Exp];
+  total_changes: [];
+  trim: [x: Exp, y?: Exp];
+  typeof: [x: Exp];
+  unicode: [x: Exp];
+  unlikely: [x: Exp];
+  upper: [x: Exp];
+  zeroblob: [n: Exp];
 };
+
+function FunctionInvocation<FName extends keyof ScalarFunctions>(name: FName, ...args: ScalarFunctions[FName]): Node<'FunctionInvocation'>;
+function FunctionInvocation(name: string, ...args: Exp[]): Node<'FunctionInvocation'>;
+function FunctionInvocation(name: string, ...args: Exp[]): Node<'FunctionInvocation'> {
+  return n.createNode('FunctionInvocation', {
+    functionName: Identifier(name),
+    parameters: args.length === 0 ? undefined : { variant: 'Exprs', exprs: arrayToNonEmptyArray(args) },
+  });
+}
 
 export const LiteralValue = {
   NumericLiteral: {
@@ -265,9 +267,9 @@ export const Expr = {
   Isnull(expr: Exp): Node<'Isnull'> {
     return n.createNode('Isnull', { expr });
   },
-  // Notnull(expr: IExpr): Node<'Notnull'> {
-  //   return n.createNode('Notnull', { expr });
-  // }
+  Notnull(expr: Exp): Node<'Notnull'> {
+    return n.createNode('Notnull', { expr });
+  },
   NotNull(expr: Exp): Node<'NotNull'> {
     return n.createNode('NotNull', { expr });
   },
