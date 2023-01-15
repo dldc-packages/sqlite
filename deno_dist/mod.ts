@@ -1,6 +1,7 @@
 import * as builder from './builder/mod.ts';
 
 export type {
+  AggregateFunctionParams,
   ColumnConstraint_PrimaryKeyOptions,
   CreateTableStmtOptions,
   DeleteStmtOptions,
