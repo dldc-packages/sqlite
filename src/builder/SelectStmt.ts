@@ -1,6 +1,6 @@
 import * as n from '../Node';
 import { arrayToNonEmptyArray, NonEmptyArray } from '../Utils';
-import { Column, Identifier, parseColumn } from './Expr';
+import { Expr } from './Expr';
 
 type Id = n.Identifier;
 type Exp = n.Expr;
@@ -38,7 +38,7 @@ export const JoinConstraint = {
     return n.createNode('JoinConstraint', { variant: 'On', expr });
   },
   Using(columns: NonEmptyArray<Id | string>): Node<'JoinConstraint'> {
-    return n.createNode('JoinConstraint', { variant: 'Using', columnNames: arrayToNonEmptyArray(columns.map((v): Id => Identifier(v))) });
+    return n.createNode('JoinConstraint', { variant: 'Using', columnNames: arrayToNonEmptyArray(columns.map((v): Id => Expr.identifier(v))) });
   },
 };
 
@@ -80,16 +80,16 @@ export const TableOrSubquery = {
   Table(tableName: string, { schema, alias }: { schema?: Id | string; alias?: Id | string } = {}): Node<'TableOrSubquery'> {
     return n.createNode('TableOrSubquery', {
       variant: 'Table',
-      schema: schema ? Identifier(schema) : undefined,
-      table: Identifier(tableName),
-      alias: alias ? { tableAlias: Identifier(alias), as: true } : undefined,
+      schema: schema ? Expr.identifier(schema) : undefined,
+      table: Expr.identifier(tableName),
+      alias: alias ? { tableAlias: Expr.identifier(alias), as: true } : undefined,
     });
   },
   Select(selectStmt: Node<'SelectStmt'>, alias?: Id | string): Node<'TableOrSubquery'> {
     return n.createNode('TableOrSubquery', {
       variant: 'Select',
       selectStmt: selectStmt,
-      alias: alias ? { tableAlias: Identifier(alias), as: true } : undefined,
+      alias: alias ? { tableAlias: Expr.identifier(alias), as: true } : undefined,
     });
   },
 };
@@ -119,7 +119,7 @@ export const ResultColumn = {
     return n.createNode('ResultColumn', {
       variant: 'Expr',
       expr,
-      alias: alias ? { name: Identifier(alias), as: true } : undefined,
+      alias: alias ? { name: Expr.identifier(alias), as: true } : undefined,
     });
   },
   Star(): Node<'ResultColumn'> {
@@ -130,14 +130,14 @@ export const ResultColumn = {
   TableStar(tableName: string | Id): Node<'ResultColumn'> {
     return n.createNode('ResultColumn', {
       variant: 'TableStar',
-      tableName: Identifier(tableName),
+      tableName: Expr.identifier(tableName),
     });
   },
   // Shortcut
-  Column(column: string | { column: string | Id; table?: string | { table: string | Id; schema?: string | Id } }): Node<'ResultColumn'> {
-    return ResultColumn.Expr(Column(column));
+  column(column: string | { column: string | Id; table?: string | { table: string | Id; schema?: string | Id } }): Node<'ResultColumn'> {
+    return ResultColumn.Expr(Expr.column(column));
   },
-  parseColumn(col: string): Node<'ResultColumn'> {
-    return ResultColumn.Expr(parseColumn(col));
+  columnFromString(col: string): Node<'ResultColumn'> {
+    return ResultColumn.Expr(Expr.columnFromString(col));
   },
 };

@@ -1,6 +1,6 @@
 import * as n from '../Node';
 import { arrayToNonEmptyArray } from '../Utils';
-import { Identifier } from './Expr';
+import { Expr } from './Expr';
 
 type Id = n.Identifier;
 type Exp = n.Expr;
@@ -18,11 +18,11 @@ export type InsertStmtOptions = {
 
 export function InsertStmt(table: string | Id, { data, alias, columnNames, schema, returningClause }: InsertStmtOptions): Node<'InsertStmt'> {
   return n.createNode('InsertStmt', {
-    table: Identifier(table),
+    table: Expr.identifier(table),
     data,
-    columnNames: columnNames ? arrayToNonEmptyArray(columnNames.map((col) => Identifier(col))) : undefined,
-    alias: alias ? Identifier(alias) : undefined,
-    schema: schema ? Identifier(schema) : undefined,
+    columnNames: columnNames ? arrayToNonEmptyArray(columnNames.map((col) => Expr.identifier(col))) : undefined,
+    alias: alias ? Expr.identifier(alias) : undefined,
+    schema: schema ? Expr.identifier(schema) : undefined,
     method: { variant: 'InsertInto' },
     returningClause,
   });

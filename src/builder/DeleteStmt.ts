@@ -1,6 +1,6 @@
 import * as n from '../Node';
 import { NonEmptyArray } from '../Utils';
-import { Expr, Identifier } from './Expr';
+import { Expr } from './Expr';
 
 type Id = n.Identifier;
 type Exp = n.Expr;
@@ -16,11 +16,11 @@ export type DeleteStmtOptions = {
 export function DeleteStmt(table: string | Id, { where, schema, limit, orderBy }: DeleteStmtOptions = {}): n.Node<'DeleteStmtLimited'> {
   return n.createNode('DeleteStmtLimited', {
     qualifiedTableName: n.createNode('QualifiedTableName', {
-      table: Identifier(table),
-      schema: schema ? Identifier(schema) : undefined,
+      table: Expr.identifier(table),
+      schema: schema ? Expr.identifier(schema) : undefined,
     }),
     where,
-    limit: limit === undefined ? undefined : { expr: Expr.LiteralValue.NumericLiteral.Integer(limit) },
+    limit: limit === undefined ? undefined : { expr: Expr.NumericLiteral.integer(limit) },
     orderBy,
   });
 }

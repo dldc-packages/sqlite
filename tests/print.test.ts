@@ -1,11 +1,11 @@
-import { printNode, createNode, builder as b } from '../src/mod';
+import { builder as b, createNode, printNode } from '../src/mod';
 
 test('Print AlterTableStmt', () => {
   const node = createNode('AlterTableStmt', {
-    table: b.Identifier('users'),
+    table: b.Expr.identifier('users'),
     action: {
       variant: 'RenameTo',
-      newTableName: b.Identifier('users_new'),
+      newTableName: b.Expr.identifier('users_new'),
     },
   });
 
@@ -20,7 +20,7 @@ test('Print Select', () => {
       tablesOrSubqueries: [
         createNode('TableOrSubquery', {
           variant: 'Table',
-          table: b.Identifier('users'),
+          table: b.Expr.identifier('users'),
         }),
       ],
     },
@@ -40,10 +40,10 @@ test('Print Select using builder', () => {
       b.TableOrSubquery.Table('users'),
       b.JoinOperator.Join('Left'),
       b.TableOrSubquery.Table('posts'),
-      b.JoinConstraint.On(b.Expr.Equal(b.parseColumn('users.id'), b.parseColumn('posts.user_id')))
+      b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id')))
     ),
-    resultColumns: [b.ResultColumn.parseColumn('users.id'), b.ResultColumn.TableStar('users')],
-    where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
+    resultColumns: [b.ResultColumn.columnFromString('users.id'), b.ResultColumn.TableStar('users')],
+    where: b.Expr.equal(b.Expr.columnFromString('users.name'), b.Expr.literal('azerty')),
   });
 
   expect(printNode(node)).toBe("SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.user_id WHERE users.name == 'azerty'");
@@ -59,11 +59,11 @@ test('Print join of table and subquery', () => {
         b.SelectStmt({
           from: b.From.Table('users'),
           resultColumns: [b.ResultColumn.Star()],
-          where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
+          where: b.Expr.equal(b.Expr.columnFromString('users.name'), b.Expr.literal('azerty')),
         }),
         'users'
       ),
-      b.JoinConstraint.On(b.Expr.Equal(b.parseColumn('users.id'), b.parseColumn('posts.user_id')))
+      b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id')))
     ),
     resultColumns: [b.ResultColumn.Star()],
   });
@@ -87,7 +87,7 @@ test('CreateTableStmt', () => {
 
 test('DeleteStmt', () => {
   const node = b.DeleteStmt('users', {
-    where: b.Expr.Equal(b.parseColumn('users.name'), b.Expr.literal('azerty')),
+    where: b.Expr.equal(b.Expr.columnFromString('users.name'), b.Expr.literal('azerty')),
   });
 
   expect(printNode(node)).toBe("DELETE FROM users WHERE users.name == 'azerty'");

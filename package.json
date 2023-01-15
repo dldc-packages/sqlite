@@ -36,7 +36,8 @@
     "test:clear-cache:run": "jest --clearCache && jest",
     "test:run": "jest",
     "test:watch": "jest --watch",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "typecheck:watch": "tsc --watch --noEmit"
   },
   "dependencies": {
     "tslib": "^2.3.1"

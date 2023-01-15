@@ -1,7 +1,7 @@
-import { Node, NodeKind } from './Node';
-import { join, joiner, mapMaybe, mapVariants, NonEmptyArray, mapUnionString } from './Utils';
 import { Keywords } from './Keyword';
+import { Node, NodeKind } from './Node';
 import { BinaryOperator, UnaryOperator } from './Operator';
+import { join, joiner, mapMaybe, mapUnionString, mapVariants, NonEmptyArray } from './Utils';
 
 function printList<T>(list: NonEmptyArray<T>, printer: (item: T) => string, sep: string = ', '): string {
   return joiner(sep, ...list.map(printer));
