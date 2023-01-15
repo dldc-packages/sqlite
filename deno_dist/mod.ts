@@ -1,23 +1,22 @@
 import * as builder from './builder/mod.ts';
 
-export { printNode } from './Printer.ts';
-export * from './Node.ts';
-export * from './Operator.ts';
-export { NonEmptyArray, Variants, arrayToNonEmptyArray, arrayToOptionalNonEmptyArray } from './Utils.ts';
-export { Keyword, Keywords } from './Keyword.ts';
 export type {
   ColumnConstraint_PrimaryKeyOptions,
   CreateTableStmtOptions,
-  JoinItem,
-  SelectStmtOptions,
-  ValidTypeName,
-  SelectFrom,
-  InsertStmtOptions,
   DeleteStmtOptions,
-  SetItem,
-  UpdateStmtOptions,
-  SetItems,
   InsertStmtData,
+  InsertStmtOptions,
+  JoinItem,
+  SelectFrom,
+  SelectStmtOptions,
+  SetItem,
+  SetItems,
+  UpdateStmtOptions,
+  ValidTypeName,
 } from './builder/mod.ts';
-
+export { Keyword, Keywords } from './Keyword.ts';
+export * from './Node.ts';
+export * from './Operator.ts';
+export { printNode } from './Printer.ts';
+export { arrayToNonEmptyArray, arrayToOptionalNonEmptyArray, NonEmptyArray, Variants } from './Utils.ts';
 export { builder };
