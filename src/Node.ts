@@ -855,6 +855,7 @@ export type Expr =
       | 'Exists'
       | 'NotExists'
       | 'FunctionInvocation'
+      | 'AggregateFunctionInvocation'
       | 'Parenthesis'
       | 'CastAs'
       | 'Case'
