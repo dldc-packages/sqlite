@@ -122,11 +122,11 @@ const ScalarFunctions = {
 
   // json functions
   json: (x: Exp) => FunctionInvocation('json', x),
-  json_array: (value1: Exp, value2: Exp, ...valueN: Exp[]) => FunctionInvocation('json_array', value1, value2, ...valueN),
+  json_array: (...valueN: Exp[]) => FunctionInvocation('json_array', ...valueN),
   json_array_length: (json: Exp, path?: Exp) => (path ? FunctionInvocation('json_array_length', json, path) : FunctionInvocation('json_array_length', json)),
   json_extract: (json: Exp, path: Exp, ...pathN: Exp[]) => FunctionInvocation('json_extract', json, path, ...pathN),
   json_insert: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) => FunctionInvocation('json_insert', json, path, value, ...pathValueN),
-  json_object: (label1: Exp, value1: Exp, ...labelValueN: Exp[]) => FunctionInvocation('json_object', label1, value1, ...labelValueN),
+  json_object: (...labelValueN: Exp[]) => FunctionInvocation('json_object', ...labelValueN),
   json_patch: (json1: Exp, json2: Exp) => FunctionInvocation('json_patch', json1, json2),
   json_remove: (json: Exp, path: Exp, ...pathN: Exp[]) => FunctionInvocation('json_remove', json, path, ...pathN),
   json_replace: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) => FunctionInvocation('json_replace', json, path, value, ...pathValueN),
