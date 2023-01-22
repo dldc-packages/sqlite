@@ -23,7 +23,8 @@ const AggregateFunctions = {
   total: (options: AggregateFunctionParams<Exp>) => aggregateFunctionInvocation('total', options),
   // JSON
   json_group_array: (options: AggregateFunctionParams<Exp>) => aggregateFunctionInvocation('json_group_array', options),
-  json_group_object: (options: AggregateFunctionParams<[name: Exp, value: Exp]>) => aggregateFunctionInvocation('json_group_object', options),
+  json_group_object: (options: AggregateFunctionParams<[name: Exp, value: Exp]>) =>
+    aggregateFunctionInvocation('json_group_object', options),
 };
 
 // https://www.sqlite.org/lang_corefunc.html
@@ -75,13 +76,16 @@ const ScalarFunctions = {
   // JSON
   json: (x: Exp) => functionInvocation('json', x),
   json_array: (...valueN: Exp[]) => functionInvocation('json_array', ...valueN),
-  json_array_length: (json: Exp, path?: Exp) => (path ? functionInvocation('json_array_length', json, path) : functionInvocation('json_array_length', json)),
+  json_array_length: (json: Exp, path?: Exp) =>
+    path ? functionInvocation('json_array_length', json, path) : functionInvocation('json_array_length', json),
   json_extract: (json: Exp, path: Exp, ...pathN: Exp[]) => functionInvocation('json_extract', json, path, ...pathN),
-  json_insert: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) => functionInvocation('json_insert', json, path, value, ...pathValueN),
+  json_insert: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) =>
+    functionInvocation('json_insert', json, path, value, ...pathValueN),
   json_object: (...labelValueN: Exp[]) => functionInvocation('json_object', ...labelValueN),
   json_patch: (json1: Exp, json2: Exp) => functionInvocation('json_patch', json1, json2),
   json_remove: (json: Exp, path: Exp, ...pathN: Exp[]) => functionInvocation('json_remove', json, path, ...pathN),
-  json_replace: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) => functionInvocation('json_replace', json, path, value, ...pathValueN),
+  json_replace: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) =>
+    functionInvocation('json_replace', json, path, value, ...pathValueN),
   json_set: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]) => functionInvocation('json_set', json, path, value, ...pathValueN),
   json_type: (json: Exp, path?: Exp) => (path ? functionInvocation('json_type', json, path) : functionInvocation('json_type', json)),
   json_valid: (json: Exp) => functionInvocation('json_valid', json),
@@ -94,7 +98,8 @@ const LiteralValue = {
       return n.createNode('NumericLiteral', {
         variant: 'Integer',
         integer: Math.floor(integer),
-        exponent: exponent === undefined ? undefined : { e: 'e', sign: exponent < 0 ? '-' : undefined, number: Math.abs(Math.floor(exponent)) },
+        exponent:
+          exponent === undefined ? undefined : { e: 'e', sign: exponent < 0 ? '-' : undefined, number: Math.abs(Math.floor(exponent)) },
       });
     },
     hexadecimal(hexadecimal: string): Node<'NumericLiteral'> {
@@ -105,7 +110,8 @@ const LiteralValue = {
         variant: 'Float',
         integral: Math.floor(integral),
         fractional: fractional,
-        exponent: exponent === undefined ? undefined : { e: 'e', sign: exponent < 0 ? '-' : undefined, number: Math.abs(Math.floor(exponent)) },
+        exponent:
+          exponent === undefined ? undefined : { e: 'e', sign: exponent < 0 ? '-' : undefined, number: Math.abs(Math.floor(exponent)) },
       });
     },
   },
@@ -162,12 +168,20 @@ const Operations = {
       return n.createNode('In', { expr, values: { variant: 'Select', selectStmt } });
     },
     tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'In'> {
-      return n.createNode('In', { expr, values: { variant: 'TableName', table: identifier(table), schema: schema ? identifier(schema) : undefined } });
+      return n.createNode('In', {
+        expr,
+        values: { variant: 'TableName', table: identifier(table), schema: schema ? identifier(schema) : undefined },
+      });
     },
     tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'In'> {
       return n.createNode('In', {
         expr,
-        values: { variant: 'TableFunctionInvocation', functionName: identifier(functionName), parameters, schema: schema ? identifier(schema) : undefined },
+        values: {
+          variant: 'TableFunctionInvocation',
+          functionName: identifier(functionName),
+          parameters,
+          schema: schema ? identifier(schema) : undefined,
+        },
       });
     },
   },
@@ -179,12 +193,20 @@ const Operations = {
       return n.createNode('NotIn', { expr, values: { variant: 'Select', selectStmt } });
     },
     tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'NotIn'> {
-      return n.createNode('NotIn', { expr, values: { variant: 'TableName', table: identifier(table), schema: schema ? identifier(schema) : undefined } });
+      return n.createNode('NotIn', {
+        expr,
+        values: { variant: 'TableName', table: identifier(table), schema: schema ? identifier(schema) : undefined },
+      });
     },
     tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'NotIn'> {
       return n.createNode('NotIn', {
         expr,
-        values: { variant: 'TableFunctionInvocation', functionName: identifier(functionName), parameters, schema: schema ? identifier(schema) : undefined },
+        values: {
+          variant: 'TableFunctionInvocation',
+          functionName: identifier(functionName),
+          parameters,
+          schema: schema ? identifier(schema) : undefined,
+        },
       });
     },
   },

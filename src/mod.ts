@@ -16,8 +16,8 @@ export type {
   ValidTypeName,
 } from './builder/mod';
 export { Keyword, Keywords } from './Keyword';
-export * from './Node';
+export * as Ast from './Node';
 export * from './Operator';
 export { printNode } from './Printer';
-export { arrayToNonEmptyArray, arrayToOptionalNonEmptyArray, NonEmptyArray, Variants } from './Utils';
+export * as Utils from './Utils';
 export { builder };

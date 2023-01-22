@@ -1,4 +1,4 @@
-import { mapObject } from './Utils';
+import { mapObject } from './internal/utils';
 
 export type UnaryOperator = keyof typeof UnaryOperator;
 export type UnaryOperatorRaw = typeof UnaryOperator[UnaryOperator];
@@ -33,4 +33,7 @@ const BinaryOperatorsInternal = {
   Different: ['!=', '<>'],
 } as const;
 
-export const BinaryOperator: { [K in BinaryOperator]: typeof BinaryOperatorsInternal[K][0] } = mapObject(BinaryOperatorsInternal, (_key, [val]) => val);
+export const BinaryOperator: { [K in BinaryOperator]: typeof BinaryOperatorsInternal[K][0] } = mapObject(
+  BinaryOperatorsInternal,
+  (_key, [val]) => val
+);

@@ -1,7 +1,7 @@
-import { builder as b, createNode, printNode } from '../src/mod';
+import { Ast, builder as b, printNode } from '../src/mod';
 
 test('Print AlterTableStmt', () => {
-  const node = createNode('AlterTableStmt', {
+  const node = Ast.createNode('AlterTableStmt', {
     table: b.Expr.identifier('users'),
     action: {
       variant: 'RenameTo',
@@ -13,19 +13,19 @@ test('Print AlterTableStmt', () => {
 });
 
 test('Print Select', () => {
-  const node = createNode('SelectCore', {
+  const node = Ast.createNode('SelectCore', {
     variant: 'Select',
     from: {
       variant: 'TablesOrSubqueries',
       tablesOrSubqueries: [
-        createNode('TableOrSubquery', {
+        Ast.createNode('TableOrSubquery', {
           variant: 'Table',
           table: b.Expr.identifier('users'),
         }),
       ],
     },
     resultColumns: [
-      createNode('ResultColumn', {
+      Ast.createNode('ResultColumn', {
         variant: 'Star',
       }),
     ],
@@ -46,7 +46,9 @@ test('Print Select using builder', () => {
     where: b.Expr.equal(b.Expr.columnFromString('users.name'), b.Expr.literal('azerty')),
   });
 
-  expect(printNode(node)).toBe("SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.user_id WHERE users.name == 'azerty'");
+  expect(printNode(node)).toBe(
+    "SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.user_id WHERE users.name == 'azerty'"
+  );
 });
 
 test('Print join of table and subquery', () => {
@@ -68,7 +70,9 @@ test('Print join of table and subquery', () => {
     resultColumns: [b.ResultColumn.Star()],
   });
 
-  expect(printNode(node)).toBe("SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.user_id");
+  expect(printNode(node)).toBe(
+    "SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.user_id"
+  );
 });
 
 test('CreateTableStmt', () => {

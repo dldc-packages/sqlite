@@ -1,7 +1,12 @@
+import { join, joiner, mapMaybe, mapUnionString } from './internal/utils';
 import { Keywords } from './Keyword';
 import { Node, NodeKind } from './Node';
 import { BinaryOperator, UnaryOperator } from './Operator';
-import { join, joiner, mapMaybe, mapUnionString, mapVariants, NonEmptyArray } from './Utils';
+import { mapVariants, NonEmptyArray } from './Utils';
+
+export function printNode(node: Node): string {
+  return (NodePrinter as any)[node.kind](node);
+}
 
 function printList<T>(list: NonEmptyArray<T>, printer: (item: T) => string, sep: string = ', '): string {
   return joiner(sep, ...list.map(printer));
@@ -9,10 +14,6 @@ function printList<T>(list: NonEmptyArray<T>, printer: (item: T) => string, sep:
 
 function printNodeList(list: NonEmptyArray<Node>, sep: string = ', '): string {
   return printList(list, printNode, sep);
-}
-
-export function printNode(node: Node): string {
-  return (NodePrinter as any)[node.kind](node);
 }
 
 // shorter alias
@@ -244,7 +245,10 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
       mapVariants(definition, {
         As: ({ selectStmt }) => join.space(Keywords.AS, p(selectStmt)),
         Columns: ({ columnDefs, tableConstraints, tableOptions }) =>
-          join.space(parent(join.comma(printNodeList(columnDefs), tableConstraints && printNodeList(tableConstraints))), tableOptions && p(tableOptions)),
+          join.space(
+            parent(join.comma(printNodeList(columnDefs), tableConstraints && printNodeList(tableConstraints))),
+            tableOptions && p(tableOptions)
+          ),
       })
     );
   },
@@ -411,7 +415,8 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
   IsNot: ({ leftExpr, rightExpr }) => {
     return join.space(p(leftExpr), Keywords.IS, Keywords.NOT, p(rightExpr));
   },
-  NotBetween: ({ expr, betweenExpr, andExpr }) => join.space(p(expr), Keywords.NOT, Keywords.BETWEEN, p(betweenExpr), Keywords.AND, p(andExpr)),
+  NotBetween: ({ expr, betweenExpr, andExpr }) =>
+    join.space(p(expr), Keywords.NOT, Keywords.BETWEEN, p(betweenExpr), Keywords.AND, p(andExpr)),
   Between: ({ expr, betweenExpr, andExpr }) => join.space(p(expr), Keywords.BETWEEN, p(betweenExpr), Keywords.AND, p(andExpr)),
   In: ({ expr, values }) => {
     return join.space(
@@ -768,7 +773,9 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
     return join.space(
       p(tableOrSubquery),
       joins &&
-        printList(joins, ({ joinOperator, tableOrSubquery, joinConstraint }) => join.space(p(joinOperator), p(tableOrSubquery), mapMaybe(joinConstraint, p)))
+        printList(joins, ({ joinOperator, tableOrSubquery, joinConstraint }) =>
+          join.space(p(joinOperator), p(tableOrSubquery), mapMaybe(joinConstraint, p))
+        )
     );
   },
   JoinConstraint: (node) => {
@@ -1047,9 +1054,11 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
       mapVariants(inner, {
         PrimaryKey: ({ indexedColumns, conflictClause }) =>
           join.space(Keywords.PRIMARY, Keywords.KEY, parent(printNodeList(indexedColumns)), mapMaybe(conflictClause, p)),
-        Unique: ({ indexedColumns, conflictClause }) => join.space(Keywords.UNIQUE, parent(printNodeList(indexedColumns)), mapMaybe(conflictClause, p)),
+        Unique: ({ indexedColumns, conflictClause }) =>
+          join.space(Keywords.UNIQUE, parent(printNodeList(indexedColumns)), mapMaybe(conflictClause, p)),
         Check: ({ expr }) => join.space(Keywords.CHECK, parent(p(expr))),
-        ForeignKey: ({ columnNames, foreignKeyClause }) => join.space(Keywords.FOREIGN, Keywords.KEY, parent(printNodeList(columnNames)), p(foreignKeyClause)),
+        ForeignKey: ({ columnNames, foreignKeyClause }) =>
+          join.space(Keywords.FOREIGN, Keywords.KEY, parent(printNodeList(columnNames)), p(foreignKeyClause)),
       })
     );
   },
@@ -1186,7 +1195,9 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
       join.space(
         Keywords.ON,
         Keywords.CONFLICT,
-        mapMaybe(target, ({ indexedColumns, where }) => join.space(parent(printNodeList(indexedColumns)), where && join.space(Keywords.WHERE, p(where)))),
+        mapMaybe(target, ({ indexedColumns, where }) =>
+          join.space(parent(printNodeList(indexedColumns)), where && join.space(Keywords.WHERE, p(where)))
+        ),
         Keywords.DO,
         mapVariants(inner, {
           Nothing: () => Keywords.NOTHING,

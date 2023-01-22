@@ -38,7 +38,10 @@ export const JoinConstraint = {
     return n.createNode('JoinConstraint', { variant: 'On', expr });
   },
   Using(columns: NonEmptyArray<Id | string>): Node<'JoinConstraint'> {
-    return n.createNode('JoinConstraint', { variant: 'Using', columnNames: arrayToNonEmptyArray(columns.map((v): Id => Expr.identifier(v))) });
+    return n.createNode('JoinConstraint', {
+      variant: 'Using',
+      columnNames: arrayToNonEmptyArray(columns.map((v): Id => Expr.identifier(v))),
+    });
   },
 };
 
