@@ -16,7 +16,10 @@ export type InsertStmtOptions = {
   returningClause?: Node<'ReturningClause'>;
 };
 
-export function InsertStmt(table: string | Id, { data, alias, columnNames, schema, returningClause }: InsertStmtOptions): Node<'InsertStmt'> {
+export function InsertStmt(
+  table: string | Id,
+  { data, alias, columnNames, schema, returningClause }: InsertStmtOptions
+): Node<'InsertStmt'> {
   return n.createNode('InsertStmt', {
     table: Expr.identifier(table),
     data,

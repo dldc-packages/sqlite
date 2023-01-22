@@ -16,8 +16,8 @@ export type {
   ValidTypeName,
 } from './builder/mod.ts';
 export { Keyword, Keywords } from './Keyword.ts';
-export * from './Node.ts';
+export * as Ast from './Node.ts';
 export * from './Operator.ts';
 export { printNode } from './Printer.ts';
-export { arrayToNonEmptyArray, arrayToOptionalNonEmptyArray, NonEmptyArray, Variants } from './Utils.ts';
+export * as Utils from './Utils.ts';
 export { builder };

@@ -1,28 +1,4 @@
-export function mapObject<In extends Record<string, any>, Out extends Record<keyof In, any>>(
-  obj: In,
-  mapper: (key: string, value: In[keyof In]) => Out[keyof In]
-): Out {
-  return Object.fromEntries(Object.entries(obj).map(([key, val]) => [key, mapper(key, val)])) as any;
-}
-
-type Parts = Array<string | null | undefined>;
-
-export function joiner(glue: string, ...parts: Parts): string {
-  return parts.filter(Boolean).join(glue);
-}
-
-export const join = {
-  space: (...parts: Parts): string => joiner(' ', ...parts),
-  comma: (...parts: Parts): string => joiner(', ', ...parts),
-  all: (...parts: Parts): string => joiner('', ...parts),
-};
-
-export function mapMaybe<T, O>(val: T | null | undefined, mapper: (val: T) => O): O | null {
-  if (val === null || val === undefined) {
-    return null;
-  }
-  return mapper(val);
-}
+import { isValidNodeKind, Node } from './Node.ts';
 
 export type NonEmptyArray<T> = [T, ...T[]];
 
@@ -41,14 +17,98 @@ export function arrayToOptionalNonEmptyArray<T>(arr: Array<T> | undefined): NonE
   return arrayToNonEmptyArray(arr);
 }
 
+export type TraversePath = Array<number | string>;
+
+/**
+ * Traverse Node tree, return false to skip children
+ *
+ * @param node
+ * @param onNode
+ * @returns
+ */
+export function traverse(node: Node, onNode: (item: Node, path: TraversePath) => void | false | null): void {
+  return traverseInternal(node, []);
+
+  function traverseInternal(item: Node, path: TraversePath) {
+    const traverseChildren = onNode(item, path);
+    if (traverseChildren === false) {
+      return;
+    }
+    getAllNodeChildren(item).forEach((child) => {
+      if (child.node) {
+        traverseInternal(child.node, [...path, ...child.path]);
+      }
+    });
+  }
+}
+
+export type NodePath = Array<string | number>;
+
+export interface NodeWithPath {
+  node: Node | undefined | null;
+  path: NodePath;
+}
+
+/**
+ * Traverse the node data (children object and arrays) but it dos not traverse children nodes
+ * @param node
+ * @returns
+ */
+export function getAllNodeChildren(node: Node): Array<NodeWithPath> {
+  // Object
+  const result: Array<NodeWithPath> = [];
+  Object.keys(node).forEach((key) => {
+    const value = (node as any)[key];
+    result.push(...getAllChildren(value).map((child) => ({ ...child, path: [key, ...child.path] })));
+  });
+  return result;
+}
+
+/**
+ * Traverse the node data (children object and arrays) but it dos not traverse children nodes
+ * @param node
+ * @returns
+ */
+export function getAllChildren(item: any): Array<NodeWithPath> {
+  if (item === null || item === undefined) {
+    return [];
+  }
+  const type = typeof item;
+  if (type === 'string' || type === 'number' || type === 'boolean' || type === 'bigint') {
+    return [];
+  }
+  if (isReadonlyArray(item)) {
+    const result: Array<NodeWithPath> = [];
+    item.forEach((child, index) => {
+      result.push(...getAllChildren(child).map((child) => ({ ...child, path: [index, ...child.path] })));
+    });
+    return result;
+  }
+  if (item.kind && isValidNodeKind(item.kind)) {
+    // is node
+    return [{ node: item, path: [] }];
+  }
+  // Object
+  const result: Array<NodeWithPath> = [];
+  Object.keys(item).forEach((key) => {
+    result.push(...getAllChildren((item as any)[key]).map((child) => ({ ...child, path: [key, ...child.path] })));
+  });
+  return result;
+}
+
+export type NodeContentChildren = Node | ReadonlyArray<Node> | { [key: string]: NodeContentChildren };
+
+function isReadonlyArray(item: any): item is ReadonlyArray<any> {
+  return Array.isArray(item);
+}
+
 export type Variants<T extends Record<string, any>> = {
   [K in keyof T]: T[K] & { variant: K };
 }[keyof T];
 
-export function mapVariants<T extends { variant: string }, Res>(variant: T, mapper: { [K in T['variant']]: (val: Extract<T, { variant: K }>) => Res }): Res {
+export function mapVariants<T extends { variant: string }, Res>(
+  variant: T,
+  mapper: { [K in T['variant']]: (val: Extract<T, { variant: K }>) => Res }
+): Res {
   return (mapper as any)[(variant as any).variant](variant);
-}
-
-export function mapUnionString<T extends string, Res>(val: T, mapper: { [K in T]: Res }): Res {
-  return mapper[val];
 }
