@@ -27,7 +27,7 @@ function parent(inner: string | null | undefined): string {
 
 const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
   AggregateFunctionInvocation: ({ aggregateFunc, parameters, filterClause }) => {
-    return join.space(
+    return join.all(
       p(aggregateFunc),
       parent(
         mapMaybe(parameters, (params) =>

@@ -104,3 +104,9 @@ test('UpdateStmt', () => {
 
   expect(printNode(node)).toBe('UPDATE users SET foo = 42');
 });
+
+test('AggregateFunctionInvocation', () => {
+  const node = b.Expr.AggregateFunctions.count({ params: b.Expr.literal(42) });
+
+  expect(printNode(node)).toBe('count(42)');
+});
