@@ -69,7 +69,6 @@ test('Print join of table and subquery', () => {
     ),
     resultColumns: [b.ResultColumn.Star()],
   });
-
   expect(printNode(node)).toBe(
     "SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.user_id"
   );
@@ -85,7 +84,6 @@ test('CreateTableStmt', () => {
     ],
     { strict: true, ifNotExists: true }
   );
-
   expect(printNode(node)).toBe('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL) STRICT');
 });
 
@@ -93,7 +91,6 @@ test('DeleteStmt', () => {
   const node = b.DeleteStmt('users', {
     where: b.Expr.equal(b.Expr.columnFromString('users.name'), b.Expr.literal('azerty')),
   });
-
   expect(printNode(node)).toBe("DELETE FROM users WHERE users.name == 'azerty'");
 });
 
@@ -101,12 +98,15 @@ test('UpdateStmt', () => {
   const node = b.UpdateStmt('users', {
     setItems: [b.SetItems.ColumnName('foo', b.Expr.literal(42))],
   });
-
   expect(printNode(node)).toBe('UPDATE users SET foo = 42');
 });
 
 test('AggregateFunctionInvocation', () => {
   const node = b.Expr.AggregateFunctions.count({ params: b.Expr.literal(42) });
-
   expect(printNode(node)).toBe('count(42)');
+});
+
+test('ScalarFunctions', () => {
+  const node = b.Expr.ScalarFunctions.abs(b.Expr.literal(42));
+  expect(printNode(node)).toBe('abs(42)');
 });
