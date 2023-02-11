@@ -1,10 +1,6 @@
-import * as n from '../Node';
+import { createNode, Expr as Exp, Identifier, Node } from '../Node';
 import { arrayToNonEmptyArray, NonEmptyArray } from '../Utils';
 import { Expr } from './Expr';
-
-type Id = n.Identifier;
-type Exp = n.Expr;
-type Node<K extends n.NodeKind = n.NodeKind> = n.Node<K>;
 
 export type JoinItem = {
   joinOperator: Node<'JoinOperator'>;
@@ -18,7 +14,7 @@ export function Join(
   joinTableOrSubquery: Node<'TableOrSubquery'>,
   joinConstraint?: Node<'JoinConstraint'>
 ): Node<'JoinClause'> {
-  return n.createNode('JoinClause', {
+  return createNode('JoinClause', {
     tableOrSubquery,
     joins: [{ joinOperator, tableOrSubquery: joinTableOrSubquery, joinConstraint }],
   });
@@ -26,27 +22,27 @@ export function Join(
 
 export const JoinOperator = {
   Comma(): Node<'JoinOperator'> {
-    return n.createNode('JoinOperator', { variant: 'Comma' });
+    return createNode('JoinOperator', { variant: 'Comma' });
   },
   Join(join?: 'Left' | 'LeftOuter' | 'Inner' | 'Cross', natural?: true): Node<'JoinOperator'> {
-    return n.createNode('JoinOperator', { variant: 'Join', join, natural });
+    return createNode('JoinOperator', { variant: 'Join', join, natural });
   },
 };
 
 export const JoinConstraint = {
   On(expr: Exp): Node<'JoinConstraint'> {
-    return n.createNode('JoinConstraint', { variant: 'On', expr });
+    return createNode('JoinConstraint', { variant: 'On', expr });
   },
-  Using(columns: NonEmptyArray<Id | string>): Node<'JoinConstraint'> {
-    return n.createNode('JoinConstraint', {
+  Using(columns: NonEmptyArray<Identifier | string>): Node<'JoinConstraint'> {
+    return createNode('JoinConstraint', {
       variant: 'Using',
-      columnNames: arrayToNonEmptyArray(columns.map((v): Id => Expr.identifier(v))),
+      columnNames: arrayToNonEmptyArray(columns.map((v): Identifier => Expr.identifier(v))),
     });
   },
 };
 
 export function Joins(tableOrSubquery: Node<'TableOrSubquery'>, firstJoin: JoinItem, ...otherJoin: Array<JoinItem>): Node<'JoinClause'> {
-  return n.createNode('JoinClause', {
+  return createNode('JoinClause', {
     tableOrSubquery,
     joins: [firstJoin, ...otherJoin],
   });
@@ -65,8 +61,8 @@ export type SelectStmtOptions = {
 };
 
 export function SelectStmt({ distinct, resultColumns, from, where, limit, orderBy, groupBy }: SelectStmtOptions): Node<'SelectStmt'> {
-  return n.createNode('SelectStmt', {
-    select: n.createNode('SelectCore', {
+  return createNode('SelectStmt', {
+    select: createNode('SelectCore', {
       variant: 'Select',
       distinct,
       resultColumns: arrayToNonEmptyArray(resultColumns),
@@ -80,16 +76,16 @@ export function SelectStmt({ distinct, resultColumns, from, where, limit, orderB
 }
 
 export const TableOrSubquery = {
-  Table(tableName: string, { schema, alias }: { schema?: Id | string; alias?: Id | string } = {}): Node<'TableOrSubquery'> {
-    return n.createNode('TableOrSubquery', {
+  Table(tableName: string, { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}): Node<'TableOrSubquery'> {
+    return createNode('TableOrSubquery', {
       variant: 'Table',
       schema: schema ? Expr.identifier(schema) : undefined,
       table: Expr.identifier(tableName),
       alias: alias ? { tableAlias: Expr.identifier(alias), as: true } : undefined,
     });
   },
-  Select(selectStmt: Node<'SelectStmt'>, alias?: Id | string): Node<'TableOrSubquery'> {
-    return n.createNode('TableOrSubquery', {
+  Select(selectStmt: Node<'SelectStmt'>, alias?: Identifier | string): Node<'TableOrSubquery'> {
+    return createNode('TableOrSubquery', {
       variant: 'Select',
       selectStmt: selectStmt,
       alias: alias ? { tableAlias: Expr.identifier(alias), as: true } : undefined,
@@ -98,7 +94,7 @@ export const TableOrSubquery = {
 };
 
 export const From = {
-  Table(tableName: string, { schema, alias }: { schema?: Id | string; alias?: Id | string } = {}): SelectFrom {
+  Table(tableName: string, { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}): SelectFrom {
     return { variant: 'TablesOrSubqueries', tablesOrSubqueries: [TableOrSubquery.Table(tableName, { schema, alias })] };
   },
   Tables(firstTable: Node<'TableOrSubquery'>, ...otherTables: Array<Node<'TableOrSubquery'>>): SelectFrom {
@@ -118,26 +114,28 @@ export const From = {
 };
 
 export const ResultColumn = {
-  Expr(expr: Exp, alias?: string | Id): Node<'ResultColumn'> {
-    return n.createNode('ResultColumn', {
+  Expr(expr: Exp, alias?: string | Identifier): Node<'ResultColumn'> {
+    return createNode('ResultColumn', {
       variant: 'Expr',
       expr,
       alias: alias ? { name: Expr.identifier(alias), as: true } : undefined,
     });
   },
   Star(): Node<'ResultColumn'> {
-    return n.createNode('ResultColumn', {
+    return createNode('ResultColumn', {
       variant: 'Star',
     });
   },
-  TableStar(tableName: string | Id): Node<'ResultColumn'> {
-    return n.createNode('ResultColumn', {
+  TableStar(tableName: string | Identifier): Node<'ResultColumn'> {
+    return createNode('ResultColumn', {
       variant: 'TableStar',
       tableName: Expr.identifier(tableName),
     });
   },
   // Shortcut
-  column(column: string | { column: string | Id; table?: string | { table: string | Id; schema?: string | Id } }): Node<'ResultColumn'> {
+  column(
+    column: string | { column: string | Identifier; table?: string | { table: string | Identifier; schema?: string | Identifier } }
+  ): Node<'ResultColumn'> {
     return ResultColumn.Expr(Expr.column(column));
   },
   columnFromString(col: string): Node<'ResultColumn'> {
