@@ -8,88 +8,114 @@ export function createNode<K extends NodeKind>(kind: K, data: NodeData[K]): Node
 export interface NodeData {
   AggregateFunctionInvocation: {
     aggregateFunc: Identifier;
+    // (
     parameters?: Variants<{
-      Star: {};
-      Exprs: { distinct?: true; exprs: NonEmptyArray<Expr> };
+      Star: {}; // *
+      Exprs: {
+        distinct?: true;
+        exprs: NonEmptyArray<Expr>; // ,
+      };
     }>;
+    // )
     filterClause?: Node<'FilterClause'>;
   };
   AlterTableStmt: {
-    schema?: Identifier;
-    table: Identifier;
+    // ALTER TABLE
+    schemaName?: Identifier; // .
+    tableName: Identifier;
     action: Variants<{
       RenameTo: {
+        // RENAME TO
         newTableName: Identifier;
       };
       RenameColumn: {
+        // RENAME
         column?: true;
         columnName: Identifier;
+        // TO
         newColumnName: Identifier;
       };
       AddColumn: {
+        // ADD
         column?: true;
         columnDef: Node<'ColumnDef'>;
       };
       DropColumn: {
+        // DROP
         column?: true;
         columnName: Identifier;
       };
     }>;
   };
   AnalyzeStmt: {
+    // ANALYZE
     target?: Variants<{
-      Single: {
-        name: Identifier;
-      };
-      WithSchema: {
+      Schema: {
         schemaName: Identifier;
+      };
+      IndexOrTable: {
+        schemaName?: Identifier; // .
         indexOrTableName: Identifier;
       };
     }>;
   };
   AttachStmt: {
+    // ATTACH
     database?: true;
     expr: Expr;
+    // AS
     schemaName: Identifier;
   };
   BeginStmt: {
+    // BEGIN
     mode?: 'Deferred' | 'Immediate' | 'Exclusive';
     transaction?: true;
   };
   ColumnConstraint: {
-    constraintName?: Identifier;
+    constraintName?: /* CONSTRAINT */ Identifier;
     constraint: Variants<{
       PrimaryKey: {
+        // PRIMARY KEY
         direction?: 'Asc' | 'Desc';
         conflictClause?: Node<'ConflictClause'>;
         autoincrement?: true;
       };
       NotNull: {
+        // NOT NULL
         conflictClause?: Node<'ConflictClause'>;
       };
       Unique: {
+        // UNIQUE
         conflictClause?: Node<'ConflictClause'>;
       };
       Check: {
+        // CHECK (
         expr: Expr;
+        // )
       };
+      // Note: DEFAULT splitted in 3 variants
       DefaultExpr: {
+        // DEFAULT (
         expr: Expr;
+        // )
       };
       DefaultLiteralValue: {
+        // DEFAULT
         literalValue: LiteralValue;
       };
       DefaultSignedNumber: {
+        // DEFAULT
         signedNumber: Node<'SignedNumber'>;
       };
       Collate: {
+        // COLLATE
         collationName: Identifier;
       };
       ForeignKey: {
         foreignKeyClause: Node<'ForeignKeyClause'>;
       };
       As: {
-        generatedAlways?: true;
+        generatedAlways?: true; // GENERATED ALWAYS
         expr: Expr;
         mode?: 'Stored' | 'Virtual';
       };
@@ -141,7 +167,7 @@ export interface NodeData {
       offset?: { separator: 'Comma' | 'Offset'; expr: Expr };
     };
   };
-  // Note conflict is made optional instead of allowing empty object
+  // Note: ConflictClause is made optional when used instead of allowing empty object
   ConflictClause: {
     onConflict: 'Rollback' | 'Abort' | 'Fail' | 'Ignore' | 'Replace';
   };
@@ -149,7 +175,7 @@ export interface NodeData {
     unique?: true;
     ifNotExists?: true;
     schema?: Identifier;
-    index: Identifier;
+    indexName: Identifier;
     tableName: Identifier;
     indexedColumns: NonEmptyArray<Node<'IndexedColumn'>>;
     where?: Expr;
@@ -157,8 +183,8 @@ export interface NodeData {
   CreateTableStmt: {
     temp?: 'Temp' | 'Temporary';
     ifNotExists?: true;
-    schema?: Identifier;
-    table: Identifier;
+    schemaName?: Identifier;
+    tableName: Identifier;
     definition: Variants<{
       As: {
         selectStmt: Node<'SelectStmt'>;
@@ -173,8 +199,8 @@ export interface NodeData {
   CreateTriggerStmt: {
     temp?: 'Temp' | 'Temporary';
     ifNotExists?: true;
-    schema?: Identifier;
-    trigger: Identifier;
+    schemaName?: Identifier;
+    triggerName: Identifier;
     modifier?: 'Before' | 'After' | 'InsteadOf';
     action: Variants<{
       Delete: {};
@@ -191,15 +217,15 @@ export interface NodeData {
   CreateViewStmt: {
     temp?: 'Temp' | 'Temporary';
     ifNotExists?: true;
-    schema?: Identifier;
-    view: Identifier;
+    schemaName?: Identifier;
+    viewName: Identifier;
     columnNames?: NonEmptyArray<Identifier>;
     asSelectStmt: Node<'SelectStmt'>;
   };
   CreateVirtualTableStmt: {
     ifNotExists?: true;
-    schema?: Identifier;
-    table: Identifier;
+    schemaName?: Identifier;
+    tableName: Identifier;
     moduleName: Identifier;
     moduleArguments?: NonEmptyArray<Identifier>;
   };
