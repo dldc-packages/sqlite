@@ -16,8 +16,8 @@ export type DeleteStmtOptions = {
 export function DeleteStmt(table: string | Id, { where, schema, limit, orderBy }: DeleteStmtOptions = {}): n.Node<'DeleteStmtLimited'> {
   return n.createNode('DeleteStmtLimited', {
     qualifiedTableName: n.createNode('QualifiedTableName', {
-      table: Expr.identifier(table),
-      schema: schema ? Expr.identifier(schema) : undefined,
+      tableName: Expr.identifier(table),
+      schemaName: schema ? Expr.identifier(schema) : undefined,
     }),
     where,
     limit: limit === undefined ? undefined : { expr: Expr.NumericLiteral.integer(limit) },

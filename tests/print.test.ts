@@ -2,7 +2,7 @@ import { Ast, builder as b, printNode } from '../src/mod';
 
 test('Print AlterTableStmt', () => {
   const node = Ast.createNode('AlterTableStmt', {
-    table: b.Expr.identifier('users'),
+    tableName: b.Expr.identifier('users'),
     action: {
       variant: 'RenameTo',
       newTableName: b.Expr.identifier('users_new'),
@@ -20,7 +20,7 @@ test('Print Select', () => {
       tablesOrSubqueries: [
         Ast.createNode('TableOrSubquery', {
           variant: 'Table',
-          table: b.Expr.identifier('users'),
+          tableName: b.Expr.identifier('users'),
         }),
       ],
     },
@@ -55,7 +55,7 @@ test('Print join of table and subquery', () => {
   const node = b.SelectStmt({
     from: b.From.Join(
       b.TableOrSubquery.Table('posts'),
-      b.JoinOperator.Join('Inner'),
+      b.JoinOperator.InnerJoin(),
       // Find user
       b.TableOrSubquery.Select(
         b.SelectStmt({

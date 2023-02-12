@@ -29,72 +29,75 @@ export const AggregateFunctions = {
     aggregateFunctionInvocation('json_group_object', options),
 };
 
-type FI = Node<'FunctionInvocation'>;
+type SFI = Node<'SimpleFunctionInvocation'>;
 
 // https://www.sqlite.org/lang_corefunc.html
 export const ScalarFunctions = {
-  abs: (x: Exp): FI => functionInvocation('abs', x),
-  changes: (): FI => functionInvocation('changes'),
-  char: (x1: Exp, x2: Exp, ...xn: Exp[]): FI => functionInvocation('char', x1, x2, ...xn),
-  coalesce: (x: Exp, y: Exp, ...yn: Exp[]): FI => functionInvocation('coalesce', x, y, ...yn),
-  format: (format: Exp, ...args: Exp[]): FI => functionInvocation('format', format, ...args),
-  glob: (x: Exp, y: Exp): FI => functionInvocation('glob', x, y),
-  hex: (x: Exp): FI => functionInvocation('hex', x),
-  ifnull: (x: Exp, y: Exp): FI => functionInvocation('ifnull', x, y),
-  iif: (x: Exp, y: Exp, z: Exp): FI => functionInvocation('iif', x, y, z),
-  instr: (x: Exp, y: Exp): FI => functionInvocation('instr', x, y),
-  last_insert_rowid: (): FI => functionInvocation('last_insert_rowid'),
-  length: (x: Exp): FI => functionInvocation('length', x),
-  like: (x: Exp, y: Exp, z?: Exp): FI => (z ? functionInvocation('like', x, y, z) : functionInvocation('like', x, y)),
-  likelihood: (x: Exp, y: Exp): FI => functionInvocation('likelihood', x, y),
-  likely: (x: Exp): FI => functionInvocation('likely', x),
-  load_extension: (x: Exp, y?: Exp): FI => (y ? functionInvocation('load_extension', x, y) : functionInvocation('load_extension', x)),
-  lower: (x: Exp): FI => functionInvocation('lower', x),
-  ltrim: (x: Exp, y?: Exp): FI => (y ? functionInvocation('ltrim', x, y) : functionInvocation('ltrim', x)),
-  max: (x: Exp, y: Exp, ...yn: Exp[]): FI => functionInvocation('max', x, y, ...yn),
-  min: (x: Exp, y: Exp, ...yn: Exp[]): FI => functionInvocation('min', x, y, ...yn),
-  nullif: (x: Exp, y: Exp): FI => functionInvocation('nullif', x, y),
-  printf: (format: Exp, ...args: Exp[]): FI => functionInvocation('printf', format, ...args),
-  quote: (x: Exp): FI => functionInvocation('quote', x),
-  random: (): FI => functionInvocation('random'),
-  randomblob: (n: Exp): FI => functionInvocation('randomblob', n),
-  replace: (x: Exp, y: Exp, z: Exp): FI => functionInvocation('replace', x, y, z),
-  round: (x: Exp, y?: Exp): FI => (y ? functionInvocation('round', x, y) : functionInvocation('round', x)),
-  rtrim: (x: Exp, y?: Exp): FI => (y ? functionInvocation('rtrim', x, y) : functionInvocation('rtrim', x)),
-  sign: (x: Exp): FI => functionInvocation('sign', x),
-  soundex: (x: Exp): FI => functionInvocation('soundex', x),
-  sqlite_compileoption_get: (n: Exp): FI => functionInvocation('sqlite_compileoption_get', n),
-  sqlite_compileoption_used: (x: Exp): FI => functionInvocation('sqlite_compileoption_used', x),
-  sqlite_offset: (x: Exp): FI => functionInvocation('sqlite_offset', x),
-  sqlite_source_id: (): FI => functionInvocation('sqlite_source_id'),
-  sqlite_version: (): FI => functionInvocation('sqlite_version'),
-  substr: (x: Exp, y: Exp, z?: Exp): FI => (z ? functionInvocation('substr', x, y, z) : functionInvocation('substr', x, y)),
-  substring: (x: Exp, y: Exp, z?: Exp): FI => (z ? functionInvocation('substring', x, y, z) : functionInvocation('substring', x, y)),
-  total_changes: (): FI => functionInvocation('total_changes'),
-  trim: (x: Exp, y?: Exp): FI => (y ? functionInvocation('trim', x, y) : functionInvocation('trim', x)),
-  typeof: (x: Exp): FI => functionInvocation('typeof', x),
-  unicode: (x: Exp): FI => functionInvocation('unicode', x),
-  unlikely: (x: Exp): FI => functionInvocation('unlikely', x),
-  upper: (x: Exp): FI => functionInvocation('upper', x),
-  zeroblob: (n: Exp): FI => functionInvocation('zeroblob', n),
+  abs: (x: Exp): SFI => simpleFunctionInvocation('abs', x),
+  changes: (): SFI => simpleFunctionInvocation('changes'),
+  char: (x1: Exp, x2: Exp, ...xn: Exp[]): SFI => simpleFunctionInvocation('char', x1, x2, ...xn),
+  coalesce: (x: Exp, y: Exp, ...yn: Exp[]): SFI => simpleFunctionInvocation('coalesce', x, y, ...yn),
+  format: (format: Exp, ...args: Exp[]): SFI => simpleFunctionInvocation('format', format, ...args),
+  glob: (x: Exp, y: Exp): SFI => simpleFunctionInvocation('glob', x, y),
+  hex: (x: Exp): SFI => simpleFunctionInvocation('hex', x),
+  ifnull: (x: Exp, y: Exp): SFI => simpleFunctionInvocation('ifnull', x, y),
+  iif: (x: Exp, y: Exp, z: Exp): SFI => simpleFunctionInvocation('iif', x, y, z),
+  instr: (x: Exp, y: Exp): SFI => simpleFunctionInvocation('instr', x, y),
+  last_insert_rowid: (): SFI => simpleFunctionInvocation('last_insert_rowid'),
+  length: (x: Exp): SFI => simpleFunctionInvocation('length', x),
+  like: (x: Exp, y: Exp, z?: Exp): SFI => (z ? simpleFunctionInvocation('like', x, y, z) : simpleFunctionInvocation('like', x, y)),
+  likelihood: (x: Exp, y: Exp): SFI => simpleFunctionInvocation('likelihood', x, y),
+  likely: (x: Exp): SFI => simpleFunctionInvocation('likely', x),
+  load_extension: (x: Exp, y?: Exp): SFI =>
+    y ? simpleFunctionInvocation('load_extension', x, y) : simpleFunctionInvocation('load_extension', x),
+  lower: (x: Exp): SFI => simpleFunctionInvocation('lower', x),
+  ltrim: (x: Exp, y?: Exp): SFI => (y ? simpleFunctionInvocation('ltrim', x, y) : simpleFunctionInvocation('ltrim', x)),
+  max: (x: Exp, y: Exp, ...yn: Exp[]): SFI => simpleFunctionInvocation('max', x, y, ...yn),
+  min: (x: Exp, y: Exp, ...yn: Exp[]): SFI => simpleFunctionInvocation('min', x, y, ...yn),
+  nullif: (x: Exp, y: Exp): SFI => simpleFunctionInvocation('nullif', x, y),
+  printf: (format: Exp, ...args: Exp[]): SFI => simpleFunctionInvocation('printf', format, ...args),
+  quote: (x: Exp): SFI => simpleFunctionInvocation('quote', x),
+  random: (): SFI => simpleFunctionInvocation('random'),
+  randomblob: (n: Exp): SFI => simpleFunctionInvocation('randomblob', n),
+  replace: (x: Exp, y: Exp, z: Exp): SFI => simpleFunctionInvocation('replace', x, y, z),
+  round: (x: Exp, y?: Exp): SFI => (y ? simpleFunctionInvocation('round', x, y) : simpleFunctionInvocation('round', x)),
+  rtrim: (x: Exp, y?: Exp): SFI => (y ? simpleFunctionInvocation('rtrim', x, y) : simpleFunctionInvocation('rtrim', x)),
+  sign: (x: Exp): SFI => simpleFunctionInvocation('sign', x),
+  soundex: (x: Exp): SFI => simpleFunctionInvocation('soundex', x),
+  sqlite_compileoption_get: (n: Exp): SFI => simpleFunctionInvocation('sqlite_compileoption_get', n),
+  sqlite_compileoption_used: (x: Exp): SFI => simpleFunctionInvocation('sqlite_compileoption_used', x),
+  sqlite_offset: (x: Exp): SFI => simpleFunctionInvocation('sqlite_offset', x),
+  sqlite_source_id: (): SFI => simpleFunctionInvocation('sqlite_source_id'),
+  sqlite_version: (): SFI => simpleFunctionInvocation('sqlite_version'),
+  substr: (x: Exp, y: Exp, z?: Exp): SFI => (z ? simpleFunctionInvocation('substr', x, y, z) : simpleFunctionInvocation('substr', x, y)),
+  substring: (x: Exp, y: Exp, z?: Exp): SFI =>
+    z ? simpleFunctionInvocation('substring', x, y, z) : simpleFunctionInvocation('substring', x, y),
+  total_changes: (): SFI => simpleFunctionInvocation('total_changes'),
+  trim: (x: Exp, y?: Exp): SFI => (y ? simpleFunctionInvocation('trim', x, y) : simpleFunctionInvocation('trim', x)),
+  typeof: (x: Exp): SFI => simpleFunctionInvocation('typeof', x),
+  unicode: (x: Exp): SFI => simpleFunctionInvocation('unicode', x),
+  unlikely: (x: Exp): SFI => simpleFunctionInvocation('unlikely', x),
+  upper: (x: Exp): SFI => simpleFunctionInvocation('upper', x),
+  zeroblob: (n: Exp): SFI => simpleFunctionInvocation('zeroblob', n),
   // JSON
-  json: (x: Exp): FI => functionInvocation('json', x),
-  json_array: (...valueN: Exp[]): FI => functionInvocation('json_array', ...valueN),
-  json_array_length: (json: Exp, path?: Exp): FI =>
-    path ? functionInvocation('json_array_length', json, path) : functionInvocation('json_array_length', json),
-  json_extract: (json: Exp, path: Exp, ...pathN: Exp[]): FI => functionInvocation('json_extract', json, path, ...pathN),
-  json_insert: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): FI =>
-    functionInvocation('json_insert', json, path, value, ...pathValueN),
-  json_object: (...labelValueN: Exp[]): FI => functionInvocation('json_object', ...labelValueN),
-  json_patch: (json1: Exp, json2: Exp): FI => functionInvocation('json_patch', json1, json2),
-  json_remove: (json: Exp, path: Exp, ...pathN: Exp[]): FI => functionInvocation('json_remove', json, path, ...pathN),
-  json_replace: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): FI =>
-    functionInvocation('json_replace', json, path, value, ...pathValueN),
-  json_set: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): FI =>
-    functionInvocation('json_set', json, path, value, ...pathValueN),
-  json_type: (json: Exp, path?: Exp): FI => (path ? functionInvocation('json_type', json, path) : functionInvocation('json_type', json)),
-  json_valid: (json: Exp): FI => functionInvocation('json_valid', json),
-  json_quote: (value: Exp): FI => functionInvocation('json_quote', value),
+  json: (x: Exp): SFI => simpleFunctionInvocation('json', x),
+  json_array: (...valueN: Exp[]): SFI => simpleFunctionInvocation('json_array', ...valueN),
+  json_array_length: (json: Exp, path?: Exp): SFI =>
+    path ? simpleFunctionInvocation('json_array_length', json, path) : simpleFunctionInvocation('json_array_length', json),
+  json_extract: (json: Exp, path: Exp, ...pathN: Exp[]): SFI => simpleFunctionInvocation('json_extract', json, path, ...pathN),
+  json_insert: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI =>
+    simpleFunctionInvocation('json_insert', json, path, value, ...pathValueN),
+  json_object: (...labelValueN: Exp[]): SFI => simpleFunctionInvocation('json_object', ...labelValueN),
+  json_patch: (json1: Exp, json2: Exp): SFI => simpleFunctionInvocation('json_patch', json1, json2),
+  json_remove: (json: Exp, path: Exp, ...pathN: Exp[]): SFI => simpleFunctionInvocation('json_remove', json, path, ...pathN),
+  json_replace: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI =>
+    simpleFunctionInvocation('json_replace', json, path, value, ...pathValueN),
+  json_set: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI =>
+    simpleFunctionInvocation('json_set', json, path, value, ...pathValueN),
+  json_type: (json: Exp, path?: Exp): SFI =>
+    path ? simpleFunctionInvocation('json_type', json, path) : simpleFunctionInvocation('json_type', json),
+  json_valid: (json: Exp): SFI => simpleFunctionInvocation('json_valid', json),
+  json_quote: (value: Exp): SFI => simpleFunctionInvocation('json_quote', value),
 };
 
 const LiteralValue = {
@@ -156,11 +159,11 @@ const Operations = {
   is(leftExpr: Exp, rightExpr: Exp): Node<'Is'> {
     return n.createNode('Is', { leftExpr, rightExpr });
   },
-  isNot(leftExpr: Exp, rightExpr: Exp): Node<'IsNot'> {
-    return n.createNode('IsNot', { leftExpr, rightExpr });
+  isNot(leftExpr: Exp, rightExpr: Exp): Node<'Is'> {
+    return n.createNode('Is', { leftExpr, not: true, rightExpr });
   },
-  notBetween(expr: Exp, betweenExpr: Exp, andExpr: Exp): Node<'NotBetween'> {
-    return n.createNode('NotBetween', { expr, betweenExpr, andExpr });
+  notBetween(expr: Exp, betweenExpr: Exp, andExpr: Exp): Node<'Between'> {
+    return n.createNode('Between', { expr, betweenExpr, not: true, andExpr });
   },
   between(expr: Exp, betweenExpr: Exp, andExpr: Exp): Node<'Between'> {
     return n.createNode('Between', { expr, betweenExpr, andExpr });
@@ -175,7 +178,7 @@ const Operations = {
     tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'In'> {
       return n.createNode('In', {
         expr,
-        values: { variant: 'TableName', table: identifier(table), schema: schema ? identifier(schema) : undefined },
+        values: { variant: 'TableName', tableName: identifier(table), schemaName: schema ? identifier(schema) : undefined },
       });
     },
     tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'In'> {
@@ -185,32 +188,34 @@ const Operations = {
           variant: 'TableFunctionInvocation',
           functionName: identifier(functionName),
           parameters,
-          schema: schema ? identifier(schema) : undefined,
+          schemaName: schema ? identifier(schema) : undefined,
         },
       });
     },
   },
   NotIn: {
-    list(expr: Exp, items?: NonEmptyArray<Exp>): Node<'NotIn'> {
-      return n.createNode('NotIn', { expr, values: { variant: 'List', items } });
+    list(expr: Exp, items?: NonEmptyArray<Exp>): Node<'In'> {
+      return n.createNode('In', { expr, not: true, values: { variant: 'List', items } });
     },
-    select(expr: Exp, selectStmt: Node<'SelectStmt'>): Node<'NotIn'> {
-      return n.createNode('NotIn', { expr, values: { variant: 'Select', selectStmt } });
+    select(expr: Exp, selectStmt: Node<'SelectStmt'>): Node<'In'> {
+      return n.createNode('In', { expr, not: true, values: { variant: 'Select', selectStmt } });
     },
-    tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'NotIn'> {
-      return n.createNode('NotIn', {
+    tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'In'> {
+      return n.createNode('In', {
         expr,
-        values: { variant: 'TableName', table: identifier(table), schema: schema ? identifier(schema) : undefined },
+        not: true,
+        values: { variant: 'TableName', tableName: identifier(table), schemaName: schema ? identifier(schema) : undefined },
       });
     },
-    tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'NotIn'> {
-      return n.createNode('NotIn', {
+    tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'In'> {
+      return n.createNode('In', {
         expr,
+        not: true,
         values: {
           variant: 'TableFunctionInvocation',
           functionName: identifier(functionName),
           parameters,
-          schema: schema ? identifier(schema) : undefined,
+          schemaName: schema ? identifier(schema) : undefined,
         },
       });
     },
@@ -218,29 +223,32 @@ const Operations = {
   match(leftExpr: Exp, rightExpr: Exp): Node<'Match'> {
     return n.createNode('Match', { leftExpr, rightExpr });
   },
-  notMatch(leftExpr: Exp, rightExpr: Exp): Node<'NotMatch'> {
-    return n.createNode('NotMatch', { leftExpr, rightExpr });
+  notMatch(leftExpr: Exp, rightExpr: Exp): Node<'Match'> {
+    return n.createNode('Match', { leftExpr, not: true, rightExpr });
   },
   like(leftExpr: Exp, rightExpr: Exp): Node<'Like'> {
     return n.createNode('Like', { leftExpr, rightExpr });
   },
-  notLike(leftExpr: Exp, rightExpr: Exp): Node<'NotLike'> {
-    return n.createNode('NotLike', { leftExpr, rightExpr });
+  notLike(leftExpr: Exp, rightExpr: Exp): Node<'Like'> {
+    return n.createNode('Like', { leftExpr, not: true, rightExpr });
   },
   glob(leftExpr: Exp, rightExpr: Exp): Node<'Glob'> {
     return n.createNode('Glob', { leftExpr, rightExpr });
   },
-  notGlob(leftExpr: Exp, rightExpr: Exp): Node<'NotGlob'> {
-    return n.createNode('NotGlob', { leftExpr, rightExpr });
+  notGlob(leftExpr: Exp, rightExpr: Exp): Node<'Glob'> {
+    return n.createNode('Glob', { leftExpr, not: true, rightExpr });
   },
   regexp(leftExpr: Exp, rightExpr: Exp): Node<'Regexp'> {
     return n.createNode('Regexp', { leftExpr, rightExpr });
   },
-  notRegexp(leftExpr: Exp, rightExpr: Exp): Node<'NotRegexp'> {
-    return n.createNode('NotRegexp', { leftExpr, rightExpr });
+  notRegexp(leftExpr: Exp, rightExpr: Exp): Node<'Regexp'> {
+    return n.createNode('Regexp', { leftExpr, not: true, rightExpr });
   },
   isnull(expr: Exp): Node<'Isnull'> {
     return n.createNode('Isnull', { expr });
+  },
+  isNull(expr: Exp): Node<'Is'> {
+    return n.createNode('Is', { leftExpr: expr, rightExpr: LiteralValue.null });
   },
   notnull(expr: Exp): Node<'Notnull'> {
     return n.createNode('Notnull', { expr });
@@ -360,7 +368,7 @@ export const Expr = {
   identifier,
   column,
   columnFromString,
-  functionInvocation,
+  simpleFunctionInvocation,
   aggregateFunctionInvocation,
 
   BindParameter,
@@ -390,9 +398,9 @@ function aggregateFunctionInvocation(
   });
 }
 
-function functionInvocation(name: string, ...args: Exp[]): Node<'FunctionInvocation'> {
-  return n.createNode('FunctionInvocation', {
-    functionName: identifier(name),
+function simpleFunctionInvocation(name: string, ...args: Exp[]): Node<'SimpleFunctionInvocation'> {
+  return n.createNode('SimpleFunctionInvocation', {
+    simpleFunc: identifier(name),
     parameters: args.length === 0 ? undefined : { variant: 'Exprs', exprs: arrayToNonEmptyArray(args) },
   });
 }

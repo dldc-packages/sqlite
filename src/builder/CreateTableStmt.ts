@@ -35,8 +35,8 @@ export function CreateTableStmt(
   return n.createNode('CreateTableStmt', {
     temp: temp ? 'Temp' : undefined,
     ifNotExists,
-    table: Expr.identifier(table),
-    schema: schema ? Expr.identifier(schema) : undefined,
+    tableName: Expr.identifier(table),
+    schemaName: schema ? Expr.identifier(schema) : undefined,
     definition: {
       variant: 'Columns',
       columnDefs: arrayToNonEmptyArray(columns),

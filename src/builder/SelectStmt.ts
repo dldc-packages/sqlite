@@ -24,8 +24,11 @@ export const JoinOperator = {
   Comma(): Node<'JoinOperator'> {
     return createNode('JoinOperator', { variant: 'Comma' });
   },
-  Join(join?: 'Left' | 'LeftOuter' | 'Inner' | 'Cross', natural?: true): Node<'JoinOperator'> {
+  Join(join?: 'Left' | 'Right' | 'Full', natural?: true): Node<'JoinOperator'> {
     return createNode('JoinOperator', { variant: 'Join', join, natural });
+  },
+  InnerJoin(natural?: true): Node<'JoinOperator'> {
+    return createNode('JoinOperator', { variant: 'InnerJoin', natural });
   },
 };
 
@@ -79,8 +82,8 @@ export const TableOrSubquery = {
   Table(tableName: string, { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}): Node<'TableOrSubquery'> {
     return createNode('TableOrSubquery', {
       variant: 'Table',
-      schema: schema ? Expr.identifier(schema) : undefined,
-      table: Expr.identifier(tableName),
+      schemaName: schema ? Expr.identifier(schema) : undefined,
+      tableName: Expr.identifier(tableName),
       alias: alias ? { tableAlias: Expr.identifier(alias), as: true } : undefined,
     });
   },
@@ -118,7 +121,7 @@ export const ResultColumn = {
     return createNode('ResultColumn', {
       variant: 'Expr',
       expr,
-      alias: alias ? { name: Expr.identifier(alias), as: true } : undefined,
+      alias: alias ? { columnName: Expr.identifier(alias), as: true } : undefined,
     });
   },
   Star(): Node<'ResultColumn'> {

@@ -10,10 +10,10 @@ export interface NodeData {
     aggregateFunc: Identifier;
     // (
     parameters?: Variants<{
-      Star: {}; // *
+      Star: {};
       Exprs: {
         distinct?: true;
-        exprs: NonEmptyArray<Expr>; // ,
+        exprs: NonEmptyArray<Expr>;
       };
     }>;
     // )
@@ -21,7 +21,7 @@ export interface NodeData {
   };
   AlterTableStmt: {
     // ALTER TABLE
-    schemaName?: Identifier; // .
+    schemaName?: Identifier;
     tableName: Identifier;
     action: Variants<{
       RenameTo: {
@@ -54,7 +54,7 @@ export interface NodeData {
         schemaName: Identifier;
       };
       IndexOrTable: {
-        schemaName?: Identifier; // .
+        schemaName?: Identifier;
         indexOrTableName: Identifier;
       };
     }>;
@@ -115,7 +115,7 @@ export interface NodeData {
         foreignKeyClause: Node<'ForeignKeyClause'>;
       };
       As: {
-        generatedAlways?: true; // GENERATED ALWAYS
+        generatedAlways?: true;
         expr: Expr;
         mode?: 'Stored' | 'Virtual';
       };
@@ -127,15 +127,20 @@ export interface NodeData {
     columnConstraints?: NonEmptyArray<Node<'ColumnConstraint'>>;
   };
   ColumnNameList: {
+    // (
     columnNames: NonEmptyArray<Identifier>;
+    // )
   };
   CommentSyntax: Variants<{
     SingleLine: {
+      // --
       content: string;
       close: 'NewLine' | 'EndOfFile';
     };
     Multiline: {
+      // /*
       content: string;
+      // */
     };
   }>;
   CommitStmt: {
@@ -144,15 +149,19 @@ export interface NodeData {
   };
   CommonTableExpression: {
     tableName: Identifier;
-    columnNames?: NonEmptyArray<Identifier>;
+    columnNames?: /* ( */ NonEmptyArray<Identifier>; // )
+    // AS
     materialized?: 'Materialized' | 'NotMaterialized';
+    // (
     select: Node<'SelectStmt'>;
+    // )
   };
   CompoundOperator: {
     variant: 'Union' | 'UnionAll' | 'Except' | 'Intersect';
   };
   CompoundSelectStmt: {
     with?: {
+      // WITH
       recursive?: true;
       commonTableExpressions: NonEmptyArray<Node<'CommonTableExpression'>>;
     };
@@ -161,184 +170,163 @@ export interface NodeData {
       operator: 'Union' | 'UnionAll' | 'Except' | 'Intersect';
       select: Node<'SelectCore'>;
     }>;
-    orderBy?: NonEmptyArray<Node<'OrderingTerm'>>;
+    orderBy?: /* ORDER BY */ NonEmptyArray<Node<'OrderingTerm'>>;
     limit?: {
+      // LIMIT
       expr: Expr;
       offset?: { separator: 'Comma' | 'Offset'; expr: Expr };
     };
   };
   // Note: ConflictClause is made optional when used instead of allowing empty object
   ConflictClause: {
+    // ON CONFLICT
     onConflict: 'Rollback' | 'Abort' | 'Fail' | 'Ignore' | 'Replace';
   };
   CreateIndexStmt: {
+    // CREATE
     unique?: true;
+    // INDEX
     ifNotExists?: true;
-    schema?: Identifier;
+    schemaName?: Identifier;
     indexName: Identifier;
     tableName: Identifier;
+    // (
     indexedColumns: NonEmptyArray<Node<'IndexedColumn'>>;
+    // )
     where?: Expr;
   };
   CreateTableStmt: {
+    // CREATE
     temp?: 'Temp' | 'Temporary';
+    // TABLE
     ifNotExists?: true;
     schemaName?: Identifier;
     tableName: Identifier;
     definition: Variants<{
       As: {
+        // AS
         selectStmt: Node<'SelectStmt'>;
       };
       Columns: {
+        // (
         columnDefs: NonEmptyArray<Node<'ColumnDef'>>;
         tableConstraints?: NonEmptyArray<Node<'TableConstraint'>>;
+        // )
         tableOptions?: Node<'TableOptions'>;
       };
     }>;
   };
   CreateTriggerStmt: {
+    // CREATE
     temp?: 'Temp' | 'Temporary';
+    // TRIGGER
     ifNotExists?: true;
     schemaName?: Identifier;
     triggerName: Identifier;
     modifier?: 'Before' | 'After' | 'InsteadOf';
     action: Variants<{
-      Delete: {};
-      Insert: {};
+      Delete: {
+        // DELETE
+      };
+      Insert: {
+        // INSERT
+      };
       Update: {
+        // UPDATE
         of?: NonEmptyArray<Identifier>;
       };
     }>;
+    // ON
     tableName: Identifier;
     forEachRow?: true;
     when?: Expr;
-    stmts: NonEmptyArray<Node<'UpdateStmt' | 'InsertStmt' | 'DeleteStmt' | 'SelectStmt'>>;
+    // BEGIN
+    stmts: NonEmptyArray<Node<'UpdateStmt' | 'InsertStmt' | 'DeleteStmt' | 'SelectStmt'> /* ; */>;
+    // END
   };
   CreateViewStmt: {
+    // CREATE
     temp?: 'Temp' | 'Temporary';
+    // VIEW
     ifNotExists?: true;
     schemaName?: Identifier;
     viewName: Identifier;
-    columnNames?: NonEmptyArray<Identifier>;
+    columnNames?: /* ( */ NonEmptyArray<Identifier>; // )
+    // AS
     asSelectStmt: Node<'SelectStmt'>;
   };
   CreateVirtualTableStmt: {
+    // CREATE VIRTUAL TABLE
     ifNotExists?: true;
     schemaName?: Identifier;
     tableName: Identifier;
+    // USING
     moduleName: Identifier;
-    moduleArguments?: NonEmptyArray<Identifier>;
+    moduleArguments?: /* ( */ NonEmptyArray<Identifier>; // )
   };
   CteTableName: {
     tableName: Identifier;
-    columnNames?: NonEmptyArray<Identifier>;
+    columnNames?: /* ( */ NonEmptyArray<Identifier>; // )
   };
   DeleteStmt: {
     with?: {
+      // WITH
       recursive?: true;
       commonTableExpressions: NonEmptyArray<Node<'CommonTableExpression'>>;
     };
+    // DELETE FROM
     qualifiedTableName: Node<'QualifiedTableName'>;
     where?: Expr;
     returningClause?: Node<'ReturningClause'>;
   };
   DeleteStmtLimited: {
     with?: {
+      // WITH
       recursive?: true;
       commonTableExpressions: NonEmptyArray<Node<'CommonTableExpression'>>;
     };
+    // DELETE FROM
     qualifiedTableName: Node<'QualifiedTableName'>;
     where?: Expr;
     returningClause?: Node<'ReturningClause'>;
-    orderBy?: NonEmptyArray<Node<'OrderingTerm'>>;
+    orderBy?: /* ORDER BY */ NonEmptyArray<Node<'OrderingTerm'>>;
     limit?: {
+      // LIMIT
       expr: Expr;
       offset?: { separator: 'Comma' | 'Offset'; expr: Expr };
     };
   };
   DetachStmt: {
+    // DETACH
     database?: true;
     schemeName: Identifier;
   };
   DropIndexStmt: {
+    // DROP INDEX
     ifExists?: true;
-    schema?: Identifier;
-    index: Identifier;
+    schemaName?: Identifier;
+    indexName: Identifier;
   };
   DropTableStmt: {
+    // DROP TABLE
     ifExists?: true;
-    schema?: Identifier;
-    table: Identifier;
+    schemaName?: Identifier;
+    tableName: Identifier;
   };
   DropTriggerStmt: {
+    // DROP TRIGGER
     ifExists?: true;
-    schema?: Identifier;
-    trigger: Identifier;
+    schemaName?: Identifier;
+    triggerName: Identifier;
   };
   DropViewStmt: {
+    // DROP VIEW
     ifExists?: true;
-    schema?: Identifier;
-    view: Identifier;
+    schemaName?: Identifier;
+    viewName: Identifier;
   };
-  // Expr
-  Or: { leftExpr: Expr; rightExpr: Expr };
-  And: { leftExpr: Expr; rightExpr: Expr };
-  Not: { expr: Expr };
-  Equal: { leftExpr: Expr; operator: '==' | '='; rightExpr: Expr };
-  Different: { leftExpr: Expr; operator: '!=' | '<>'; rightExpr: Expr };
-  Is: { leftExpr: Expr; rightExpr: Expr };
-  IsNot: { leftExpr: Expr; rightExpr: Expr };
-  NotBetween: { expr: Expr; betweenExpr: Expr; andExpr: Expr };
-  Between: { expr: Expr; betweenExpr: Expr; andExpr: Expr };
-  In: {
-    expr: Expr;
-    values: Variants<{
-      List: { items?: NonEmptyArray<Expr> };
-      Select: { selectStmt: Node<'SelectStmt'> };
-      TableName: { schema?: Identifier; table: Identifier };
-      TableFunctionInvocation: { schema?: Identifier; functionName: Identifier; parameters?: NonEmptyArray<Expr> };
-    }>;
-  };
-  NotIn: {
-    expr: Expr;
-    values: Variants<{
-      List: { items?: NonEmptyArray<Expr> };
-      Select: { selectStmt: Node<'SelectStmt'> };
-      TableName: { schema?: Identifier; table: Identifier };
-      TableFunctionInvocation: { schema?: Identifier; functionName: Identifier; parameters?: NonEmptyArray<Expr> };
-    }>;
-  };
-  Match: { leftExpr: Expr; rightExpr: Expr };
-  NotMatch: { leftExpr: Expr; rightExpr: Expr };
-  Like: { leftExpr: Expr; rightExpr: Expr; escape?: Expr };
-  NotLike: { leftExpr: Expr; rightExpr: Expr; escape?: Expr };
-  Glob: { leftExpr: Expr; rightExpr: Expr };
-  NotGlob: { leftExpr: Expr; rightExpr: Expr };
-  Regexp: { leftExpr: Expr; rightExpr: Expr };
-  NotRegexp: { leftExpr: Expr; rightExpr: Expr };
-  Isnull: { expr: Expr };
-  Notnull: { expr: Expr };
-  NotNull: { expr: Expr };
-  LowerThan: { leftExpr: Expr; rightExpr: Expr };
-  GreaterThan: { leftExpr: Expr; rightExpr: Expr };
-  LowerThanOrEqual: { leftExpr: Expr; rightExpr: Expr };
-  GreaterThanOrEqual: { leftExpr: Expr; rightExpr: Expr };
-  BitwiseAnd: { leftExpr: Expr; rightExpr: Expr };
-  BitwiseOr: { leftExpr: Expr; rightExpr: Expr };
-  BitwiseShiftLeft: { leftExpr: Expr; rightExpr: Expr };
-  BitwiseShiftRight: { leftExpr: Expr; rightExpr: Expr };
-  Add: { leftExpr: Expr; rightExpr: Expr };
-  Subtract: { leftExpr: Expr; rightExpr: Expr };
-  Multiply: { leftExpr: Expr; rightExpr: Expr };
-  Divide: { leftExpr: Expr; rightExpr: Expr };
-  Modulo: { leftExpr: Expr; rightExpr: Expr };
-  Concatenate: { leftExpr: Expr; rightExpr: Expr };
-  ExtractJson: { leftExpr: Expr; rightExpr: Expr };
-  Extract: { leftExpr: Expr; rightExpr: Expr };
-  Collate: { expr: Expr; collationName: Identifier };
-  BitwiseNegation: { expr: Expr };
-  Plus: { expr: Expr };
-  Minus: { expr: Expr };
+  // Expr (https://www.sqlite.org/lang_expr.html)
+  // Expr -- LiteralValue (https://www.sqlite.org/syntax/literal-value.html)
   NumericLiteral: Variants<{
     Integer: {
       integer: number;
@@ -363,6 +351,7 @@ export interface NodeData {
     variant: 'Basic' | 'Brackets' | 'DoubleQuote' | 'Backtick';
     name: string;
   };
+  // Expr -- End of LiteralValue
   BindParameter: Variants<{
     Indexed: {};
     Numbered: { number: number };
@@ -370,31 +359,251 @@ export interface NodeData {
     ColonNamed: { name: string; suffix?: string };
     DollarNamed: { name: string; suffix?: string };
   }>;
+  // Expr -- Operators in precedence order (lowest to highest)
+  Or: {
+    leftExpr: Expr;
+    // OR
+    rightExpr: Expr;
+  };
+  And: {
+    leftExpr: Expr;
+    // AND
+    rightExpr: Expr;
+  };
+  Not: {
+    // NOT
+    expr: Expr;
+  };
+  Equal: {
+    leftExpr: Expr;
+    operator: '==' | '=';
+    rightExpr: Expr;
+  };
+  Different: {
+    leftExpr: Expr;
+    operator: '!=' | '<>';
+    rightExpr: Expr;
+  };
+  Is: {
+    leftExpr: Expr;
+    // IS
+    not?: true;
+    rightExpr: Expr;
+  };
+  IsDistinctFrom: {
+    leftExpr: Expr;
+    // IS
+    not?: true;
+    // DISTINCT FROM
+    rightExpr: Expr;
+  };
+  Between: {
+    expr: Expr;
+    not?: true;
+    // BETWEEN
+    betweenExpr: Expr;
+    // AND
+    andExpr: Expr;
+  };
+  In: {
+    expr: Expr;
+    not?: true;
+    // IN
+    values: Variants<{
+      List: {
+        // (
+        items?: NonEmptyArray<Expr>;
+        // )
+      };
+      Select: {
+        // (
+        selectStmt: Node<'SelectStmt'>;
+        // )
+      };
+      TableName: {
+        schemaName?: Identifier;
+        tableName: Identifier;
+      };
+      TableFunctionInvocation: {
+        schemaName?: Identifier;
+        functionName: Identifier;
+        // (
+        parameters?: NonEmptyArray<Expr>;
+        // )
+      };
+    }>;
+  };
+  Match: {
+    leftExpr: Expr;
+    not?: true;
+    // MATCH
+    rightExpr: Expr;
+  };
+  Like: {
+    leftExpr: Expr;
+    not?: true;
+    // LIKE
+    rightExpr: Expr;
+    escape?: Expr;
+  };
+  Glob: {
+    leftExpr: Expr;
+    not?: true;
+    // GLOB
+    rightExpr: Expr;
+  };
+  Regexp: {
+    leftExpr: Expr;
+    not?: true;
+    // REGEXP
+    rightExpr: Expr;
+  };
+  Isnull: {
+    expr: Expr;
+    // ISNULL
+  };
+  Notnull: {
+    expr: Expr;
+    // NOTNULL
+  };
+  NotNull: {
+    expr: Expr;
+    // NOT NULL
+  };
+  LowerThan: {
+    leftExpr: Expr;
+    // <
+    rightExpr: Expr;
+  };
+  GreaterThan: {
+    leftExpr: Expr;
+    // >
+    rightExpr: Expr;
+  };
+  LowerThanOrEqual: {
+    leftExpr: Expr;
+    // <=
+    rightExpr: Expr;
+  };
+  GreaterThanOrEqual: {
+    leftExpr: Expr;
+    // >=
+    rightExpr: Expr;
+  };
+  // Escape is part of Like, not a separate node
+  BitwiseAnd: {
+    leftExpr: Expr;
+    // &
+    rightExpr: Expr;
+  };
+  BitwiseOr: {
+    leftExpr: Expr;
+    // |
+    rightExpr: Expr;
+  };
+  BitwiseShiftLeft: {
+    leftExpr: Expr;
+    // <<
+    rightExpr: Expr;
+  };
+  BitwiseShiftRight: {
+    leftExpr: Expr;
+    // >>
+    rightExpr: Expr;
+  };
+  Add: {
+    leftExpr: Expr;
+    // +
+    rightExpr: Expr;
+  };
+  Subtract: {
+    leftExpr: Expr;
+    // -
+    rightExpr: Expr;
+  };
+  Multiply: {
+    leftExpr: Expr;
+    // *
+    rightExpr: Expr;
+  };
+  Divide: {
+    leftExpr: Expr;
+    // /
+    rightExpr: Expr;
+  };
+  Modulo: {
+    leftExpr: Expr;
+    // %
+    rightExpr: Expr;
+  };
+  Concatenate: {
+    leftExpr: Expr;
+    // ||
+    rightExpr: Expr;
+  };
+  ExtractJson: {
+    leftExpr: Expr;
+    // ->
+    rightExpr: Expr;
+  };
+  Extract: {
+    leftExpr: Expr;
+    // ->>
+    rightExpr: Expr;
+  };
+  Collate: {
+    expr: Expr;
+    // COLLATE
+    collationName: Identifier;
+  };
+  BitwiseNegation: {
+    // ~
+    expr: Expr;
+  };
+  Plus: {
+    // +
+    expr: Expr;
+  };
+  Minus: {
+    // -
+    expr: Expr;
+  };
+  // Expr -- Remainning Expr
   Column: {
     table?: { name: Identifier; schema?: Identifier };
     columnName: Identifier;
   };
   Exists: { exists?: true; selectStmt: Node<'SelectStmt'> };
   NotExists: { selectStmt: Node<'SelectStmt'> };
-  FunctionInvocation: {
-    functionName: Identifier;
-    parameters?: Variants<{
-      Star: {};
-      Exprs: { distinct?: true; exprs: NonEmptyArray<Expr> };
-    }>;
-    filterClause?: Node<'FilterClause'>;
-    overClause?: Node<'OverClause'>;
+  // FunctionInvocation is not a node but the union of all function invocations (simple, aggregate, window)
+  Parenthesis: {
+    // (
+    exprs: NonEmptyArray<Expr>;
+    // )
   };
-  Parenthesis: { exprs: NonEmptyArray<Expr> };
-  CastAs: { expr: Expr; typeName: Node<'TypeName'> };
+  CastAs: {
+    // CAST
+    expr: Expr;
+    // AS
+    typeName: Node<'TypeName'>;
+  };
   Case: {
+    // CASE
     expr?: Expr;
-    cases: NonEmptyArray<{ whenExpr: Expr; thenExpr: Expr }>;
-    else?: Expr;
+    cases: NonEmptyArray<{
+      // WHEN
+      whenExpr: Expr;
+      // THEN
+      thenExpr: Expr;
+    }>;
+    else?: /* ELSE */ Expr;
+    // END
   };
-  // Expr END
+  // RaiseFunction is a node
+  // End of Expr
   FactoredSelectStmt: {
     with?: {
+      // WITH
       recursive?: true;
       commonTableExpressions: NonEmptyArray<Node<'CommonTableExpression'>>;
     };
@@ -403,39 +612,55 @@ export interface NodeData {
       compoundOperator: Node<'CompoundOperator'>;
       select: Node<'SelectCore'>;
     }>;
-    orderBy?: NonEmptyArray<Node<'OrderingTerm'>>;
+    orderBy?: /* ORDER BY */ NonEmptyArray<Node<'OrderingTerm'>>;
     limit?: {
+      // LIMIT
       expr: Expr;
       offset?: { separator: 'Comma' | 'Offset'; expr: Expr };
     };
   };
   FilterClause: {
+    // FILTER
+    // (
+    // WHERE
     expr: Expr;
+    // )
   };
   ForeignKeyClause: {
+    // REFERENCES
     foreignTable: Identifier;
-    columnNames?: NonEmptyArray<Identifier>;
+    columnNames?: /* ( */ NonEmptyArray<Identifier>; // )
     constraints?: NonEmptyArray<
       Variants<{
         On: {
+          // ON
           event: 'Delete' | 'Update';
           action: 'SetNull' | 'SetDefault' | 'Cascade' | 'Restrict' | 'NoAction';
         };
-        Match: { name: Identifier };
+        Match: {
+          // MATCH
+          name: Identifier;
+        };
       }>
     >;
-    deferrable?: { not?: true; initially?: 'Deferred' | 'Immediate' };
+    deferrable?: {
+      // DEFERRABLE
+      not?: true;
+      initially?: 'Deferred' | 'Immediate';
+    };
   };
   FrameSpec: {
     type: 'Range' | 'Rows' | 'Groups';
     inner: Variants<{
       Between: {
+        // BETWEEN
         left: Variants<{
           UnboundedPreceding: {};
           Preceding: { expr: Expr };
           CurrentRow: {};
           Following: { expr: Expr };
         }>;
+        // AND
         right: Variants<{
           UnboundedPreceding: {};
           Preceding: { expr: Expr };
@@ -463,27 +688,35 @@ export interface NodeData {
       commonTableExpressions: NonEmptyArray<Node<'CommonTableExpression'>>;
     };
     method: Variants<{
-      ReplaceInto: {};
-      InsertInto: { or?: 'Abort' | 'Fail' | 'Ignore' | 'Replace' | 'Rollback' };
+      ReplaceInto: {
+        // REPLACE
+      };
+      InsertInto: {
+        // INSERT
+        or?: 'Abort' | 'Fail' | 'Ignore' | 'Replace' | 'Rollback';
+      };
     }>;
-    schema?: Identifier;
-    table: Identifier;
-    alias?: Identifier;
-    columnNames?: NonEmptyArray<Identifier>;
+    // INTO
+    schemaName?: Identifier;
+    tableName: Identifier;
+    alias?: /* AS */ Identifier;
+    columnNames?: /* ( */ NonEmptyArray<Identifier>; // )
     data: Variants<{
       Values: {
-        rows: NonEmptyArray<NonEmptyArray<Expr>>;
+        // VALUES
+        rows: NonEmptyArray</* ( */ NonEmptyArray<Expr> /* ) */>;
         upsertClause?: Node<'UpsertClause'>;
       };
       Select: {
         selectStmt: Node<'SelectStmt'>;
         upsertClause?: Node<'UpsertClause'>;
       };
-      DefaultValues: {};
+      DefaultValues: {
+        // DEFAULT VALUES
+      };
     }>;
     returningClause?: Node<'ReturningClause'>;
   };
-  // TODO:
   JoinClause: {
     tableOrSubquery: Node<'TableOrSubquery'>;
     joins?: NonEmptyArray<{
@@ -493,16 +726,37 @@ export interface NodeData {
     }>;
   };
   JoinConstraint: Variants<{
-    On: { expr: Expr };
-    Using: { columnNames: NonEmptyArray<Identifier> };
+    On: {
+      // ON
+      expr: Expr;
+    };
+    Using: {
+      // USING
+      // (
+      columnNames: NonEmptyArray<Identifier>;
+      // )
+    };
   }>;
   JoinOperator: Variants<{
     Comma: {};
     Join: {
       natural?: true;
-      join?: 'Left' | 'LeftOuter' | 'Inner' | 'Cross';
+      join?: 'Left' | 'Right' | 'Full';
+      outer?: true;
+      // JOIN
+    };
+    InnerJoin: {
+      natural?: true;
+      // INNER
+      // JOIN
+    };
+    CrossJoin: {
+      // CROSS
+      // JOIN
     };
   }>;
+  // LiteralValue is defined in Expr section
+  // NumericLiteral is defined in Expr section
   OrderingTerm: {
     expr: Expr;
     collate?: Identifier;
@@ -510,6 +764,7 @@ export interface NodeData {
     nulls?: 'First' | 'Last';
   };
   OverClause: Variants<{
+    // OVER
     WindowName: { windowName: Identifier };
     Window: {
       baseWindowName?: Identifier;
@@ -519,42 +774,49 @@ export interface NodeData {
     };
   }>;
   PragmaStmt: {
-    schema?: Identifier;
-    pragma: Identifier;
+    schemaName?: Identifier;
+    pragmaName: Identifier;
     value?: Variants<{
       Equal: { pragmaValue: PragmaValue };
       Call: { pragmaValue: PragmaValue };
     }>;
   };
-  // PragmaValue is a fragment because it's just an alias
+  // PragmaValue is not a node because it's just an alias
   QualifiedTableName: {
-    schema?: Identifier;
-    table: Identifier;
+    schemaName?: Identifier;
+    tableName: Identifier;
     alias?: Identifier;
-    inner?: Variants<{
+    indexed?: Variants<{
       IndexedBy: { indexName: Identifier };
       NotIndexed: {};
     }>;
   };
   RaiseFunction: Variants<{
+    // RAISE (
     Ignore: {};
     Rollback: { errorMessage: Node<'StringLiteral'> };
     Abort: { errorMessage: Node<'StringLiteral'> };
     Fail: { errorMessage: Node<'StringLiteral'> };
+    // )
   }>;
   RecursiveCte: {
     cteTableName: Node<'CteTableName'>;
+    // AS (
     // TODO: Fix this type
     initialSelect: any;
     union: 'Union' | 'UnionAll';
     // TODO: Fix this type
     recursiveSelect: any;
+    // )
   };
-  ReindexStmt: Variants<{
-    Reindex: {};
-    CollationName: { collationName: Identifier };
-    TableOrIndex: { schema?: Identifier; tableOrIndex: Identifier };
-  }>;
+  ReindexStmt: {
+    // REINDEX
+    value?: Variants<{
+      CollationName: { collationName: Identifier };
+      Table: { schemaName?: Identifier; tableName: Identifier };
+      Index: { schemaName?: Identifier; indexName: Identifier };
+    }>;
+  };
   ReleaseStmt: {
     savepoint?: true;
     savepointName: Identifier;
@@ -562,25 +824,36 @@ export interface NodeData {
   ResultColumn: Variants<{
     Star: {};
     TableStar: { tableName: Identifier };
-    Expr: { expr: Expr; alias?: { as?: true; name: Identifier } };
+    Expr: { expr: Expr; alias?: { as?: true; columnName: Identifier } };
   }>;
   ReturningClause: {
+    // RETURNING
     items: NonEmptyArray<
       Variants<{
         Star: {};
-        Expr: { expr: Expr; alias?: { as?: true; name: Identifier } };
+        Expr: {
+          expr: Expr;
+          alias?: { as?: true; name: Identifier };
+        };
       }>
     >;
   };
   RollbackStmt: {
+    // ROLLBACK
     transaction?: true;
-    to?: { savepoint?: true; savepointName: Identifier };
+    to?: {
+      // TO
+      savepoint?: true;
+      savepointName: Identifier;
+    };
   };
   SavepointStmt: {
+    // SAVEPOINT
     savepointName: Identifier;
   };
   SelectCore: Variants<{
     Select: {
+      // SELECT
       distinct?: 'Distinct' | 'All';
       resultColumns: NonEmptyArray<Node<'ResultColumn'>>;
       from?: Variants<{
@@ -592,6 +865,7 @@ export interface NodeData {
       window?: NonEmptyArray<{ windowName: Identifier; windowDefn: Node<'WindowDefn'> }>;
     };
     Values: {
+      // VALUES
       values: NonEmptyArray<NonEmptyArray<Expr>>;
     };
   }>;
@@ -674,9 +948,10 @@ export interface NodeData {
     >;
   };
   TableConstraint: {
-    constraintName?: Identifier;
+    constraintName?: /* CONSTRAINT */ Identifier;
     inner: Variants<{
       PrimaryKey: {
+        // PRIMARY KEY
         indexedColumns: NonEmptyArray<Node<'IndexedColumn'>>;
         conflictClause?: Node<'ConflictClause'>;
       };
@@ -696,8 +971,8 @@ export interface NodeData {
   };
   TableOrSubquery: Variants<{
     Table: {
-      schema?: Identifier;
-      table: Identifier;
+      schemaName?: Identifier;
+      tableName: Identifier;
       alias?: { as?: true; tableAlias: Identifier };
       index?: Variants<{
         IndexedBy: { indexName: Identifier };
@@ -705,8 +980,8 @@ export interface NodeData {
       }>;
     };
     TableFunctionInvocation: {
-      schema?: Identifier;
-      function: Identifier;
+      schemaName?: Identifier;
+      tableFunctionName: Identifier;
       parameters: NonEmptyArray<Expr>;
       alias?: { as?: true; tableAlias: Identifier };
     };
@@ -726,6 +1001,7 @@ export interface NodeData {
       recursive?: true;
       commonTableExpressions: NonEmptyArray<Node<'CommonTableExpression'>>;
     };
+    // UPDATE
     or?: 'Abort' | 'Fail' | 'Ignore' | 'Replace' | 'Rollback';
     qualifiedTableName: Node<'QualifiedTableName'>;
     setItems: NonEmptyArray<
@@ -829,9 +1105,12 @@ export type LiteralValue = Node<
   'NumericLiteral' | 'StringLiteral' | 'BlobLiteral' | 'Null' | 'True' | 'False' | 'Current_Time' | 'Current_Date' | 'Current_Timestamp'
 >;
 
+export type FunctionInvocation = Node<'SimpleFunctionInvocation' | 'AggregateFunctionInvocation' | 'WindowFunctionInvocation'>;
+
 // Type aliases
 export type Expr =
   | LiteralValue
+  | FunctionInvocation
   | Node<
       | 'Or'
       | 'And'
@@ -839,19 +1118,13 @@ export type Expr =
       | 'Equal'
       | 'Different'
       | 'Is'
-      | 'IsNot'
-      | 'NotBetween'
+      | 'IsDistinctFrom'
       | 'Between'
       | 'In'
-      | 'NotIn'
       | 'Match'
-      | 'NotMatch'
       | 'Like'
-      | 'NotLike'
       | 'Glob'
-      | 'NotGlob'
       | 'Regexp'
-      | 'NotRegexp'
       | 'Isnull'
       | 'Notnull'
       | 'NotNull'
@@ -880,8 +1153,6 @@ export type Expr =
       | 'Column'
       | 'Exists'
       | 'NotExists'
-      | 'FunctionInvocation'
-      | 'AggregateFunctionInvocation'
       | 'Parenthesis'
       | 'CastAs'
       | 'Case'
@@ -950,7 +1221,6 @@ const NODES_OBJ: { [K in NodeKind]: null } = {
   FilterClause: null,
   ForeignKeyClause: null,
   FrameSpec: null,
-  FunctionInvocation: null,
   Glob: null,
   GreaterThan: null,
   GreaterThanOrEqual: null,
@@ -959,7 +1229,7 @@ const NODES_OBJ: { [K in NodeKind]: null } = {
   IndexedColumn: null,
   InsertStmt: null,
   Is: null,
-  IsNot: null,
+  IsDistinctFrom: null,
   Isnull: null,
   JoinClause: null,
   JoinConstraint: null,
@@ -972,15 +1242,9 @@ const NODES_OBJ: { [K in NodeKind]: null } = {
   Modulo: null,
   Multiply: null,
   Not: null,
-  NotBetween: null,
   NotExists: null,
-  NotGlob: null,
-  NotIn: null,
-  NotLike: null,
-  NotMatch: null,
   Notnull: null,
   NotNull: null,
-  NotRegexp: null,
   Null: null,
   NumericLiteral: null,
   Or: null,

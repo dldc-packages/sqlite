@@ -20,8 +20,8 @@ export type UpdateStmtOptions = {
 export function UpdateStmt(table: string | Id, { where, schema, limit, setItems }: UpdateStmtOptions): Node<'UpdateStmtLimited'> {
   return n.createNode('UpdateStmtLimited', {
     qualifiedTableName: n.createNode('QualifiedTableName', {
-      table: Expr.identifier(table),
-      schema: schema ? Expr.identifier(schema) : undefined,
+      tableName: Expr.identifier(table),
+      schemaName: schema ? Expr.identifier(schema) : undefined,
     }),
     where: where ? { expr: where } : undefined,
     limit: limit === undefined ? undefined : { expr: Expr.NumericLiteral.integer(limit) },
