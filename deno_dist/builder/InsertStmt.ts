@@ -21,11 +21,11 @@ export function InsertStmt(
   { data, alias, columnNames, schema, returningClause }: InsertStmtOptions
 ): Node<'InsertStmt'> {
   return n.createNode('InsertStmt', {
-    table: Expr.identifier(table),
+    tableName: Expr.identifier(table),
     data,
     columnNames: columnNames ? arrayToNonEmptyArray(columnNames.map((col) => Expr.identifier(col))) : undefined,
     alias: alias ? Expr.identifier(alias) : undefined,
-    schema: schema ? Expr.identifier(schema) : undefined,
+    schemaName: schema ? Expr.identifier(schema) : undefined,
     method: { variant: 'InsertInto' },
     returningClause,
   });
