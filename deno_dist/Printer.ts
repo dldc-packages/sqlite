@@ -733,8 +733,11 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
     return join.space(
       p(tableOrSubquery),
       joins &&
-        printList(joins, ({ joinOperator, tableOrSubquery, joinConstraint }) =>
-          join.space(p(joinOperator), p(tableOrSubquery), mapMaybe(joinConstraint, p))
+        printList(
+          joins,
+          ({ joinOperator, tableOrSubquery, joinConstraint }) =>
+            join.space(p(joinOperator), p(tableOrSubquery), mapMaybe(joinConstraint, p)),
+          ' '
         )
     );
   },

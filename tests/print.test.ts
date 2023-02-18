@@ -110,3 +110,25 @@ test('ScalarFunctions', () => {
   const node = b.Expr.ScalarFunctions.abs(b.Expr.literal(42));
   expect(printNode(node)).toBe('abs(42)');
 });
+
+test('Multiple joins', () => {
+  const node = b.SelectStmt({
+    from: b.From.Joins(
+      b.TableOrSubquery.Table('posts'),
+      {
+        joinOperator: b.JoinOperator.InnerJoin(),
+        tableOrSubquery: b.TableOrSubquery.Table('users'),
+        joinConstraint: b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id'))),
+      },
+      {
+        joinOperator: b.JoinOperator.InnerJoin(),
+        tableOrSubquery: b.TableOrSubquery.Table('comments'),
+        joinConstraint: b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('comments.user_id'), b.Expr.columnFromString('users.id'))),
+      }
+    ),
+    resultColumns: [b.ResultColumn.Star()],
+  });
+  expect(printNode(node)).toBe(
+    `SELECT * FROM posts INNER JOIN users ON users.id == posts.user_id INNER JOIN comments ON comments.user_id == users.id`
+  );
+});
