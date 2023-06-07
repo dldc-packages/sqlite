@@ -1,5 +1,6 @@
 import * as n from '../Node.ts';
-import { arrayToNonEmptyArray, NonEmptyArray } from '../Utils.ts';
+import { AnyOperator, OperatorPrecedence } from '../Operator.ts';
+import { NonEmptyArray, arrayToNonEmptyArray } from '../Utils.ts';
 import { TypeName, ValidTypeName } from './TypeName.ts';
 
 type Id = n.Identifier;
@@ -142,48 +143,65 @@ const LiteralValue = {
 
 const Operations = {
   or(leftExpr: Exp, rightExpr: Exp): Node<'Or'> {
-    return n.createNode('Or', { leftExpr, rightExpr });
+    return n.createNode('Or', { leftExpr: ensurePrecedence(leftExpr, 'Or'), rightExpr: ensurePrecedence(rightExpr, 'Or') });
   },
   and(leftExpr: Exp, rightExpr: Exp): Node<'And'> {
-    return n.createNode('And', { leftExpr, rightExpr });
+    return n.createNode('And', { leftExpr: ensurePrecedence(leftExpr, 'And'), rightExpr: ensurePrecedence(rightExpr, 'And') });
   },
   not(expr: Exp): Node<'Not'> {
-    return n.createNode('Not', { expr });
+    return n.createNode('Not', { expr: ensurePrecedence(expr, 'Not') });
   },
   equal(leftExpr: Exp, rightExpr: Exp): Node<'Equal'> {
-    return n.createNode('Equal', { leftExpr, rightExpr, operator: '==' });
+    return n.createNode('Equal', {
+      operator: '==',
+      leftExpr: ensurePrecedence(leftExpr, 'Equal'),
+      rightExpr: ensurePrecedence(rightExpr, 'Equal'),
+    });
   },
   different(leftExpr: Exp, rightExpr: Exp): Node<'Different'> {
-    return n.createNode('Different', { leftExpr, rightExpr, operator: '!=' });
+    return n.createNode('Different', {
+      operator: '!=',
+      leftExpr: ensurePrecedence(leftExpr, 'Different'),
+      rightExpr: ensurePrecedence(rightExpr, 'Different'),
+    });
   },
   is(leftExpr: Exp, rightExpr: Exp): Node<'Is'> {
-    return n.createNode('Is', { leftExpr, rightExpr });
+    return n.createNode('Is', { leftExpr: ensurePrecedence(leftExpr, 'Is'), rightExpr: ensurePrecedence(rightExpr, 'Is') });
   },
   isNot(leftExpr: Exp, rightExpr: Exp): Node<'Is'> {
-    return n.createNode('Is', { leftExpr, not: true, rightExpr });
+    return n.createNode('Is', { not: true, leftExpr: ensurePrecedence(leftExpr, 'Is'), rightExpr: ensurePrecedence(rightExpr, 'Is') });
   },
   notBetween(expr: Exp, betweenExpr: Exp, andExpr: Exp): Node<'Between'> {
-    return n.createNode('Between', { expr, betweenExpr, not: true, andExpr });
+    return n.createNode('Between', {
+      expr: ensurePrecedence(expr, 'Between'),
+      betweenExpr: ensurePrecedence(betweenExpr, 'Between'),
+      not: true,
+      andExpr: ensurePrecedence(andExpr, 'Between'),
+    });
   },
   between(expr: Exp, betweenExpr: Exp, andExpr: Exp): Node<'Between'> {
-    return n.createNode('Between', { expr, betweenExpr, andExpr });
+    return n.createNode('Between', {
+      expr: ensurePrecedence(expr, 'Between'),
+      betweenExpr: ensurePrecedence(betweenExpr, 'Between'),
+      andExpr: ensurePrecedence(andExpr, 'Between'),
+    });
   },
   In: {
     list(expr: Exp, items?: NonEmptyArray<Exp>): Node<'In'> {
-      return n.createNode('In', { expr, values: { variant: 'List', items } });
+      return n.createNode('In', { expr: ensurePrecedence(expr, 'In'), values: { variant: 'List', items } });
     },
     select(expr: Exp, selectStmt: Node<'SelectStmt'>): Node<'In'> {
-      return n.createNode('In', { expr, values: { variant: 'Select', selectStmt } });
+      return n.createNode('In', { expr: ensurePrecedence(expr, 'In'), values: { variant: 'Select', selectStmt } });
     },
     tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'In'> {
       return n.createNode('In', {
-        expr,
+        expr: ensurePrecedence(expr, 'In'),
         values: { variant: 'TableName', tableName: identifier(table), schemaName: schema ? identifier(schema) : undefined },
       });
     },
     tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'In'> {
       return n.createNode('In', {
-        expr,
+        expr: ensurePrecedence(expr, 'In'),
         values: {
           variant: 'TableFunctionInvocation',
           functionName: identifier(functionName),
@@ -195,21 +213,21 @@ const Operations = {
   },
   NotIn: {
     list(expr: Exp, items?: NonEmptyArray<Exp>): Node<'In'> {
-      return n.createNode('In', { expr, not: true, values: { variant: 'List', items } });
+      return n.createNode('In', { expr: ensurePrecedence(expr, 'In'), not: true, values: { variant: 'List', items } });
     },
     select(expr: Exp, selectStmt: Node<'SelectStmt'>): Node<'In'> {
-      return n.createNode('In', { expr, not: true, values: { variant: 'Select', selectStmt } });
+      return n.createNode('In', { expr: ensurePrecedence(expr, 'In'), not: true, values: { variant: 'Select', selectStmt } });
     },
     tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'In'> {
       return n.createNode('In', {
-        expr,
+        expr: ensurePrecedence(expr, 'In'),
         not: true,
         values: { variant: 'TableName', tableName: identifier(table), schemaName: schema ? identifier(schema) : undefined },
       });
     },
     tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'In'> {
       return n.createNode('In', {
-        expr,
+        expr: ensurePrecedence(expr, 'In'),
         not: true,
         values: {
           variant: 'TableFunctionInvocation',
@@ -221,94 +239,143 @@ const Operations = {
     },
   },
   match(leftExpr: Exp, rightExpr: Exp): Node<'Match'> {
-    return n.createNode('Match', { leftExpr, rightExpr });
+    return n.createNode('Match', { leftExpr: ensurePrecedence(leftExpr, 'Match'), rightExpr: ensurePrecedence(rightExpr, 'Match') });
   },
   notMatch(leftExpr: Exp, rightExpr: Exp): Node<'Match'> {
-    return n.createNode('Match', { leftExpr, not: true, rightExpr });
+    return n.createNode('Match', {
+      not: true,
+      leftExpr: ensurePrecedence(leftExpr, 'Match'),
+      rightExpr: ensurePrecedence(rightExpr, 'Match'),
+    });
   },
   like(leftExpr: Exp, rightExpr: Exp): Node<'Like'> {
-    return n.createNode('Like', { leftExpr, rightExpr });
+    return n.createNode('Like', { leftExpr: ensurePrecedence(leftExpr, 'Like'), rightExpr: ensurePrecedence(rightExpr, 'Like') });
   },
   notLike(leftExpr: Exp, rightExpr: Exp): Node<'Like'> {
-    return n.createNode('Like', { leftExpr, not: true, rightExpr });
+    return n.createNode('Like', {
+      not: true,
+      leftExpr: ensurePrecedence(leftExpr, 'Like'),
+      rightExpr: ensurePrecedence(rightExpr, 'Like'),
+    });
   },
   glob(leftExpr: Exp, rightExpr: Exp): Node<'Glob'> {
-    return n.createNode('Glob', { leftExpr, rightExpr });
+    return n.createNode('Glob', { leftExpr: ensurePrecedence(leftExpr, 'Glob'), rightExpr: ensurePrecedence(rightExpr, 'Glob') });
   },
   notGlob(leftExpr: Exp, rightExpr: Exp): Node<'Glob'> {
-    return n.createNode('Glob', { leftExpr, not: true, rightExpr });
+    return n.createNode('Glob', {
+      leftExpr: ensurePrecedence(leftExpr, 'Glob'),
+      not: true,
+      rightExpr: ensurePrecedence(rightExpr, 'Glob'),
+    });
   },
   regexp(leftExpr: Exp, rightExpr: Exp): Node<'Regexp'> {
-    return n.createNode('Regexp', { leftExpr, rightExpr });
+    return n.createNode('Regexp', { leftExpr: ensurePrecedence(leftExpr, 'Regexp'), rightExpr: ensurePrecedence(rightExpr, 'Regexp') });
   },
   notRegexp(leftExpr: Exp, rightExpr: Exp): Node<'Regexp'> {
-    return n.createNode('Regexp', { leftExpr, not: true, rightExpr });
+    return n.createNode('Regexp', {
+      leftExpr: ensurePrecedence(leftExpr, 'Regexp'),
+      not: true,
+      rightExpr: ensurePrecedence(rightExpr, 'Regexp'),
+    });
   },
   isnull(expr: Exp): Node<'Isnull'> {
-    return n.createNode('Isnull', { expr });
+    return n.createNode('Isnull', { expr: ensurePrecedence(expr, 'Isnull') });
   },
   isNull(expr: Exp): Node<'Is'> {
-    return n.createNode('Is', { leftExpr: expr, rightExpr: LiteralValue.null });
+    return n.createNode('Is', { leftExpr: ensurePrecedence(expr, 'Is'), rightExpr: LiteralValue.null });
   },
   notnull(expr: Exp): Node<'Notnull'> {
-    return n.createNode('Notnull', { expr });
+    return n.createNode('Notnull', { expr: ensurePrecedence(expr, 'Notnull') });
   },
   notNull(expr: Exp): Node<'NotNull'> {
-    return n.createNode('NotNull', { expr });
+    return n.createNode('NotNull', { expr: ensurePrecedence(expr, 'NotNull') });
   },
   lowerThan(leftExpr: Exp, rightExpr: Exp): Node<'LowerThan'> {
-    return n.createNode('LowerThan', { leftExpr, rightExpr });
+    return n.createNode('LowerThan', {
+      leftExpr: ensurePrecedence(leftExpr, 'LowerThan'),
+      rightExpr: ensurePrecedence(rightExpr, 'LowerThan'),
+    });
   },
   greaterThan(leftExpr: Exp, rightExpr: Exp): Node<'GreaterThan'> {
-    return n.createNode('GreaterThan', { leftExpr, rightExpr });
+    return n.createNode('GreaterThan', {
+      leftExpr: ensurePrecedence(leftExpr, 'GreaterThan'),
+      rightExpr: ensurePrecedence(rightExpr, 'GreaterThan'),
+    });
   },
   lowerThanOrEqual(leftExpr: Exp, rightExpr: Exp): Node<'LowerThanOrEqual'> {
-    return n.createNode('LowerThanOrEqual', { leftExpr, rightExpr });
+    return n.createNode('LowerThanOrEqual', {
+      leftExpr: ensurePrecedence(leftExpr, 'LowerThanOrEqual'),
+      rightExpr: ensurePrecedence(rightExpr, 'LowerThanOrEqual'),
+    });
   },
   greaterThanOrEqual(leftExpr: Exp, rightExpr: Exp): Node<'GreaterThanOrEqual'> {
-    return n.createNode('GreaterThanOrEqual', { leftExpr, rightExpr });
+    return n.createNode('GreaterThanOrEqual', {
+      leftExpr: ensurePrecedence(leftExpr, 'GreaterThanOrEqual'),
+      rightExpr: ensurePrecedence(rightExpr, 'GreaterThanOrEqual'),
+    });
   },
   bitwiseAnd(leftExpr: Exp, rightExpr: Exp): Node<'BitwiseAnd'> {
-    return n.createNode('BitwiseAnd', { leftExpr, rightExpr });
+    return n.createNode('BitwiseAnd', {
+      leftExpr: ensurePrecedence(leftExpr, 'BitwiseAnd'),
+      rightExpr: ensurePrecedence(rightExpr, 'BitwiseAnd'),
+    });
   },
   bitwiseOr(leftExpr: Exp, rightExpr: Exp): Node<'BitwiseOr'> {
-    return n.createNode('BitwiseOr', { leftExpr, rightExpr });
+    return n.createNode('BitwiseOr', {
+      leftExpr: ensurePrecedence(leftExpr, 'BitwiseOr'),
+      rightExpr: ensurePrecedence(rightExpr, 'BitwiseOr'),
+    });
   },
   bitwiseShiftLeft(leftExpr: Exp, rightExpr: Exp): Node<'BitwiseShiftLeft'> {
-    return n.createNode('BitwiseShiftLeft', { leftExpr, rightExpr });
+    return n.createNode('BitwiseShiftLeft', {
+      leftExpr: ensurePrecedence(leftExpr, 'BitwiseShiftLeft'),
+      rightExpr: ensurePrecedence(rightExpr, 'BitwiseShiftLeft'),
+    });
   },
   bitwiseShiftRight(leftExpr: Exp, rightExpr: Exp): Node<'BitwiseShiftRight'> {
-    return n.createNode('BitwiseShiftRight', { leftExpr, rightExpr });
+    return n.createNode('BitwiseShiftRight', {
+      leftExpr: ensurePrecedence(leftExpr, 'BitwiseShiftRight'),
+      rightExpr: ensurePrecedence(rightExpr, 'BitwiseShiftRight'),
+    });
   },
   add(leftExpr: Exp, rightExpr: Exp): Node<'Add'> {
-    return n.createNode('Add', { leftExpr, rightExpr });
+    return n.createNode('Add', { leftExpr: ensurePrecedence(leftExpr, 'Add'), rightExpr: ensurePrecedence(rightExpr, 'Add') });
   },
   subtract(leftExpr: Exp, rightExpr: Exp): Node<'Subtract'> {
-    return n.createNode('Subtract', { leftExpr, rightExpr });
+    return n.createNode('Subtract', {
+      leftExpr: ensurePrecedence(leftExpr, 'Subtract'),
+      rightExpr: ensurePrecedence(rightExpr, 'Subtract'),
+    });
   },
   multiply(leftExpr: Exp, rightExpr: Exp): Node<'Multiply'> {
-    return n.createNode('Multiply', { leftExpr, rightExpr });
+    return n.createNode('Multiply', {
+      leftExpr: ensurePrecedence(leftExpr, 'Multiply'),
+      rightExpr: ensurePrecedence(rightExpr, 'Multiply'),
+    });
   },
   divide(leftExpr: Exp, rightExpr: Exp): Node<'Divide'> {
-    return n.createNode('Divide', { leftExpr, rightExpr });
+    return n.createNode('Divide', { leftExpr: ensurePrecedence(leftExpr, 'Divide'), rightExpr: ensurePrecedence(rightExpr, 'Divide') });
   },
   modulo(leftExpr: Exp, rightExpr: Exp): Node<'Modulo'> {
-    return n.createNode('Modulo', { leftExpr, rightExpr });
+    return n.createNode('Modulo', { leftExpr: ensurePrecedence(leftExpr, 'Modulo'), rightExpr: ensurePrecedence(rightExpr, 'Modulo') });
   },
   concatenate(leftExpr: Exp, rightExpr: Exp): Node<'Concatenate'> {
-    return n.createNode('Concatenate', { leftExpr, rightExpr });
+    return n.createNode('Concatenate', {
+      leftExpr: ensurePrecedence(leftExpr, 'Concatenate'),
+      rightExpr: ensurePrecedence(rightExpr, 'Concatenate'),
+    });
   },
   collate(expr: Exp, collationName: string | Id): Node<'Collate'> {
-    return n.createNode('Collate', { expr, collationName: identifier(collationName) });
+    return n.createNode('Collate', { expr: ensurePrecedence(expr, 'Collate'), collationName: identifier(collationName) });
   },
   bitwiseNegation(expr: Exp): Node<'BitwiseNegation'> {
-    return n.createNode('BitwiseNegation', { expr });
+    return n.createNode('BitwiseNegation', { expr: ensurePrecedence(expr, 'BitwiseNegation') });
   },
   plus(expr: Exp): Node<'Plus'> {
-    return n.createNode('Plus', { expr });
+    return n.createNode('Plus', { expr: ensurePrecedence(expr, 'Plus') });
   },
   minus(expr: Exp): Node<'Minus'> {
-    return n.createNode('Minus', { expr });
+    return n.createNode('Minus', { expr: ensurePrecedence(expr, 'Minus') });
   },
   exists(selectStmt: Node<'SelectStmt'>): Node<'Exists'> {
     return n.createNode('Exists', { selectStmt, exists: true });
@@ -475,4 +542,20 @@ function column(column: string | { column: string | Id; table?: string | { table
         ? { name: identifier(table) }
         : { name: identifier(table.table), schema: table.schema ? identifier(table.schema) : undefined },
   });
+}
+
+function ensurePrecedence(expr: Exp, parentOperator: AnyOperator): Exp {
+  const expPrec = getPrecedence(expr);
+  const parentPrec = OperatorPrecedence[parentOperator];
+  if (expPrec === null) {
+    return expr;
+  }
+  if (expPrec <= parentPrec) {
+    return Expr.parenthesis(expr);
+  }
+  return expr;
+}
+
+function getPrecedence(expr: Exp): number | null {
+  return OperatorPrecedence[expr.kind as AnyOperator] ?? null;
 }
