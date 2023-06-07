@@ -1,7 +1,7 @@
 import { mapObject } from './internal/utils.ts';
 
 export type UnaryOperator = keyof typeof UnaryOperator;
-export type UnaryOperatorRaw = typeof UnaryOperator[UnaryOperator];
+export type UnaryOperatorRaw = (typeof UnaryOperator)[UnaryOperator];
 
 export const UnaryOperator = {
   BitwiseNegation: '~',
@@ -10,7 +10,7 @@ export const UnaryOperator = {
 } as const;
 
 export type BinaryOperator = keyof typeof BinaryOperatorsInternal;
-export type BinaryOperatorRaw = typeof BinaryOperatorsInternal[BinaryOperator][number];
+export type BinaryOperatorRaw = (typeof BinaryOperatorsInternal)[BinaryOperator][number];
 
 const BinaryOperatorsInternal = {
   Concatenate: ['||'],
@@ -33,7 +33,7 @@ const BinaryOperatorsInternal = {
   Different: ['!=', '<>'],
 } as const;
 
-export const BinaryOperator: { [K in BinaryOperator]: typeof BinaryOperatorsInternal[K][0] } = mapObject(
+export const BinaryOperator: { [K in BinaryOperator]: (typeof BinaryOperatorsInternal)[K][0] } = mapObject(
   BinaryOperatorsInternal,
   (_key, [val]) => val
 );
