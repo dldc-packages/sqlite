@@ -139,7 +139,10 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
     });
   },
   CommitStmt: ({ action, transaction }) => {
-    return join.space(mapUnionString(action, { Commit: Keywords.COMMIT, End: Keywords.END }), transaction && Keywords.TRANSACTION);
+    return join.space(
+      mapUnionString(action, { Commit: Keywords.COMMIT, End: Keywords.END }),
+      transaction && Keywords.TRANSACTION
+    );
   },
   CommonTableExpression: ({ tableName, columnNames, materialized, select }) => {
     return join.space(
@@ -256,7 +259,18 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
       })
     );
   },
-  CreateTriggerStmt: ({ temp, ifNotExists, schemaName, triggerName, modifier, action, tableName, forEachRow, when, stmts }) => {
+  CreateTriggerStmt: ({
+    temp,
+    ifNotExists,
+    schemaName,
+    triggerName,
+    modifier,
+    action,
+    tableName,
+    forEachRow,
+    when,
+    stmts,
+  }) => {
     return join.space(
       Keywords.CREATE,
       temp && mapUnionString(temp, { Temporary: Keywords.TEMPORARY, Temp: Keywords.TEMP }),
@@ -452,11 +466,13 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
   LowerThan: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.LowerThan, p(rightExpr)),
   GreaterThan: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.GreaterThan, p(rightExpr)),
   LowerThanOrEqual: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.LowerThanOrEqual, p(rightExpr)),
-  GreaterThanOrEqual: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.GreaterThanOrEqual, p(rightExpr)),
+  GreaterThanOrEqual: ({ leftExpr, rightExpr }) =>
+    join.space(p(leftExpr), BinaryOperator.GreaterThanOrEqual, p(rightExpr)),
   BitwiseAnd: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.BitwiseAnd, p(rightExpr)),
   BitwiseOr: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.BitwiseOr, p(rightExpr)),
   BitwiseShiftLeft: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.BitwiseShiftLeft, p(rightExpr)),
-  BitwiseShiftRight: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.BitwiseShiftRight, p(rightExpr)),
+  BitwiseShiftRight: ({ leftExpr, rightExpr }) =>
+    join.space(p(leftExpr), BinaryOperator.BitwiseShiftRight, p(rightExpr)),
   Add: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.Add, p(rightExpr)),
   Subtract: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.Subtract, p(rightExpr)),
   Multiply: ({ leftExpr, rightExpr }) => join.space(p(leftExpr), BinaryOperator.Multiply, p(rightExpr)),
@@ -575,7 +591,8 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
         join.space(Keywords.WITH, recursive && Keywords.RECURSIVE, printNodeList(commonTableExpressions))
       ),
       p(firstSelect),
-      compoundSelects && printList(compoundSelects, ({ compoundOperator, select }) => join.space(p(compoundOperator), p(select))),
+      compoundSelects &&
+        printList(compoundSelects, ({ compoundOperator, select }) => join.space(p(compoundOperator), p(select))),
       orderBy && join.space(Keywords.ORDER, Keywords.BY, printNodeList(orderBy)),
       mapMaybe(limit, ({ expr, offset }) =>
         join.space(
@@ -889,7 +906,9 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
     return join.space(
       Keywords.ROLLBACK,
       transaction && Keywords.TRANSACTION,
-      mapMaybe(to, ({ savepoint, savepointName }) => join.space(Keywords.TO, savepoint && Keywords.SAVEPOINT, p(savepointName)))
+      mapMaybe(to, ({ savepoint, savepointName }) =>
+        join.space(Keywords.TO, savepoint && Keywords.SAVEPOINT, p(savepointName))
+      )
     );
   },
   SavepointStmt: ({ savepointName }) => {
@@ -913,7 +932,12 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
           ),
           where && join.space(Keywords.WHERE, p(where)),
           mapMaybe(groupBy, ({ exprs, having }) =>
-            join.space(Keywords.GROUP, Keywords.BY, printNodeList(exprs), having && join.space(Keywords.HAVING, p(having)))
+            join.space(
+              Keywords.GROUP,
+              Keywords.BY,
+              printNodeList(exprs),
+              having && join.space(Keywords.HAVING, p(having))
+            )
           ),
           mapMaybe(window, (items) =>
             join.space(
@@ -935,7 +959,8 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
         join.space(Keywords.WITH, recursive && Keywords.RECURSIVE, printNodeList(commonTableExpressions))
       ),
       p(select),
-      compoundSelects && printList(compoundSelects, ({ compoundOperator, select }) => join.space(p(compoundOperator), p(select))),
+      compoundSelects &&
+        printList(compoundSelects, ({ compoundOperator, select }) => join.space(p(compoundOperator), p(select))),
       orderBy && join.space(Keywords.ORDER, Keywords.BY, printNodeList(orderBy)),
       mapMaybe(limit, ({ expr, offset }) =>
         join.space(
@@ -1019,7 +1044,12 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
       constraintName && join.space(Keywords.CONSTRAINT, p(constraintName)),
       mapVariants(inner, {
         PrimaryKey: ({ indexedColumns, conflictClause }) =>
-          join.space(Keywords.PRIMARY, Keywords.KEY, parent(printNodeList(indexedColumns)), mapMaybe(conflictClause, p)),
+          join.space(
+            Keywords.PRIMARY,
+            Keywords.KEY,
+            parent(printNodeList(indexedColumns)),
+            mapMaybe(conflictClause, p)
+          ),
         Unique: ({ indexedColumns, conflictClause }) =>
           join.space(Keywords.UNIQUE, parent(printNodeList(indexedColumns)), mapMaybe(conflictClause, p)),
         Check: ({ expr }) => join.space(Keywords.CHECK, parent(p(expr))),
@@ -1050,7 +1080,11 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
         ),
       TableFunctionInvocation: ({ schemaName, tableFunctionName, parameters, alias }) =>
         join.space(
-          join.all(schemaName && join.space(p(schemaName), '.'), p(tableFunctionName), parent(printNodeList(parameters))),
+          join.all(
+            schemaName && join.space(p(schemaName), '.'),
+            p(tableFunctionName),
+            parent(printNodeList(parameters))
+          ),
           mapMaybe(alias, ({ as: asPart, tableAlias }) => join.space(asPart && Keywords.AS, p(tableAlias)))
         ),
       Select: ({ selectStmt, alias }) =>
@@ -1138,7 +1172,9 @@ const NodePrinter: { [K in NodeKind]: (node: Node<K>) => string } = {
             JoinClause: ({ joinClause }) => p(joinClause),
           })
         ),
-      mapMaybe(where, ({ expr, returningClause }) => join.space(Keywords.WHERE, p(expr), returningClause && p(returningClause))),
+      mapMaybe(where, ({ expr, returningClause }) =>
+        join.space(Keywords.WHERE, p(expr), returningClause && p(returningClause))
+      ),
       mapMaybe(orderBy, (o) => join.space(Keywords.ORDER, Keywords.BY, printNodeList(o))),
       mapMaybe(limit, ({ expr, offset }) =>
         join.space(

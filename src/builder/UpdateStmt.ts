@@ -17,7 +17,10 @@ export type UpdateStmtOptions = {
   setItems: Array<SetItem>;
 };
 
-export function UpdateStmt(table: string | Id, { where, schema, limit, setItems }: UpdateStmtOptions): Node<'UpdateStmtLimited'> {
+export function UpdateStmt(
+  table: string | Id,
+  { where, schema, limit, setItems }: UpdateStmtOptions
+): Node<'UpdateStmtLimited'> {
   return n.createNode('UpdateStmtLimited', {
     qualifiedTableName: n.createNode('QualifiedTableName', {
       tableName: Expr.identifier(table),

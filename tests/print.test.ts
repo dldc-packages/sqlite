@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { Ast, builder as b, printNode } from '../src/mod';
 
 test('Print AlterTableStmt', () => {
@@ -84,7 +85,9 @@ test('CreateTableStmt', () => {
     ],
     { strict: true, ifNotExists: true }
   );
-  expect(printNode(node)).toBe('CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL) STRICT');
+  expect(printNode(node)).toBe(
+    'CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL) STRICT'
+  );
 });
 
 test('DeleteStmt', () => {
@@ -118,12 +121,16 @@ test('Multiple joins', () => {
       {
         joinOperator: b.JoinOperator.InnerJoin(),
         tableOrSubquery: b.TableOrSubquery.Table('users'),
-        joinConstraint: b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id'))),
+        joinConstraint: b.JoinConstraint.On(
+          b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id'))
+        ),
       },
       {
         joinOperator: b.JoinOperator.InnerJoin(),
         tableOrSubquery: b.TableOrSubquery.Table('comments'),
-        joinConstraint: b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('comments.user_id'), b.Expr.columnFromString('users.id'))),
+        joinConstraint: b.JoinConstraint.On(
+          b.Expr.equal(b.Expr.columnFromString('comments.user_id'), b.Expr.columnFromString('users.id'))
+        ),
       }
     ),
     resultColumns: [b.ResultColumn.Star()],

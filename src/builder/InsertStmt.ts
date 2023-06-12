@@ -33,7 +33,11 @@ export function InsertStmt(
 
 export const InsertStmtData = {
   Values(rows: Array<Array<Exp>>, upsertClause?: Node<'UpsertClause'>): InsertStmtData {
-    return { variant: 'Values', rows: arrayToNonEmptyArray(rows.map((cols) => arrayToNonEmptyArray(cols))), upsertClause };
+    return {
+      variant: 'Values',
+      rows: arrayToNonEmptyArray(rows.map((cols) => arrayToNonEmptyArray(cols))),
+      upsertClause,
+    };
   },
   Select(selectStmt: Node<'SelectStmt'>, upsertClause?: Node<'UpsertClause'>): InsertStmtData {
     return { variant: 'Select', selectStmt, upsertClause };

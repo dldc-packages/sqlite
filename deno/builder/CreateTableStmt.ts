@@ -60,13 +60,19 @@ export const ColumnConstraint = {
       constraint: { variant: 'PrimaryKey', direction, autoincrement },
     });
   },
-  NotNull({ name, conflictClause }: { name?: string | Id; conflictClause?: Node<'ConflictClause'> } = {}): Node<'ColumnConstraint'> {
+  NotNull({
+    name,
+    conflictClause,
+  }: { name?: string | Id; conflictClause?: Node<'ConflictClause'> } = {}): Node<'ColumnConstraint'> {
     return n.createNode('ColumnConstraint', {
       constraintName: name ? Expr.identifier(name) : undefined,
       constraint: { variant: 'NotNull', conflictClause },
     });
   },
-  Unique({ name, conflictClause }: { name?: string | Id; conflictClause?: Node<'ConflictClause'> } = {}): Node<'ColumnConstraint'> {
+  Unique({
+    name,
+    conflictClause,
+  }: { name?: string | Id; conflictClause?: Node<'ConflictClause'> } = {}): Node<'ColumnConstraint'> {
     return n.createNode('ColumnConstraint', {
       constraintName: name ? Expr.identifier(name) : undefined,
       constraint: { variant: 'Unique', conflictClause },
@@ -99,7 +105,9 @@ export const TableConstraint = {
         conflictClause,
         indexedColumns: arrayToNonEmptyArray(
           indexedColumns.map((v) =>
-            typeof v !== 'string' ? v : n.createNode('IndexedColumn', { column: { variant: 'Name', name: Expr.identifier(v) } })
+            typeof v !== 'string'
+              ? v
+              : n.createNode('IndexedColumn', { column: { variant: 'Name', name: Expr.identifier(v) } })
           )
         ),
       },
@@ -117,16 +125,25 @@ export const TableConstraint = {
         conflictClause,
         indexedColumns: arrayToNonEmptyArray(
           indexedColumns.map((v) =>
-            typeof v !== 'string' ? v : n.createNode('IndexedColumn', { column: { variant: 'Name', name: Expr.identifier(v) } })
+            typeof v !== 'string'
+              ? v
+              : n.createNode('IndexedColumn', { column: { variant: 'Name', name: Expr.identifier(v) } })
           )
         ),
       },
     });
   },
   Check(expr: Exp, name?: string | Id): Node<'TableConstraint'> {
-    return n.createNode('TableConstraint', { constraintName: name ? Expr.identifier(name) : undefined, inner: { variant: 'Check', expr } });
+    return n.createNode('TableConstraint', {
+      constraintName: name ? Expr.identifier(name) : undefined,
+      inner: { variant: 'Check', expr },
+    });
   },
-  ForeignKey(columnNames: Array<Id | string>, foreignKeyClause: Node<'ForeignKeyClause'>, name?: string | Id): Node<'TableConstraint'> {
+  ForeignKey(
+    columnNames: Array<Id | string>,
+    foreignKeyClause: Node<'ForeignKeyClause'>,
+    name?: string | Id
+  ): Node<'TableConstraint'> {
     return n.createNode('TableConstraint', {
       constraintName: name ? Expr.identifier(name) : undefined,
       inner: {

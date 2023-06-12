@@ -44,7 +44,11 @@ export const JoinConstraint = {
   },
 };
 
-export function Joins(tableOrSubquery: Node<'TableOrSubquery'>, firstJoin: JoinItem, ...otherJoin: Array<JoinItem>): Node<'JoinClause'> {
+export function Joins(
+  tableOrSubquery: Node<'TableOrSubquery'>,
+  firstJoin: JoinItem,
+  ...otherJoin: Array<JoinItem>
+): Node<'JoinClause'> {
   return createNode('JoinClause', {
     tableOrSubquery,
     joins: [firstJoin, ...otherJoin],
@@ -63,7 +67,15 @@ export type SelectStmtOptions = {
   groupBy?: Extract<Node<'SelectCore'>, { variant: 'Select' }>['groupBy'];
 };
 
-export function SelectStmt({ distinct, resultColumns, from, where, limit, orderBy, groupBy }: SelectStmtOptions): Node<'SelectStmt'> {
+export function SelectStmt({
+  distinct,
+  resultColumns,
+  from,
+  where,
+  limit,
+  orderBy,
+  groupBy,
+}: SelectStmtOptions): Node<'SelectStmt'> {
   return createNode('SelectStmt', {
     select: createNode('SelectCore', {
       variant: 'Select',
@@ -79,7 +91,10 @@ export function SelectStmt({ distinct, resultColumns, from, where, limit, orderB
 }
 
 export const TableOrSubquery = {
-  Table(tableName: string, { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}): Node<'TableOrSubquery'> {
+  Table(
+    tableName: string,
+    { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}
+  ): Node<'TableOrSubquery'> {
     return createNode('TableOrSubquery', {
       variant: 'Table',
       schemaName: schema ? Expr.identifier(schema) : undefined,
@@ -97,7 +112,10 @@ export const TableOrSubquery = {
 };
 
 export const From = {
-  Table(tableName: string, { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}): SelectFrom {
+  Table(
+    tableName: string,
+    { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}
+  ): SelectFrom {
     return { variant: 'TablesOrSubqueries', tablesOrSubqueries: [TableOrSubquery.Table(tableName, { schema, alias })] };
   },
   Tables(firstTable: Node<'TableOrSubquery'>, ...otherTables: Array<Node<'TableOrSubquery'>>): SelectFrom {
@@ -137,7 +155,9 @@ export const ResultColumn = {
   },
   // Shortcut
   column(
-    column: string | { column: string | Identifier; table?: string | { table: string | Identifier; schema?: string | Identifier } }
+    column:
+      | string
+      | { column: string | Identifier; table?: string | { table: string | Identifier; schema?: string | Identifier } }
   ): Node<'ResultColumn'> {
     return ResultColumn.Expr(Expr.column(column));
   },

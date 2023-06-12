@@ -1,4 +1,5 @@
-import { Ast, builder as b, Utils } from '../src/mod';
+import { expect, test, vi } from 'vitest';
+import { Ast, Utils, builder as b } from '../src/mod';
 
 test('Travers Select using builder', () => {
   const node = b.SelectStmt({
@@ -14,7 +15,7 @@ test('Travers Select using builder', () => {
 
   const nodeKinds: Array<Ast.NodeKind> = [];
 
-  const onNode = jest.fn((node: Ast.Node) => {
+  const onNode = vi.fn((node: Ast.Node) => {
     nodeKinds.push(node.kind);
     return null;
   });

@@ -1102,10 +1102,20 @@ export type NodeDataFull = { [K in keyof NodeData]: NodeData[K] & NodeBase<K> };
 export type Node<K extends NodeKind = NodeKind> = NodeDataFull[K];
 
 export type LiteralValue = Node<
-  'NumericLiteral' | 'StringLiteral' | 'BlobLiteral' | 'Null' | 'True' | 'False' | 'Current_Time' | 'Current_Date' | 'Current_Timestamp'
+  | 'NumericLiteral'
+  | 'StringLiteral'
+  | 'BlobLiteral'
+  | 'Null'
+  | 'True'
+  | 'False'
+  | 'Current_Time'
+  | 'Current_Date'
+  | 'Current_Timestamp'
 >;
 
-export type FunctionInvocation = Node<'SimpleFunctionInvocation' | 'AggregateFunctionInvocation' | 'WindowFunctionInvocation'>;
+export type FunctionInvocation = Node<
+  'SimpleFunctionInvocation' | 'AggregateFunctionInvocation' | 'WindowFunctionInvocation'
+>;
 
 // Type aliases
 export type Expr =

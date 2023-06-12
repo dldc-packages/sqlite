@@ -19,13 +19,15 @@ type AFI = Node<'AggregateFunctionInvocation'>;
 export const AggregateFunctions = {
   avg: (options: AggregateFunctionParams<Exp>): AFI => aggregateFunctionInvocation('avg', options),
   count: (options: AggregateFunctionParams<Exp>): AFI => aggregateFunctionInvocation('count', options),
-  group_concat: (options: AggregateFunctionParams<Exp | [x: Exp, y: Exp]>): AFI => aggregateFunctionInvocation('group_concat', options),
+  group_concat: (options: AggregateFunctionParams<Exp | [x: Exp, y: Exp]>): AFI =>
+    aggregateFunctionInvocation('group_concat', options),
   max: (options: AggregateFunctionParams<Exp>): AFI => aggregateFunctionInvocation('max', options),
   min: (options: AggregateFunctionParams<Exp>): AFI => aggregateFunctionInvocation('min', options),
   sum: (options: AggregateFunctionParams<Exp>): AFI => aggregateFunctionInvocation('sum', options),
   total: (options: AggregateFunctionParams<Exp>): AFI => aggregateFunctionInvocation('total', options),
   // JSON
-  json_group_array: (options: AggregateFunctionParams<Exp>): AFI => aggregateFunctionInvocation('json_group_array', options),
+  json_group_array: (options: AggregateFunctionParams<Exp>): AFI =>
+    aggregateFunctionInvocation('json_group_array', options),
   json_group_object: (options: AggregateFunctionParams<[name: Exp, value: Exp]>): AFI =>
     aggregateFunctionInvocation('json_group_object', options),
 };
@@ -46,7 +48,8 @@ export const ScalarFunctions = {
   instr: (x: Exp, y: Exp): SFI => simpleFunctionInvocation('instr', x, y),
   last_insert_rowid: (): SFI => simpleFunctionInvocation('last_insert_rowid'),
   length: (x: Exp): SFI => simpleFunctionInvocation('length', x),
-  like: (x: Exp, y: Exp, z?: Exp): SFI => (z ? simpleFunctionInvocation('like', x, y, z) : simpleFunctionInvocation('like', x, y)),
+  like: (x: Exp, y: Exp, z?: Exp): SFI =>
+    z ? simpleFunctionInvocation('like', x, y, z) : simpleFunctionInvocation('like', x, y),
   likelihood: (x: Exp, y: Exp): SFI => simpleFunctionInvocation('likelihood', x, y),
   likely: (x: Exp): SFI => simpleFunctionInvocation('likely', x),
   load_extension: (x: Exp, y?: Exp): SFI =>
@@ -70,7 +73,8 @@ export const ScalarFunctions = {
   sqlite_offset: (x: Exp): SFI => simpleFunctionInvocation('sqlite_offset', x),
   sqlite_source_id: (): SFI => simpleFunctionInvocation('sqlite_source_id'),
   sqlite_version: (): SFI => simpleFunctionInvocation('sqlite_version'),
-  substr: (x: Exp, y: Exp, z?: Exp): SFI => (z ? simpleFunctionInvocation('substr', x, y, z) : simpleFunctionInvocation('substr', x, y)),
+  substr: (x: Exp, y: Exp, z?: Exp): SFI =>
+    z ? simpleFunctionInvocation('substr', x, y, z) : simpleFunctionInvocation('substr', x, y),
   substring: (x: Exp, y: Exp, z?: Exp): SFI =>
     z ? simpleFunctionInvocation('substring', x, y, z) : simpleFunctionInvocation('substring', x, y),
   total_changes: (): SFI => simpleFunctionInvocation('total_changes'),
@@ -84,13 +88,17 @@ export const ScalarFunctions = {
   json: (x: Exp): SFI => simpleFunctionInvocation('json', x),
   json_array: (...valueN: Exp[]): SFI => simpleFunctionInvocation('json_array', ...valueN),
   json_array_length: (json: Exp, path?: Exp): SFI =>
-    path ? simpleFunctionInvocation('json_array_length', json, path) : simpleFunctionInvocation('json_array_length', json),
-  json_extract: (json: Exp, path: Exp, ...pathN: Exp[]): SFI => simpleFunctionInvocation('json_extract', json, path, ...pathN),
+    path
+      ? simpleFunctionInvocation('json_array_length', json, path)
+      : simpleFunctionInvocation('json_array_length', json),
+  json_extract: (json: Exp, path: Exp, ...pathN: Exp[]): SFI =>
+    simpleFunctionInvocation('json_extract', json, path, ...pathN),
   json_insert: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI =>
     simpleFunctionInvocation('json_insert', json, path, value, ...pathValueN),
   json_object: (...labelValueN: Exp[]): SFI => simpleFunctionInvocation('json_object', ...labelValueN),
   json_patch: (json1: Exp, json2: Exp): SFI => simpleFunctionInvocation('json_patch', json1, json2),
-  json_remove: (json: Exp, path: Exp, ...pathN: Exp[]): SFI => simpleFunctionInvocation('json_remove', json, path, ...pathN),
+  json_remove: (json: Exp, path: Exp, ...pathN: Exp[]): SFI =>
+    simpleFunctionInvocation('json_remove', json, path, ...pathN),
   json_replace: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI =>
     simpleFunctionInvocation('json_replace', json, path, value, ...pathValueN),
   json_set: (json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI =>
@@ -108,7 +116,9 @@ const LiteralValue = {
         variant: 'Integer',
         integer: Math.floor(integer),
         exponent:
-          exponent === undefined ? undefined : { e: 'e', sign: exponent < 0 ? '-' : undefined, number: Math.abs(Math.floor(exponent)) },
+          exponent === undefined
+            ? undefined
+            : { e: 'e', sign: exponent < 0 ? '-' : undefined, number: Math.abs(Math.floor(exponent)) },
       });
     },
     hexadecimal(hexadecimal: string): Node<'NumericLiteral'> {
@@ -120,7 +130,9 @@ const LiteralValue = {
         integral: Math.floor(integral),
         fractional: fractional,
         exponent:
-          exponent === undefined ? undefined : { e: 'e', sign: exponent < 0 ? '-' : undefined, number: Math.abs(Math.floor(exponent)) },
+          exponent === undefined
+            ? undefined
+            : { e: 'e', sign: exponent < 0 ? '-' : undefined, number: Math.abs(Math.floor(exponent)) },
       });
     },
   },
@@ -143,10 +155,16 @@ const LiteralValue = {
 
 const Operations = {
   or(leftExpr: Exp, rightExpr: Exp): Node<'Or'> {
-    return n.createNode('Or', { leftExpr: ensurePrecedence(leftExpr, 'Or'), rightExpr: ensurePrecedence(rightExpr, 'Or') });
+    return n.createNode('Or', {
+      leftExpr: ensurePrecedence(leftExpr, 'Or'),
+      rightExpr: ensurePrecedence(rightExpr, 'Or'),
+    });
   },
   and(leftExpr: Exp, rightExpr: Exp): Node<'And'> {
-    return n.createNode('And', { leftExpr: ensurePrecedence(leftExpr, 'And'), rightExpr: ensurePrecedence(rightExpr, 'And') });
+    return n.createNode('And', {
+      leftExpr: ensurePrecedence(leftExpr, 'And'),
+      rightExpr: ensurePrecedence(rightExpr, 'And'),
+    });
   },
   not(expr: Exp): Node<'Not'> {
     return n.createNode('Not', { expr: ensurePrecedence(expr, 'Not') });
@@ -166,10 +184,17 @@ const Operations = {
     });
   },
   is(leftExpr: Exp, rightExpr: Exp): Node<'Is'> {
-    return n.createNode('Is', { leftExpr: ensurePrecedence(leftExpr, 'Is'), rightExpr: ensurePrecedence(rightExpr, 'Is') });
+    return n.createNode('Is', {
+      leftExpr: ensurePrecedence(leftExpr, 'Is'),
+      rightExpr: ensurePrecedence(rightExpr, 'Is'),
+    });
   },
   isNot(leftExpr: Exp, rightExpr: Exp): Node<'Is'> {
-    return n.createNode('Is', { not: true, leftExpr: ensurePrecedence(leftExpr, 'Is'), rightExpr: ensurePrecedence(rightExpr, 'Is') });
+    return n.createNode('Is', {
+      not: true,
+      leftExpr: ensurePrecedence(leftExpr, 'Is'),
+      rightExpr: ensurePrecedence(rightExpr, 'Is'),
+    });
   },
   notBetween(expr: Exp, betweenExpr: Exp, andExpr: Exp): Node<'Between'> {
     return n.createNode('Between', {
@@ -196,10 +221,19 @@ const Operations = {
     tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'In'> {
       return n.createNode('In', {
         expr: ensurePrecedence(expr, 'In'),
-        values: { variant: 'TableName', tableName: identifier(table), schemaName: schema ? identifier(schema) : undefined },
+        values: {
+          variant: 'TableName',
+          tableName: identifier(table),
+          schemaName: schema ? identifier(schema) : undefined,
+        },
       });
     },
-    tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'In'> {
+    tableFunctionInvocation(
+      expr: Exp,
+      functionName: string | Id,
+      parameters?: NonEmptyArray<Exp>,
+      schema?: string | Id
+    ): Node<'In'> {
       return n.createNode('In', {
         expr: ensurePrecedence(expr, 'In'),
         values: {
@@ -216,16 +250,29 @@ const Operations = {
       return n.createNode('In', { expr: ensurePrecedence(expr, 'In'), not: true, values: { variant: 'List', items } });
     },
     select(expr: Exp, selectStmt: Node<'SelectStmt'>): Node<'In'> {
-      return n.createNode('In', { expr: ensurePrecedence(expr, 'In'), not: true, values: { variant: 'Select', selectStmt } });
+      return n.createNode('In', {
+        expr: ensurePrecedence(expr, 'In'),
+        not: true,
+        values: { variant: 'Select', selectStmt },
+      });
     },
     tableName(expr: Exp, table: string | Id, schema?: string | Id): Node<'In'> {
       return n.createNode('In', {
         expr: ensurePrecedence(expr, 'In'),
         not: true,
-        values: { variant: 'TableName', tableName: identifier(table), schemaName: schema ? identifier(schema) : undefined },
+        values: {
+          variant: 'TableName',
+          tableName: identifier(table),
+          schemaName: schema ? identifier(schema) : undefined,
+        },
       });
     },
-    tableFunctionInvocation(expr: Exp, functionName: string | Id, parameters?: NonEmptyArray<Exp>, schema?: string | Id): Node<'In'> {
+    tableFunctionInvocation(
+      expr: Exp,
+      functionName: string | Id,
+      parameters?: NonEmptyArray<Exp>,
+      schema?: string | Id
+    ): Node<'In'> {
       return n.createNode('In', {
         expr: ensurePrecedence(expr, 'In'),
         not: true,
@@ -239,7 +286,10 @@ const Operations = {
     },
   },
   match(leftExpr: Exp, rightExpr: Exp): Node<'Match'> {
-    return n.createNode('Match', { leftExpr: ensurePrecedence(leftExpr, 'Match'), rightExpr: ensurePrecedence(rightExpr, 'Match') });
+    return n.createNode('Match', {
+      leftExpr: ensurePrecedence(leftExpr, 'Match'),
+      rightExpr: ensurePrecedence(rightExpr, 'Match'),
+    });
   },
   notMatch(leftExpr: Exp, rightExpr: Exp): Node<'Match'> {
     return n.createNode('Match', {
@@ -249,7 +299,10 @@ const Operations = {
     });
   },
   like(leftExpr: Exp, rightExpr: Exp): Node<'Like'> {
-    return n.createNode('Like', { leftExpr: ensurePrecedence(leftExpr, 'Like'), rightExpr: ensurePrecedence(rightExpr, 'Like') });
+    return n.createNode('Like', {
+      leftExpr: ensurePrecedence(leftExpr, 'Like'),
+      rightExpr: ensurePrecedence(rightExpr, 'Like'),
+    });
   },
   notLike(leftExpr: Exp, rightExpr: Exp): Node<'Like'> {
     return n.createNode('Like', {
@@ -259,7 +312,10 @@ const Operations = {
     });
   },
   glob(leftExpr: Exp, rightExpr: Exp): Node<'Glob'> {
-    return n.createNode('Glob', { leftExpr: ensurePrecedence(leftExpr, 'Glob'), rightExpr: ensurePrecedence(rightExpr, 'Glob') });
+    return n.createNode('Glob', {
+      leftExpr: ensurePrecedence(leftExpr, 'Glob'),
+      rightExpr: ensurePrecedence(rightExpr, 'Glob'),
+    });
   },
   notGlob(leftExpr: Exp, rightExpr: Exp): Node<'Glob'> {
     return n.createNode('Glob', {
@@ -269,7 +325,10 @@ const Operations = {
     });
   },
   regexp(leftExpr: Exp, rightExpr: Exp): Node<'Regexp'> {
-    return n.createNode('Regexp', { leftExpr: ensurePrecedence(leftExpr, 'Regexp'), rightExpr: ensurePrecedence(rightExpr, 'Regexp') });
+    return n.createNode('Regexp', {
+      leftExpr: ensurePrecedence(leftExpr, 'Regexp'),
+      rightExpr: ensurePrecedence(rightExpr, 'Regexp'),
+    });
   },
   notRegexp(leftExpr: Exp, rightExpr: Exp): Node<'Regexp'> {
     return n.createNode('Regexp', {
@@ -339,7 +398,10 @@ const Operations = {
     });
   },
   add(leftExpr: Exp, rightExpr: Exp): Node<'Add'> {
-    return n.createNode('Add', { leftExpr: ensurePrecedence(leftExpr, 'Add'), rightExpr: ensurePrecedence(rightExpr, 'Add') });
+    return n.createNode('Add', {
+      leftExpr: ensurePrecedence(leftExpr, 'Add'),
+      rightExpr: ensurePrecedence(rightExpr, 'Add'),
+    });
   },
   subtract(leftExpr: Exp, rightExpr: Exp): Node<'Subtract'> {
     return n.createNode('Subtract', {
@@ -354,10 +416,16 @@ const Operations = {
     });
   },
   divide(leftExpr: Exp, rightExpr: Exp): Node<'Divide'> {
-    return n.createNode('Divide', { leftExpr: ensurePrecedence(leftExpr, 'Divide'), rightExpr: ensurePrecedence(rightExpr, 'Divide') });
+    return n.createNode('Divide', {
+      leftExpr: ensurePrecedence(leftExpr, 'Divide'),
+      rightExpr: ensurePrecedence(rightExpr, 'Divide'),
+    });
   },
   modulo(leftExpr: Exp, rightExpr: Exp): Node<'Modulo'> {
-    return n.createNode('Modulo', { leftExpr: ensurePrecedence(leftExpr, 'Modulo'), rightExpr: ensurePrecedence(rightExpr, 'Modulo') });
+    return n.createNode('Modulo', {
+      leftExpr: ensurePrecedence(leftExpr, 'Modulo'),
+      rightExpr: ensurePrecedence(rightExpr, 'Modulo'),
+    });
   },
   concatenate(leftExpr: Exp, rightExpr: Exp): Node<'Concatenate'> {
     return n.createNode('Concatenate', {
@@ -366,7 +434,10 @@ const Operations = {
     });
   },
   collate(expr: Exp, collationName: string | Id): Node<'Collate'> {
-    return n.createNode('Collate', { expr: ensurePrecedence(expr, 'Collate'), collationName: identifier(collationName) });
+    return n.createNode('Collate', {
+      expr: ensurePrecedence(expr, 'Collate'),
+      collationName: identifier(collationName),
+    });
   },
   bitwiseNegation(expr: Exp): Node<'BitwiseNegation'> {
     return n.createNode('BitwiseNegation', { expr: ensurePrecedence(expr, 'BitwiseNegation') });
@@ -417,7 +488,10 @@ const RaiseFunction = {
     return n.createNode('RaiseFunction', { variant: 'Ignore' });
   },
   rollback(errorMessage: Node<'StringLiteral'> | string): Node<'RaiseFunction'> {
-    return n.createNode('RaiseFunction', { variant: 'Rollback', errorMessage: LiteralValue.stringLiteral(errorMessage) });
+    return n.createNode('RaiseFunction', {
+      variant: 'Rollback',
+      errorMessage: LiteralValue.stringLiteral(errorMessage),
+    });
   },
   abort(errorMessage: Node<'StringLiteral'> | string): Node<'RaiseFunction'> {
     return n.createNode('RaiseFunction', { variant: 'Abort', errorMessage: LiteralValue.stringLiteral(errorMessage) });
@@ -528,7 +602,9 @@ function columnFromString(col: string): Node<'Column'> {
   throw new Error(`Invalid column: ${col} (too many parts)`);
 }
 
-function column(column: string | { column: string | Id; table?: string | { table: string | Id; schema?: string | Id } }): Node<'Column'> {
+function column(
+  column: string | { column: string | Id; table?: string | { table: string | Id; schema?: string | Id } }
+): Node<'Column'> {
   if (typeof column === 'string') {
     return n.createNode('Column', { columnName: identifier(column) });
   }

@@ -1,3 +1,4 @@
+import { expect, test } from 'vitest';
 import { builder as b, printNode } from '../src/mod';
 import { format, sql } from './utils/sql';
 
