@@ -1,0 +1,7 @@
+{
+  "additionalDevDependencies": {
+    "@types/dedent": "^0.7.0",
+    "dedent": "^0.7.0",
+    "sql-formatter": "^12.2.1"
+  }
+}
