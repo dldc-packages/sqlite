@@ -1,15 +1,15 @@
 {
-  "name": "zensqlite",
+  "name": "@dldc/sqlite",
   "version": "2.0.0-8",
   "description": "Type safe tooling for SQLite",
   "keywords": [],
-  "homepage": "https://github.com/etienne-dldc/zensqlite#readme",
+  "homepage": "https://github.com/dldc-packages/sqlite#readme",
   "bugs": {
-    "url": "https://github.com/etienne-dldc/zensqlite/issues"
+    "url": "https://github.com/dldc-packages/sqlite/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/etienne-dldc/zensqlite.git"
+    "url": "git+https://github.com/dldc-packages/sqlite.git"
   },
   "license": "MIT",
   "author": "Etienne Dldc <e.deladonchamps@gmail.com>",
