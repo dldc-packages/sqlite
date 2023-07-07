@@ -38,9 +38,6 @@
     "typecheck": "tsc",
     "typecheck:watch": "tsc --watch"
   },
-  "dependencies": {
-    "tslib": "^2.5.3"
-  },
   "devDependencies": {
     "@types/dedent": "^0.7.0",
     "@types/node": "^20.3.3",
