@@ -19,7 +19,7 @@ export type UpdateStmtOptions = {
 
 export function UpdateStmt(
   table: string | Id,
-  { where, schema, limit, setItems }: UpdateStmtOptions
+  { where, schema, limit, setItems }: UpdateStmtOptions,
 ): Node<'UpdateStmtLimited'> {
   return n.createNode('UpdateStmtLimited', {
     qualifiedTableName: n.createNode('QualifiedTableName', {

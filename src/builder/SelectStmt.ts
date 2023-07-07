@@ -12,7 +12,7 @@ export function Join(
   tableOrSubquery: Node<'TableOrSubquery'>,
   joinOperator: Node<'JoinOperator'>,
   joinTableOrSubquery: Node<'TableOrSubquery'>,
-  joinConstraint?: Node<'JoinConstraint'>
+  joinConstraint?: Node<'JoinConstraint'>,
 ): Node<'JoinClause'> {
   return createNode('JoinClause', {
     tableOrSubquery,
@@ -93,7 +93,7 @@ export function SelectStmt({
 export const TableOrSubquery = {
   Table(
     tableName: string,
-    { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}
+    { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {},
   ): Node<'TableOrSubquery'> {
     return createNode('TableOrSubquery', {
       variant: 'Table',
@@ -114,7 +114,7 @@ export const TableOrSubquery = {
 export const From = {
   Table(
     tableName: string,
-    { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {}
+    { schema, alias }: { schema?: Identifier | string; alias?: Identifier | string } = {},
   ): SelectFrom {
     return { variant: 'TablesOrSubqueries', tablesOrSubqueries: [TableOrSubquery.Table(tableName, { schema, alias })] };
   },
@@ -128,7 +128,7 @@ export const From = {
     tableOrSubquery: Node<'TableOrSubquery'>,
     joinOperator: Node<'JoinOperator'>,
     joinTableOrSubquery: Node<'TableOrSubquery'>,
-    joinConstraint?: Node<'JoinConstraint'>
+    joinConstraint?: Node<'JoinConstraint'>,
   ): SelectFrom {
     return { variant: 'Join', joinClause: Join(tableOrSubquery, joinOperator, joinTableOrSubquery, joinConstraint) };
   },
@@ -157,7 +157,7 @@ export const ResultColumn = {
   column(
     column:
       | string
-      | { column: string | Identifier; table?: string | { table: string | Identifier; schema?: string | Identifier } }
+      | { column: string | Identifier; table?: string | { table: string | Identifier; schema?: string | Identifier } },
   ): Node<'ResultColumn'> {
     return ResultColumn.Expr(Expr.column(column));
   },

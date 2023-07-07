@@ -108,7 +108,7 @@ export type Variants<T extends Record<string, any>> = {
 
 export function mapVariants<T extends { variant: string }, Res>(
   variant: T,
-  mapper: { [K in T['variant']]: (val: Extract<T, { variant: K }>) => Res }
+  mapper: { [K in T['variant']]: (val: Extract<T, { variant: K }>) => Res },
 ): Res {
   return (mapper as any)[(variant as any).variant](variant);
 }

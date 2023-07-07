@@ -41,14 +41,14 @@ test('Print Select using builder', () => {
       b.TableOrSubquery.Table('users'),
       b.JoinOperator.Join('Left'),
       b.TableOrSubquery.Table('posts'),
-      b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id')))
+      b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id'))),
     ),
     resultColumns: [b.ResultColumn.columnFromString('users.id'), b.ResultColumn.TableStar('users')],
     where: b.Expr.equal(b.Expr.columnFromString('users.name'), b.Expr.literal('azerty')),
   });
 
   expect(printNode(node)).toBe(
-    "SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.user_id WHERE users.name == 'azerty'"
+    "SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.user_id WHERE users.name == 'azerty'",
   );
 });
 
@@ -64,14 +64,14 @@ test('Print join of table and subquery', () => {
           resultColumns: [b.ResultColumn.Star()],
           where: b.Expr.equal(b.Expr.columnFromString('users.name'), b.Expr.literal('azerty')),
         }),
-        'users'
+        'users',
       ),
-      b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id')))
+      b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id'))),
     ),
     resultColumns: [b.ResultColumn.Star()],
   });
   expect(printNode(node)).toBe(
-    "SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.user_id"
+    "SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.user_id",
   );
 });
 
@@ -83,10 +83,10 @@ test('CreateTableStmt', () => {
       b.ColumnDef('name', b.TypeName('TEXT')),
       b.ColumnDef('email', b.TypeName('TEXT'), [b.ColumnConstraint.Unique(), b.ColumnConstraint.NotNull()]),
     ],
-    { strict: true, ifNotExists: true }
+    { strict: true, ifNotExists: true },
   );
   expect(printNode(node)).toBe(
-    'CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL) STRICT'
+    'CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL) STRICT',
   );
 });
 
@@ -122,20 +122,20 @@ test('Multiple joins', () => {
         joinOperator: b.JoinOperator.InnerJoin(),
         tableOrSubquery: b.TableOrSubquery.Table('users'),
         joinConstraint: b.JoinConstraint.On(
-          b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id'))
+          b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id')),
         ),
       },
       {
         joinOperator: b.JoinOperator.InnerJoin(),
         tableOrSubquery: b.TableOrSubquery.Table('comments'),
         joinConstraint: b.JoinConstraint.On(
-          b.Expr.equal(b.Expr.columnFromString('comments.user_id'), b.Expr.columnFromString('users.id'))
+          b.Expr.equal(b.Expr.columnFromString('comments.user_id'), b.Expr.columnFromString('users.id')),
         ),
-      }
+      },
     ),
     resultColumns: [b.ResultColumn.Star()],
   });
   expect(printNode(node)).toBe(
-    `SELECT * FROM posts INNER JOIN users ON users.id == posts.user_id INNER JOIN comments ON comments.user_id == users.id`
+    `SELECT * FROM posts INNER JOIN users ON users.id == posts.user_id INNER JOIN comments ON comments.user_id == users.id`,
   );
 });

@@ -232,7 +232,7 @@ const Operations = {
       expr: Exp,
       functionName: string | Id,
       parameters?: NonEmptyArray<Exp>,
-      schema?: string | Id
+      schema?: string | Id,
     ): Node<'In'> {
       return n.createNode('In', {
         expr: ensurePrecedence(expr, 'In'),
@@ -271,7 +271,7 @@ const Operations = {
       expr: Exp,
       functionName: string | Id,
       parameters?: NonEmptyArray<Exp>,
-      schema?: string | Id
+      schema?: string | Id,
     ): Node<'In'> {
       return n.createNode('In', {
         expr: ensurePrecedence(expr, 'In'),
@@ -521,7 +521,7 @@ export const Expr = {
 function aggregateFunctionInvocation(
   name: string,
   args: { distinct?: boolean; params: Exp | Exp[] } | '*',
-  filterClause?: Node<'FilterClause'>
+  filterClause?: Node<'FilterClause'>,
 ): Node<'AggregateFunctionInvocation'> {
   if (args === '*') {
     return n.createNode('AggregateFunctionInvocation', {
@@ -603,7 +603,7 @@ function columnFromString(col: string): Node<'Column'> {
 }
 
 function column(
-  column: string | { column: string | Id; table?: string | { table: string | Id; schema?: string | Id } }
+  column: string | { column: string | Id; table?: string | { table: string | Id; schema?: string | Id } },
 ): Node<'Column'> {
   if (typeof column === 'string') {
     return n.createNode('Column', { columnName: identifier(column) });

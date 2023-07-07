@@ -18,7 +18,7 @@ export type InsertStmtOptions = {
 
 export function InsertStmt(
   table: string | Id,
-  { data, alias, columnNames, schema, returningClause }: InsertStmtOptions
+  { data, alias, columnNames, schema, returningClause }: InsertStmtOptions,
 ): Node<'InsertStmt'> {
   return n.createNode('InsertStmt', {
     tableName: Expr.identifier(table),

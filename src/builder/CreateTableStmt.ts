@@ -10,7 +10,7 @@ type Node<K extends n.NodeKind = n.NodeKind> = n.Node<K>;
 export function ColumnDef(
   name: string | Id,
   typeName?: ValidTypeName | Node<'TypeName'>,
-  columnConstraints?: Array<Node<'ColumnConstraint'>>
+  columnConstraints?: Array<Node<'ColumnConstraint'>>,
 ): Node<'ColumnDef'> {
   return n.createNode('ColumnDef', {
     columnName: Expr.identifier(name),
@@ -30,7 +30,7 @@ export type CreateTableStmtOptions = {
 export function CreateTableStmt(
   table: string | Id,
   columns: Array<Node<'ColumnDef'>>,
-  { temp, strict, ifNotExists, schema, tableConstraints }: CreateTableStmtOptions = {}
+  { temp, strict, ifNotExists, schema, tableConstraints }: CreateTableStmtOptions = {},
 ): Node<'CreateTableStmt'> {
   return n.createNode('CreateTableStmt', {
     temp: temp ? 'Temp' : undefined,
@@ -96,7 +96,7 @@ export const TableConstraint = {
   PrimaryKey(
     indexedColumns: Array<Node<'IndexedColumn'> | string>,
     conflictClause?: Node<'ConflictClause'>,
-    name?: string | Id
+    name?: string | Id,
   ): Node<'TableConstraint'> {
     return n.createNode('TableConstraint', {
       constraintName: name ? Expr.identifier(name) : undefined,
@@ -107,8 +107,8 @@ export const TableConstraint = {
           indexedColumns.map((v) =>
             typeof v !== 'string'
               ? v
-              : n.createNode('IndexedColumn', { column: { variant: 'Name', name: Expr.identifier(v) } })
-          )
+              : n.createNode('IndexedColumn', { column: { variant: 'Name', name: Expr.identifier(v) } }),
+          ),
         ),
       },
     });
@@ -116,7 +116,7 @@ export const TableConstraint = {
   Unique(
     indexedColumns: Array<Node<'IndexedColumn'> | string>,
     conflictClause?: Node<'ConflictClause'>,
-    name?: string | Id
+    name?: string | Id,
   ): Node<'TableConstraint'> {
     return n.createNode('TableConstraint', {
       constraintName: name ? Expr.identifier(name) : undefined,
@@ -127,8 +127,8 @@ export const TableConstraint = {
           indexedColumns.map((v) =>
             typeof v !== 'string'
               ? v
-              : n.createNode('IndexedColumn', { column: { variant: 'Name', name: Expr.identifier(v) } })
-          )
+              : n.createNode('IndexedColumn', { column: { variant: 'Name', name: Expr.identifier(v) } }),
+          ),
         ),
       },
     });
@@ -142,7 +142,7 @@ export const TableConstraint = {
   ForeignKey(
     columnNames: Array<Id | string>,
     foreignKeyClause: Node<'ForeignKeyClause'>,
-    name?: string | Id
+    name?: string | Id,
   ): Node<'TableConstraint'> {
     return n.createNode('TableConstraint', {
       constraintName: name ? Expr.identifier(name) : undefined,

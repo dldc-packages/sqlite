@@ -313,5 +313,5 @@ export const Keywords: Keywords = KEYWORDS.reduce<Keywords>(
       const upper = str.toUpperCase();
       return KEYWORDS.indexOf(upper as any) >= 0;
     },
-  } as any
+  } as any,
 );

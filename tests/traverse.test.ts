@@ -7,7 +7,7 @@ test('Travers Select using builder', () => {
       b.TableOrSubquery.Table('users'),
       b.JoinOperator.Join('Left'),
       b.TableOrSubquery.Table('posts'),
-      b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id')))
+      b.JoinConstraint.On(b.Expr.equal(b.Expr.columnFromString('users.id'), b.Expr.columnFromString('posts.user_id'))),
     ),
     resultColumns: [b.ResultColumn.columnFromString('users.id'), b.ResultColumn.TableStar('users')],
     where: b.Expr.equal(b.Expr.columnFromString('users.name'), b.Expr.literal('azerty')),
