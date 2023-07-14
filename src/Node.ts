@@ -1,4 +1,4 @@
-import { NonEmptyArray, Variants } from './Utils';
+import type { NonEmptyArray, Variants } from './Utils';
 
 export function createNode<K extends NodeKind>(kind: K, data: NodeData[K]): Node<K> {
   const node: Node<K> = { kind, ...data } as any;

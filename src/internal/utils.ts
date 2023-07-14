@@ -27,3 +27,5 @@ export const join = {
 export function joiner(glue: string, ...parts: Parts): string {
   return parts.filter(Boolean).join(glue);
 }
+
+export type AnyFn = (...args: any[]) => any;

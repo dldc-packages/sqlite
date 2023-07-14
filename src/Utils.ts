@@ -1,4 +1,6 @@
-import { isValidNodeKind, Node } from './Node';
+import type { Node } from './Node';
+import { isValidNodeKind } from './Node';
+import type { AnyFn } from './internal/utils';
 
 export type NonEmptyArray<T> = [T, ...T[]];
 
@@ -91,7 +93,7 @@ export function getAllChildren(item: any): Array<NodeWithPath> {
   // Object
   const result: Array<NodeWithPath> = [];
   Object.keys(item).forEach((key) => {
-    result.push(...getAllChildren((item as any)[key]).map((child) => ({ ...child, path: [key, ...child.path] })));
+    result.push(...getAllChildren(item[key]).map((child) => ({ ...child, path: [key, ...child.path] })));
   });
   return result;
 }
@@ -110,5 +112,6 @@ export function mapVariants<T extends { variant: string }, Res>(
   variant: T,
   mapper: { [K in T['variant']]: (val: Extract<T, { variant: K }>) => Res },
 ): Res {
-  return (mapper as any)[(variant as any).variant](variant);
+  const mapperVariant = (mapper as any)[(variant as any).variant];
+  return (mapperVariant as AnyFn)(variant);
 }

@@ -1,7 +1,8 @@
 import * as n from '../Node';
 import { arrayToNonEmptyArray, arrayToOptionalNonEmptyArray } from '../Utils';
 import { Expr } from './Expr';
-import { TypeName, ValidTypeName } from './TypeName';
+import type { ValidTypeName } from './TypeName';
+import { TypeName } from './TypeName';
 
 type Id = n.Identifier;
 type Exp = n.Expr;

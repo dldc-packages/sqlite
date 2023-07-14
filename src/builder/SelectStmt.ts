@@ -1,5 +1,7 @@
-import { createNode, Expr as Exp, Identifier, Node } from '../Node';
-import { arrayToNonEmptyArray, NonEmptyArray } from '../Utils';
+import type { Expr as Exp, Identifier, Node } from '../Node';
+import { createNode } from '../Node';
+import type { NonEmptyArray } from '../Utils';
+import { arrayToNonEmptyArray } from '../Utils';
 import { Expr } from './Expr';
 
 export type JoinItem = {

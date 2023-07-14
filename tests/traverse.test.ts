@@ -1,5 +1,6 @@
 import { expect, test, vi } from 'vitest';
-import { Ast, Utils, builder as b } from '../src/mod';
+import type { Ast } from '../src/mod';
+import { Utils, builder as b } from '../src/mod';
 
 test('Travers Select using builder', () => {
   const node = b.SelectStmt({

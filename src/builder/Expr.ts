@@ -1,7 +1,10 @@
 import * as n from '../Node';
-import { AnyOperator, OperatorPrecedence } from '../Operator';
-import { NonEmptyArray, arrayToNonEmptyArray } from '../Utils';
-import { TypeName, ValidTypeName } from './TypeName';
+import type { AnyOperator } from '../Operator';
+import { OperatorPrecedence } from '../Operator';
+import type { NonEmptyArray } from '../Utils';
+import { arrayToNonEmptyArray } from '../Utils';
+import type { ValidTypeName } from './TypeName';
+import { TypeName } from './TypeName';
 
 type Id = n.Identifier;
 type Exp = n.Expr;
@@ -568,7 +571,7 @@ function literal(val: null | number | string | boolean): n.LiteralValue {
   if (typeof val === 'string') {
     return LiteralValue.stringLiteral(val);
   }
-  throw new Error(`Invalid literal: ${val}`);
+  throw new Error(`Invalid literal: ${val as any}`);
 }
 
 function identifier(name: string | Id, variant?: Id['variant']): Id {

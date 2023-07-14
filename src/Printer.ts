@@ -1,11 +1,14 @@
+import type { AnyFn } from './internal/utils';
 import { join, joiner, mapMaybe, mapUnionString } from './internal/utils';
 import { Keywords } from './Keyword';
-import { Node, NodeKind } from './Node';
+import type { Node, NodeKind } from './Node';
 import { BinaryOperator, UnaryOperator } from './Operator';
-import { mapVariants, NonEmptyArray } from './Utils';
+import type { NonEmptyArray } from './Utils';
+import { mapVariants } from './Utils';
 
 export function printNode(node: Node): string {
-  return (NodePrinter as any)[node.kind](node);
+  const printer = (NodePrinter as any)[node.kind];
+  return (printer as AnyFn)(node);
 }
 
 function printList<T>(list: NonEmptyArray<T>, printer: (item: T) => string, sep: string = ', '): string {

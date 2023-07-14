@@ -1,5 +1,5 @@
 import * as n from '../Node';
-import { NonEmptyArray } from '../Utils';
+import type { NonEmptyArray } from '../Utils';
 import { Expr } from './Expr';
 
 type Id = n.Identifier;
