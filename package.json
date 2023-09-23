@@ -1,6 +1,6 @@
 {
   "name": "@dldc/sqlite",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "description": "Type safe tooling for SQLite",
   "keywords": [],
   "homepage": "https://github.com/dldc-packages/sqlite#readme",
