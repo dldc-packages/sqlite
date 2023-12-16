@@ -618,8 +618,8 @@ function column(
       table === undefined
         ? undefined
         : typeof table === 'string'
-        ? { name: identifier(table) }
-        : { name: identifier(table.table), schema: table.schema ? identifier(table.schema) : undefined },
+          ? { name: identifier(table) }
+          : { name: identifier(table.table), schema: table.schema ? identifier(table.schema) : undefined },
   });
 }
 
