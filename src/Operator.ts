@@ -1,60 +1,63 @@
-import { mapObject } from './internal/utils';
+import { mapObject } from "./internal/utils.ts";
 
 export type UnaryOperator = keyof typeof UnaryOperator;
 export type UnaryOperatorRaw = (typeof UnaryOperator)[UnaryOperator];
 
 export const UnaryOperator = {
-  BitwiseNegation: '~',
-  Plus: '+',
-  Minus: '-',
+  BitwiseNegation: "~",
+  Plus: "+",
+  Minus: "-",
 } as const;
 
 export type BinaryOperator = keyof typeof BinaryOperatorsInternal;
-export type BinaryOperatorRaw = (typeof BinaryOperatorsInternal)[BinaryOperator][number];
+export type BinaryOperatorRaw =
+  (typeof BinaryOperatorsInternal)[BinaryOperator][number];
 
 const BinaryOperatorsInternal = {
-  Concatenate: ['||'],
-  ExtractJson: ['->'],
-  Extract: ['->>'],
-  Multiply: ['*'],
-  Divide: ['/'],
-  Modulo: ['%'],
-  Add: ['+'],
-  Subtract: ['-'],
-  BitwiseAnd: ['&'],
-  BitwiseOr: ['|'],
-  BitwiseShiftLeft: ['<<'],
-  BitwiseShiftRight: ['>>'],
-  GreaterThan: ['>'],
-  LowerThan: ['<'],
-  GreaterThanOrEqual: ['>='],
-  LowerThanOrEqual: ['<='],
-  Equal: ['==', '='],
-  Different: ['!=', '<>'],
+  Concatenate: ["||"],
+  ExtractJson: ["->"],
+  Extract: ["->>"],
+  Multiply: ["*"],
+  Divide: ["/"],
+  Modulo: ["%"],
+  Add: ["+"],
+  Subtract: ["-"],
+  BitwiseAnd: ["&"],
+  BitwiseOr: ["|"],
+  BitwiseShiftLeft: ["<<"],
+  BitwiseShiftRight: [">>"],
+  GreaterThan: [">"],
+  LowerThan: ["<"],
+  GreaterThanOrEqual: [">="],
+  LowerThanOrEqual: ["<="],
+  Equal: ["==", "="],
+  Different: ["!=", "<>"],
 } as const;
 
-export const BinaryOperator: { [K in BinaryOperator]: (typeof BinaryOperatorsInternal)[K][0] } = mapObject(
+export const BinaryOperator: {
+  [K in BinaryOperator]: (typeof BinaryOperatorsInternal)[K][0];
+} = mapObject(
   BinaryOperatorsInternal,
   (_key, [val]) => val,
 );
 
 export type OtherOperators =
-  | 'Collate'
-  | 'Escape'
-  | 'Is'
-  | 'IsNot'
-  | 'Between'
-  | 'In'
-  | 'Match'
-  | 'Like'
-  | 'Regexp'
-  | 'Glob'
-  | 'Isnull'
-  | 'Notnull'
-  | 'NotNull'
-  | 'Not'
-  | 'And'
-  | 'Or';
+  | "Collate"
+  | "Escape"
+  | "Is"
+  | "IsNot"
+  | "Between"
+  | "In"
+  | "Match"
+  | "Like"
+  | "Regexp"
+  | "Glob"
+  | "Isnull"
+  | "Notnull"
+  | "NotNull"
+  | "Not"
+  | "And"
+  | "Or";
 
 export type AnyOperator = UnaryOperator | BinaryOperator | OtherOperators;
 

@@ -1,18 +1,22 @@
-import type { Node } from './Node';
-import { isValidNodeKind } from './Node';
-import type { AnyFn } from './internal/utils';
+import type { Node } from "./Node.ts";
+import { isValidNodeKind } from "./Node.ts";
+import type { AnyFn } from "./internal/utils.ts";
 
 export type NonEmptyArray<T> = [T, ...T[]];
 
-export function arrayToNonEmptyArray<T>(arr: Array<T> | undefined): NonEmptyArray<T> {
+export function arrayToNonEmptyArray<T>(
+  arr: Array<T> | undefined,
+): NonEmptyArray<T> {
   if (arr === undefined || arr.length === 0) {
-    throw new Error('Expected non-empty array');
+    throw new Error("Expected non-empty array");
   }
   const [first, ...rest] = arr;
   return [first, ...rest];
 }
 
-export function arrayToOptionalNonEmptyArray<T>(arr: Array<T> | undefined): NonEmptyArray<T> | undefined {
+export function arrayToOptionalNonEmptyArray<T>(
+  arr: Array<T> | undefined,
+): NonEmptyArray<T> | undefined {
   if (arr === undefined || arr.length === 0) {
     return undefined;
   }
@@ -28,7 +32,10 @@ export type TraversePath = Array<number | string>;
  * @param onNode
  * @returns
  */
-export function traverse(node: Node, onNode: (item: Node, path: TraversePath) => void | false | null): void {
+export function traverse(
+  node: Node,
+  onNode: (item: Node, path: TraversePath) => void | false | null,
+): void {
   return traverseInternal(node, []);
 
   function traverseInternal(item: Node, path: TraversePath) {
@@ -61,7 +68,12 @@ export function getAllNodeChildren(node: Node): Array<NodeWithPath> {
   const result: Array<NodeWithPath> = [];
   Object.keys(node).forEach((key) => {
     const value = (node as any)[key];
-    result.push(...getAllChildren(value).map((child) => ({ ...child, path: [key, ...child.path] })));
+    result.push(
+      ...getAllChildren(value).map((child) => ({
+        ...child,
+        path: [key, ...child.path],
+      })),
+    );
   });
   return result;
 }
@@ -76,13 +88,21 @@ export function getAllChildren(item: any): Array<NodeWithPath> {
     return [];
   }
   const type = typeof item;
-  if (type === 'string' || type === 'number' || type === 'boolean' || type === 'bigint') {
+  if (
+    type === "string" || type === "number" || type === "boolean" ||
+    type === "bigint"
+  ) {
     return [];
   }
   if (isReadonlyArray(item)) {
     const result: Array<NodeWithPath> = [];
     item.forEach((child, index) => {
-      result.push(...getAllChildren(child).map((child) => ({ ...child, path: [index, ...child.path] })));
+      result.push(
+        ...getAllChildren(child).map((child) => ({
+          ...child,
+          path: [index, ...child.path],
+        })),
+      );
     });
     return result;
   }
@@ -93,12 +113,19 @@ export function getAllChildren(item: any): Array<NodeWithPath> {
   // Object
   const result: Array<NodeWithPath> = [];
   Object.keys(item).forEach((key) => {
-    result.push(...getAllChildren(item[key]).map((child) => ({ ...child, path: [key, ...child.path] })));
+    result.push(
+      ...getAllChildren(item[key]).map((child) => ({
+        ...child,
+        path: [key, ...child.path],
+      })),
+    );
   });
   return result;
 }
 
-export type NodeContentChildren = Node | ReadonlyArray<Node> | { [key: string]: NodeContentChildren };
+export type NodeContentChildren = Node | ReadonlyArray<Node> | {
+  [key: string]: NodeContentChildren;
+};
 
 function isReadonlyArray(item: any): item is ReadonlyArray<any> {
   return Array.isArray(item);
@@ -110,7 +137,7 @@ export type Variants<T extends Record<string, any>> = {
 
 export function mapVariants<T extends { variant: string }, Res>(
   variant: T,
-  mapper: { [K in T['variant']]: (val: Extract<T, { variant: K }>) => Res },
+  mapper: { [K in T["variant"]]: (val: Extract<T, { variant: K }>) => Res },
 ): Res {
   const mapperVariant = (mapper as any)[(variant as any).variant];
   return (mapperVariant as AnyFn)(variant);

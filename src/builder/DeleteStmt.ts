@@ -1,6 +1,7 @@
-import * as n from '../Node';
-import type { NonEmptyArray } from '../Utils';
-import { Expr } from './Expr';
+import * as n from "../Node.ts";
+import type { NonEmptyArray } from "../Utils.ts";
+import { Expr } from "./Expr.ts";
+import { integer } from "./Literal.ts";
 
 type Id = n.Identifier;
 type Exp = n.Expr;
@@ -10,20 +11,20 @@ export type DeleteStmtOptions = {
   schema?: string | Id;
   where?: Exp;
   limit?: number;
-  orderBy?: NonEmptyArray<Node<'OrderingTerm'>>;
+  orderBy?: NonEmptyArray<Node<"OrderingTerm">>;
 };
 
-export function DeleteStmt(
+export function build(
   table: string | Id,
   { where, schema, limit, orderBy }: DeleteStmtOptions = {},
-): n.Node<'DeleteStmtLimited'> {
-  return n.createNode('DeleteStmtLimited', {
-    qualifiedTableName: n.createNode('QualifiedTableName', {
+): n.Node<"DeleteStmtLimited"> {
+  return n.createNode("DeleteStmtLimited", {
+    qualifiedTableName: n.createNode("QualifiedTableName", {
       tableName: Expr.identifier(table),
       schemaName: schema ? Expr.identifier(schema) : undefined,
     }),
     where,
-    limit: limit === undefined ? undefined : { expr: Expr.NumericLiteral.integer(limit) },
+    limit: limit === undefined ? undefined : { expr: integer(limit) },
     orderBy,
   });
 }

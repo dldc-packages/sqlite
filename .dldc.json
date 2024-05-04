@@ -1,3 +1,0 @@
-{
-  "additionalDevDependencies": ["@types/dedent", "dedent", "sql-formatter"]
-}
