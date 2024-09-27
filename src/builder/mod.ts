@@ -2,6 +2,7 @@ import * as Aggregate from "./Aggregate.ts";
 import * as BindParameter from "./BindParameter.ts";
 import * as CreateTableStmt from "./CreateTableStmt.ts";
 import * as DeleteStmt from "./DeleteStmt.ts";
+import * as DropTableStmt from "./DropTableStmt.ts";
 import * as Expr from "./Expr.ts";
 import * as Functions from "./Functions.ts";
 import * as InsertStmt from "./InsertStmt.ts";
@@ -20,6 +21,7 @@ export {
   BindParameter,
   CreateTableStmt,
   DeleteStmt,
+  DropTableStmt,
   Expr,
   Functions,
   InsertStmt,
