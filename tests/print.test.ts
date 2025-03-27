@@ -44,9 +44,9 @@ Deno.test("Print Select using builder", () => {
       b.SelectStmt.OnJoinConstraint(
         b.Operations.equal(
           b.Expr.columnFromString("users.id"),
-          b.Expr.columnFromString("posts.user_id"),
-        ),
-      ),
+          b.Expr.columnFromString("posts.user_id")
+        )
+      )
     ),
     resultColumns: [
       b.ResultColumn.columnFromString("users.id"),
@@ -54,12 +54,12 @@ Deno.test("Print Select using builder", () => {
     ],
     where: b.Operations.equal(
       b.Expr.columnFromString("users.name"),
-      b.Literal.literal("azerty"),
+      b.Literal.literal("azerty")
     ),
   });
 
   expect(printNode(node)).toBe(
-    "SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.user_id WHERE users.name == 'azerty'",
+    "SELECT users.id, users.* FROM users LEFT JOIN posts ON users.id == posts.user_id WHERE users.name == 'azerty'"
   );
 });
 
@@ -75,22 +75,22 @@ Deno.test("Print join of table and subquery", () => {
           resultColumns: [b.ResultColumn.Star()],
           where: b.Operations.equal(
             b.Expr.columnFromString("users.name"),
-            b.Literal.literal("azerty"),
+            b.Literal.literal("azerty")
           ),
         }),
-        "users",
+        "users"
       ),
       b.SelectStmt.OnJoinConstraint(
         b.Operations.equal(
           b.Expr.columnFromString("users.id"),
-          b.Expr.columnFromString("posts.user_id"),
-        ),
-      ),
+          b.Expr.columnFromString("posts.user_id")
+        )
+      )
     ),
     resultColumns: [b.ResultColumn.Star()],
   });
   expect(printNode(node)).toBe(
-    "SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.user_id",
+    "SELECT * FROM posts INNER JOIN (SELECT * FROM users WHERE users.name == 'azerty') AS users ON users.id == posts.user_id"
   );
 });
 
@@ -106,11 +106,12 @@ Deno.test("CreateTableStmt", () => {
         b.CreateTableStmt.Unique(),
         b.CreateTableStmt.NotNull(),
       ]),
+      b.CreateTableStmt.ColumnDef("age", b.TypeName.build("INT")),
     ],
-    { strict: true, ifNotExists: true },
+    { strict: true, ifNotExists: true }
   );
   expect(printNode(node)).toBe(
-    "CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL) STRICT",
+    "CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, name TEXT, email TEXT UNIQUE NOT NULL, age INT) STRICT"
   );
 });
 
@@ -118,11 +119,11 @@ Deno.test("DeleteStmt", () => {
   const node = b.DeleteStmt.build("users", {
     where: b.Operations.equal(
       b.Expr.columnFromString("users.name"),
-      b.Literal.literal("azerty"),
+      b.Literal.literal("azerty")
     ),
   });
   expect(printNode(node)).toBe(
-    "DELETE FROM users WHERE users.name == 'azerty'",
+    "DELETE FROM users WHERE users.name == 'azerty'"
   );
 });
 
@@ -153,8 +154,8 @@ Deno.test("Multiple joins", () => {
         joinConstraint: b.SelectStmt.OnJoinConstraint(
           b.Operations.equal(
             b.Expr.columnFromString("users.id"),
-            b.Expr.columnFromString("posts.user_id"),
-          ),
+            b.Expr.columnFromString("posts.user_id")
+          )
         ),
       },
       {
@@ -163,14 +164,14 @@ Deno.test("Multiple joins", () => {
         joinConstraint: b.SelectStmt.OnJoinConstraint(
           b.Operations.equal(
             b.Expr.columnFromString("comments.user_id"),
-            b.Expr.columnFromString("users.id"),
-          ),
+            b.Expr.columnFromString("users.id")
+          )
         ),
-      },
+      }
     ),
     resultColumns: [b.ResultColumn.Star()],
   });
   expect(printNode(node)).toBe(
-    `SELECT * FROM posts INNER JOIN users ON users.id == posts.user_id INNER JOIN comments ON comments.user_id == users.id`,
+    `SELECT * FROM posts INNER JOIN users ON users.id == posts.user_id INNER JOIN comments ON comments.user_id == users.id`
   );
 });
