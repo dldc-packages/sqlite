@@ -10,8 +10,7 @@ export const UnaryOperator = {
 } as const;
 
 export type BinaryOperator = keyof typeof BinaryOperatorsInternal;
-export type BinaryOperatorRaw =
-  (typeof BinaryOperatorsInternal)[BinaryOperator][number];
+export type BinaryOperatorRaw = (typeof BinaryOperatorsInternal)[BinaryOperator][number];
 
 const BinaryOperatorsInternal = {
   Concatenate: ["||"],
@@ -36,10 +35,7 @@ const BinaryOperatorsInternal = {
 
 export const BinaryOperator: {
   [K in BinaryOperator]: (typeof BinaryOperatorsInternal)[K][0];
-} = mapObject(
-  BinaryOperatorsInternal,
-  (_key, [val]) => val,
-);
+} = mapObject(BinaryOperatorsInternal, (_key, [val]) => val);
 
 export type OtherOperators =
   | "Collate"

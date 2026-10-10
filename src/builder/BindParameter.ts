@@ -17,10 +17,7 @@ export function atNamed(name: string, suffix?: string): Node<"BindParameter"> {
   return n.createNode("BindParameter", { variant: "AtNamed", name, suffix });
 }
 
-export function colonNamed(
-  name: string,
-  suffix?: string,
-): Node<"BindParameter"> {
+export function colonNamed(name: string, suffix?: string): Node<"BindParameter"> {
   return n.createNode("BindParameter", {
     variant: "ColonNamed",
     name,
@@ -28,10 +25,7 @@ export function colonNamed(
   });
 }
 
-export function dollarNamed(
-  name: string,
-  suffix?: string,
-): Node<"BindParameter"> {
+export function dollarNamed(name: string, suffix?: string): Node<"BindParameter"> {
   return n.createNode("BindParameter", {
     variant: "DollarNamed",
     name,

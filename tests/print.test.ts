@@ -1,7 +1,7 @@
-import { expect } from "$std/expect/mod.ts";
-import { Ast, builder as b, printNode } from "../mod.ts";
+import { expect, test } from "vite-plus/test";
+import { Ast, builder as b, printNode } from "@dldc/sqlite";
 
-Deno.test("Print AlterTableStmt", () => {
+test("Print AlterTableStmt", () => {
   const node = Ast.createNode("AlterTableStmt", {
     tableName: b.Expr.identifier("users"),
     action: {
@@ -13,7 +13,7 @@ Deno.test("Print AlterTableStmt", () => {
   expect(printNode(node)).toBe("ALTER TABLE users RENAME TO users_new");
 });
 
-Deno.test("Print Select", () => {
+test("Print Select", () => {
   const node = Ast.createNode("SelectCore", {
     variant: "Select",
     from: {
@@ -35,7 +35,7 @@ Deno.test("Print Select", () => {
   expect(printNode(node)).toBe("SELECT * FROM users");
 });
 
-Deno.test("Print Select using builder", () => {
+test("Print Select using builder", () => {
   const node = b.SelectStmt.build({
     from: b.SelectStmt.FromJoin(
       b.SelectStmt.Table("users"),
@@ -48,14 +48,8 @@ Deno.test("Print Select using builder", () => {
         ),
       ),
     ),
-    resultColumns: [
-      b.ResultColumn.columnFromString("users.id"),
-      b.ResultColumn.TableStar("users"),
-    ],
-    where: b.Operations.equal(
-      b.Expr.columnFromString("users.name"),
-      b.Literal.literal("azerty"),
-    ),
+    resultColumns: [b.ResultColumn.columnFromString("users.id"), b.ResultColumn.TableStar("users")],
+    where: b.Operations.equal(b.Expr.columnFromString("users.name"), b.Literal.literal("azerty")),
   });
 
   expect(printNode(node)).toBe(
@@ -63,7 +57,7 @@ Deno.test("Print Select using builder", () => {
   );
 });
 
-Deno.test("Print join of table and subquery", () => {
+test("Print join of table and subquery", () => {
   const node = b.SelectStmt.build({
     from: b.SelectStmt.FromJoin(
       b.SelectStmt.Table("posts"),
@@ -94,13 +88,11 @@ Deno.test("Print join of table and subquery", () => {
   );
 });
 
-Deno.test("CreateTableStmt", () => {
+test("CreateTableStmt", () => {
   const node = b.CreateTableStmt.build(
     "users",
     [
-      b.CreateTableStmt.ColumnDef("id", b.TypeName.build("TEXT"), [
-        b.CreateTableStmt.PrimaryKey(),
-      ]),
+      b.CreateTableStmt.ColumnDef("id", b.TypeName.build("TEXT"), [b.CreateTableStmt.PrimaryKey()]),
       b.CreateTableStmt.ColumnDef("name", b.TypeName.build("TEXT")),
       b.CreateTableStmt.ColumnDef("email", b.TypeName.build("TEXT"), [
         b.CreateTableStmt.Unique(),
@@ -115,36 +107,31 @@ Deno.test("CreateTableStmt", () => {
   );
 });
 
-Deno.test("DeleteStmt", () => {
+test("DeleteStmt", () => {
   const node = b.DeleteStmt.build("users", {
-    where: b.Operations.equal(
-      b.Expr.columnFromString("users.name"),
-      b.Literal.literal("azerty"),
-    ),
+    where: b.Operations.equal(b.Expr.columnFromString("users.name"), b.Literal.literal("azerty")),
   });
-  expect(printNode(node)).toBe(
-    "DELETE FROM users WHERE users.name == 'azerty'",
-  );
+  expect(printNode(node)).toBe("DELETE FROM users WHERE users.name == 'azerty'");
 });
 
-Deno.test("UpdateStmt", () => {
+test("UpdateStmt", () => {
   const node = b.UpdateStmt.build("users", {
     setItems: [b.UpdateStmt.ColumnName("foo", b.Literal.literal(42))],
   });
   expect(printNode(node)).toBe("UPDATE users SET foo = 42");
 });
 
-Deno.test("AggregateFunctionInvocation", () => {
+test("AggregateFunctionInvocation", () => {
   const node = b.Aggregate.count({ params: b.Literal.literal(42) });
   expect(printNode(node)).toBe("count(42)");
 });
 
-Deno.test("ScalarFunctions", () => {
+test("ScalarFunctions", () => {
   const node = b.Functions.abs(b.Literal.literal(42));
   expect(printNode(node)).toBe("abs(42)");
 });
 
-Deno.test("Multiple joins", () => {
+test("Multiple joins", () => {
   const node = b.SelectStmt.build({
     from: b.SelectStmt.FromJoins(
       b.SelectStmt.Table("posts"),

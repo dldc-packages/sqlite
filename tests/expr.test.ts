@@ -1,8 +1,8 @@
-import { expect } from "$std/expect/mod.ts";
-import { builder as b, printNode } from "../mod.ts";
+import { expect, test } from "vite-plus/test";
+import { builder as b, printNode } from "@dldc/sqlite";
 import { format, sql } from "./utils/sql.ts";
 
-Deno.test("Basic Expr", () => {
+test("Basic Expr", () => {
   const node = b.Operations.equal(b.Literal.literal(1), b.Literal.literal(2));
 
   expect(format(printNode(node))).toBe(sql`
@@ -10,7 +10,7 @@ Deno.test("Basic Expr", () => {
   `);
 });
 
-Deno.test("Auto precedence", () => {
+test("Auto precedence", () => {
   const col = b.Expr.column;
 
   const andExpr = b.Operations.and(col("a"), col("b"));

@@ -60,11 +60,7 @@ export function isNot(leftExpr: Exp, rightExpr: Exp): Node<"Is"> {
   });
 }
 
-export function notBetween(
-  expr: Exp,
-  betweenExpr: Exp,
-  andExpr: Exp,
-): Node<"Between"> {
+export function notBetween(expr: Exp, betweenExpr: Exp, andExpr: Exp): Node<"Between"> {
   return n.createNode("Between", {
     expr: ensurePrecedence(expr, "Between"),
     betweenExpr: ensurePrecedence(betweenExpr, "Between"),
@@ -73,11 +69,7 @@ export function notBetween(
   });
 }
 
-export function between(
-  expr: Exp,
-  betweenExpr: Exp,
-  andExpr: Exp,
-): Node<"Between"> {
+export function between(expr: Exp, betweenExpr: Exp, andExpr: Exp): Node<"Between"> {
   return n.createNode("Between", {
     expr: ensurePrecedence(expr, "Between"),
     betweenExpr: ensurePrecedence(betweenExpr, "Between"),
@@ -171,30 +163,21 @@ export function lowerThan(leftExpr: Exp, rightExpr: Exp): Node<"LowerThan"> {
   });
 }
 
-export function greaterThan(
-  leftExpr: Exp,
-  rightExpr: Exp,
-): Node<"GreaterThan"> {
+export function greaterThan(leftExpr: Exp, rightExpr: Exp): Node<"GreaterThan"> {
   return n.createNode("GreaterThan", {
     leftExpr: ensurePrecedence(leftExpr, "GreaterThan"),
     rightExpr: ensurePrecedence(rightExpr, "GreaterThan"),
   });
 }
 
-export function lowerThanOrEqual(
-  leftExpr: Exp,
-  rightExpr: Exp,
-): Node<"LowerThanOrEqual"> {
+export function lowerThanOrEqual(leftExpr: Exp, rightExpr: Exp): Node<"LowerThanOrEqual"> {
   return n.createNode("LowerThanOrEqual", {
     leftExpr: ensurePrecedence(leftExpr, "LowerThanOrEqual"),
     rightExpr: ensurePrecedence(rightExpr, "LowerThanOrEqual"),
   });
 }
 
-export function greaterThanOrEqual(
-  leftExpr: Exp,
-  rightExpr: Exp,
-): Node<"GreaterThanOrEqual"> {
+export function greaterThanOrEqual(leftExpr: Exp, rightExpr: Exp): Node<"GreaterThanOrEqual"> {
   return n.createNode("GreaterThanOrEqual", {
     leftExpr: ensurePrecedence(leftExpr, "GreaterThanOrEqual"),
     rightExpr: ensurePrecedence(rightExpr, "GreaterThanOrEqual"),
@@ -215,20 +198,14 @@ export function bitwiseOr(leftExpr: Exp, rightExpr: Exp): Node<"BitwiseOr"> {
   });
 }
 
-export function bitwiseShiftLeft(
-  leftExpr: Exp,
-  rightExpr: Exp,
-): Node<"BitwiseShiftLeft"> {
+export function bitwiseShiftLeft(leftExpr: Exp, rightExpr: Exp): Node<"BitwiseShiftLeft"> {
   return n.createNode("BitwiseShiftLeft", {
     leftExpr: ensurePrecedence(leftExpr, "BitwiseShiftLeft"),
     rightExpr: ensurePrecedence(rightExpr, "BitwiseShiftLeft"),
   });
 }
 
-export function bitwiseShiftRight(
-  leftExpr: Exp,
-  rightExpr: Exp,
-): Node<"BitwiseShiftRight"> {
+export function bitwiseShiftRight(leftExpr: Exp, rightExpr: Exp): Node<"BitwiseShiftRight"> {
   return n.createNode("BitwiseShiftRight", {
     leftExpr: ensurePrecedence(leftExpr, "BitwiseShiftRight"),
     rightExpr: ensurePrecedence(rightExpr, "BitwiseShiftRight"),
@@ -270,20 +247,14 @@ export function modulo(leftExpr: Exp, rightExpr: Exp): Node<"Modulo"> {
   });
 }
 
-export function concatenate(
-  leftExpr: Exp,
-  rightExpr: Exp,
-): Node<"Concatenate"> {
+export function concatenate(leftExpr: Exp, rightExpr: Exp): Node<"Concatenate"> {
   return n.createNode("Concatenate", {
     leftExpr: ensurePrecedence(leftExpr, "Concatenate"),
     rightExpr: ensurePrecedence(rightExpr, "Concatenate"),
   });
 }
 
-export function collate(
-  expr: Exp,
-  collationName: string | Id,
-): Node<"Collate"> {
+export function collate(expr: Exp, collationName: string | Id): Node<"Collate"> {
   return n.createNode("Collate", {
     expr: ensurePrecedence(expr, "Collate"),
     collationName: identifier(collationName),
@@ -312,17 +283,11 @@ export function notExists(selectStmt: Node<"SelectStmt">): Node<"NotExists"> {
   return n.createNode("NotExists", { selectStmt });
 }
 
-export function parenthesis(
-  first: Exp,
-  ...other: Array<Exp>
-): Node<"Parenthesis"> {
+export function parenthesis(first: Exp, ...other: Array<Exp>): Node<"Parenthesis"> {
   return n.createNode("Parenthesis", { exprs: [first, ...other] });
 }
 
-export function castAs(
-  expr: Exp,
-  typeName: Node<"TypeName"> | ValidTypeName,
-): Node<"CastAs"> {
+export function castAs(expr: Exp, typeName: Node<"TypeName"> | ValidTypeName): Node<"CastAs"> {
   return n.createNode("CastAs", {
     expr,
     typeName: typeof typeName === "string" ? buildTypeName(typeName) : typeName,
@@ -348,21 +313,14 @@ export function inList(expr: Exp, items?: NonEmptyArray<Exp>): Node<"In"> {
   });
 }
 
-export function inSelect(
-  expr: Exp,
-  selectStmt: Node<"SelectStmt">,
-): Node<"In"> {
+export function inSelect(expr: Exp, selectStmt: Node<"SelectStmt">): Node<"In"> {
   return n.createNode("In", {
     expr: ensurePrecedence(expr, "In"),
     values: { variant: "Select", selectStmt },
   });
 }
 
-export function inTableName(
-  expr: Exp,
-  table: string | Id,
-  schema?: string | Id,
-): Node<"In"> {
+export function inTableName(expr: Exp, table: string | Id, schema?: string | Id): Node<"In"> {
   return n.createNode("In", {
     expr: ensurePrecedence(expr, "In"),
     values: {
@@ -398,10 +356,7 @@ export function notInList(expr: Exp, items?: NonEmptyArray<Exp>): Node<"In"> {
   });
 }
 
-export function notInSelect(
-  expr: Exp,
-  selectStmt: Node<"SelectStmt">,
-): Node<"In"> {
+export function notInSelect(expr: Exp, selectStmt: Node<"SelectStmt">): Node<"In"> {
   return n.createNode("In", {
     expr: ensurePrecedence(expr, "In"),
     not: true,
@@ -409,11 +364,7 @@ export function notInSelect(
   });
 }
 
-export function notInTableName(
-  expr: Exp,
-  table: string | Id,
-  schema?: string | Id,
-): Node<"In"> {
+export function notInTableName(expr: Exp, table: string | Id, schema?: string | Id): Node<"In"> {
   return n.createNode("In", {
     expr: ensurePrecedence(expr, "In"),
     not: true,

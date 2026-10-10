@@ -19,9 +19,7 @@ export function aggregateFunctionInvocation(
     });
   }
   const distinct = args.distinct === true ? true : undefined;
-  const argsArr = arrayToNonEmptyArray(
-    Array.isArray(args.params) ? args.params : [args.params],
-  );
+  const argsArr = arrayToNonEmptyArray(Array.isArray(args.params) ? args.params : [args.params]);
   return n.createNode("AggregateFunctionInvocation", {
     aggregateFunc: identifier(name),
     parameters: { variant: "Exprs", distinct, exprs: argsArr },
@@ -44,9 +42,7 @@ export function count(options: AggregateFunctionParams<Exp>): AFI {
   return aggregateFunctionInvocation("count", options);
 }
 
-export function group_concat(
-  options: AggregateFunctionParams<Exp | [x: Exp, y: Exp]>,
-): AFI {
+export function group_concat(options: AggregateFunctionParams<Exp | [x: Exp, y: Exp]>): AFI {
   return aggregateFunctionInvocation("group_concat", options);
 }
 
@@ -72,8 +68,6 @@ export function json_group_array(options: AggregateFunctionParams<Exp>): AFI {
   return aggregateFunctionInvocation("json_group_array", options);
 }
 
-export function json_group_object(
-  options: AggregateFunctionParams<[name: Exp, value: Exp]>,
-): AFI {
+export function json_group_object(options: AggregateFunctionParams<[name: Exp, value: Exp]>): AFI {
   return aggregateFunctionInvocation("json_group_object", options);
 }

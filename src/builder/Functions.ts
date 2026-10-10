@@ -12,9 +12,8 @@ export function simpleFunctionInvocation(
 ): Node<"SimpleFunctionInvocation"> {
   return n.createNode("SimpleFunctionInvocation", {
     simpleFunc: identifier(name),
-    parameters: args.length === 0
-      ? undefined
-      : { variant: "Exprs", exprs: arrayToNonEmptyArray(args) },
+    parameters:
+      args.length === 0 ? undefined : { variant: "Exprs", exprs: arrayToNonEmptyArray(args) },
   });
 }
 
@@ -72,9 +71,7 @@ export function length(x: Exp): SFI {
 }
 
 export function like(x: Exp, y: Exp, z?: Exp): SFI {
-  return z
-    ? simpleFunctionInvocation("like", x, y, z)
-    : simpleFunctionInvocation("like", x, y);
+  return z ? simpleFunctionInvocation("like", x, y, z) : simpleFunctionInvocation("like", x, y);
 }
 
 export function likelihood(x: Exp, y: Exp): SFI {
@@ -95,13 +92,8 @@ export function lower(x: Exp): SFI {
   return simpleFunctionInvocation("lower", x);
 }
 
-export function ltrim(
-  x: Exp,
-  y?: Exp,
-): SFI {
-  return (y
-    ? simpleFunctionInvocation("ltrim", x, y)
-    : simpleFunctionInvocation("ltrim", x));
+export function ltrim(x: Exp, y?: Exp): SFI {
+  return y ? simpleFunctionInvocation("ltrim", x, y) : simpleFunctionInvocation("ltrim", x);
 }
 
 export function max(x: Exp, y: Exp, ...yn: Exp[]): SFI {
@@ -136,22 +128,12 @@ export function replace(x: Exp, y: Exp, z: Exp): SFI {
   return simpleFunctionInvocation("replace", x, y, z);
 }
 
-export function round(
-  x: Exp,
-  y?: Exp,
-): SFI {
-  return (y
-    ? simpleFunctionInvocation("round", x, y)
-    : simpleFunctionInvocation("round", x));
+export function round(x: Exp, y?: Exp): SFI {
+  return y ? simpleFunctionInvocation("round", x, y) : simpleFunctionInvocation("round", x);
 }
 
-export function rtrim(
-  x: Exp,
-  y?: Exp,
-): SFI {
-  return (y
-    ? simpleFunctionInvocation("rtrim", x, y)
-    : simpleFunctionInvocation("rtrim", x));
+export function rtrim(x: Exp, y?: Exp): SFI {
+  return y ? simpleFunctionInvocation("rtrim", x, y) : simpleFunctionInvocation("rtrim", x);
 }
 
 export function sign(x: Exp): SFI {
@@ -183,9 +165,7 @@ export function sqlite_version(): SFI {
 }
 
 export function substr(x: Exp, y: Exp, z?: Exp): SFI {
-  return z
-    ? simpleFunctionInvocation("substr", x, y, z)
-    : simpleFunctionInvocation("substr", x, y);
+  return z ? simpleFunctionInvocation("substr", x, y, z) : simpleFunctionInvocation("substr", x, y);
 }
 
 export function substring(x: Exp, y: Exp, z?: Exp): SFI {
@@ -198,13 +178,8 @@ export function total_changes(): SFI {
   return simpleFunctionInvocation("total_changes");
 }
 
-export function trim(
-  x: Exp,
-  y?: Exp,
-): SFI {
-  return (y
-    ? simpleFunctionInvocation("trim", x, y)
-    : simpleFunctionInvocation("trim", x));
+export function trim(x: Exp, y?: Exp): SFI {
+  return y ? simpleFunctionInvocation("trim", x, y) : simpleFunctionInvocation("trim", x);
 }
 
 export function typeofFn(x: Exp): SFI {
@@ -246,19 +221,8 @@ export function json_extract(json: Exp, path: Exp, ...pathN: Exp[]): SFI {
   return simpleFunctionInvocation("json_extract", json, path, ...pathN);
 }
 
-export function json_insert(
-  json: Exp,
-  path: Exp,
-  value: Exp,
-  ...pathValueN: Exp[]
-): SFI {
-  return simpleFunctionInvocation(
-    "json_insert",
-    json,
-    path,
-    value,
-    ...pathValueN,
-  );
+export function json_insert(json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI {
+  return simpleFunctionInvocation("json_insert", json, path, value, ...pathValueN);
 }
 
 export function json_object(...labelValueN: Exp[]): SFI {
@@ -273,34 +237,12 @@ export function json_remove(json: Exp, path: Exp, ...pathN: Exp[]): SFI {
   return simpleFunctionInvocation("json_remove", json, path, ...pathN);
 }
 
-export function json_replace(
-  json: Exp,
-  path: Exp,
-  value: Exp,
-  ...pathValueN: Exp[]
-): SFI {
-  return simpleFunctionInvocation(
-    "json_replace",
-    json,
-    path,
-    value,
-    ...pathValueN,
-  );
+export function json_replace(json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI {
+  return simpleFunctionInvocation("json_replace", json, path, value, ...pathValueN);
 }
 
-export function json_set(
-  json: Exp,
-  path: Exp,
-  value: Exp,
-  ...pathValueN: Exp[]
-): SFI {
-  return simpleFunctionInvocation(
-    "json_set",
-    json,
-    path,
-    value,
-    ...pathValueN,
-  );
+export function json_set(json: Exp, path: Exp, value: Exp, ...pathValueN: Exp[]): SFI {
+  return simpleFunctionInvocation("json_set", json, path, value, ...pathValueN);
 }
 
 export function json_type(json: Exp, path?: Exp): SFI {

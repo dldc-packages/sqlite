@@ -1,8 +1,5 @@
 import * as n from "../Node.ts";
-import {
-  arrayToNonEmptyArray,
-  arrayToOptionalNonEmptyArray,
-} from "../Utils.ts";
+import { arrayToNonEmptyArray, arrayToOptionalNonEmptyArray } from "../Utils.ts";
 import { Expr } from "./Expr.ts";
 import type { ValidTypeName } from "./TypeName.ts";
 import { build as buildTypeName } from "./TypeName.ts";
@@ -34,8 +31,7 @@ export type CreateTableStmtOptions = {
 export function build(
   table: string | Id,
   columns: Array<Node<"ColumnDef">>,
-  { temp, strict, ifNotExists, schema, tableConstraints }:
-    CreateTableStmtOptions = {},
+  { temp, strict, ifNotExists, schema, tableConstraints }: CreateTableStmtOptions = {},
 ): Node<"CreateTableStmt"> {
   return n.createNode("CreateTableStmt", {
     temp: temp ? "Temp" : undefined,
@@ -60,9 +56,11 @@ export type ColumnConstraint_PrimaryKeyOptions = {
   conflictClause?: Node<"ConflictClause">;
 };
 
-export function PrimaryKey(
-  { name, autoincrement, direction }: ColumnConstraint_PrimaryKeyOptions = {},
-): Node<"ColumnConstraint"> {
+export function PrimaryKey({
+  name,
+  autoincrement,
+  direction,
+}: ColumnConstraint_PrimaryKeyOptions = {}): Node<"ColumnConstraint"> {
   return n.createNode("ColumnConstraint", {
     constraintName: name ? Expr.identifier(name) : undefined,
     constraint: { variant: "PrimaryKey", direction, autoincrement },
@@ -72,9 +70,7 @@ export function PrimaryKey(
 export function NotNull({
   name,
   conflictClause,
-}: { name?: string | Id; conflictClause?: Node<"ConflictClause"> } = {}): Node<
-  "ColumnConstraint"
-> {
+}: { name?: string | Id; conflictClause?: Node<"ConflictClause"> } = {}): Node<"ColumnConstraint"> {
   return n.createNode("ColumnConstraint", {
     constraintName: name ? Expr.identifier(name) : undefined,
     constraint: { variant: "NotNull", conflictClause },
@@ -84,9 +80,7 @@ export function NotNull({
 export function Unique({
   name,
   conflictClause,
-}: { name?: string | Id; conflictClause?: Node<"ConflictClause"> } = {}): Node<
-  "ColumnConstraint"
-> {
+}: { name?: string | Id; conflictClause?: Node<"ConflictClause"> } = {}): Node<"ColumnConstraint"> {
   return n.createNode("ColumnConstraint", {
     constraintName: name ? Expr.identifier(name) : undefined,
     constraint: { variant: "Unique", conflictClause },
@@ -103,10 +97,7 @@ export function ForeignKey(
   });
 }
 
-export function DefaultExpr(
-  expr: Exp,
-  name?: string | Id,
-): Node<"ColumnConstraint"> {
+export function DefaultExpr(expr: Exp, name?: string | Id): Node<"ColumnConstraint"> {
   return n.createNode("ColumnConstraint", {
     constraintName: name ? Expr.identifier(name) : undefined,
     constraint: { variant: "DefaultExpr", expr },
@@ -125,9 +116,11 @@ export function TablePrimaryKey(
       conflictClause,
       indexedColumns: arrayToNonEmptyArray(
         indexedColumns.map((v) =>
-          typeof v !== "string" ? v : n.createNode("IndexedColumn", {
-            column: { variant: "Name", name: Expr.identifier(v) },
-          })
+          typeof v !== "string"
+            ? v
+            : n.createNode("IndexedColumn", {
+                column: { variant: "Name", name: Expr.identifier(v) },
+              }),
         ),
       ),
     },
@@ -146,19 +139,18 @@ export function TableUnique(
       conflictClause,
       indexedColumns: arrayToNonEmptyArray(
         indexedColumns.map((v) =>
-          typeof v !== "string" ? v : n.createNode("IndexedColumn", {
-            column: { variant: "Name", name: Expr.identifier(v) },
-          })
+          typeof v !== "string"
+            ? v
+            : n.createNode("IndexedColumn", {
+                column: { variant: "Name", name: Expr.identifier(v) },
+              }),
         ),
       ),
     },
   });
 }
 
-export function TableCheckConstraint(
-  expr: Exp,
-  name?: string | Id,
-): Node<"TableConstraint"> {
+export function TableCheckConstraint(expr: Exp, name?: string | Id): Node<"TableConstraint"> {
   return n.createNode("TableConstraint", {
     constraintName: name ? Expr.identifier(name) : undefined,
     inner: { variant: "Check", expr },
@@ -175,9 +167,7 @@ export function TableForeignKey(
     inner: {
       variant: "ForeignKey",
       foreignKeyClause,
-      columnNames: arrayToNonEmptyArray(
-        columnNames.map((v) => Expr.identifier(v)),
-      ),
+      columnNames: arrayToNonEmptyArray(columnNames.map((v) => Expr.identifier(v))),
     },
   });
 }

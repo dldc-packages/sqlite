@@ -9,27 +9,21 @@ export function ignore(): Node<"RaiseFunction"> {
   return n.createNode("RaiseFunction", { variant: "Ignore" });
 }
 
-export function rollback(
-  errorMessage: Node<"StringLiteral"> | string,
-): Node<"RaiseFunction"> {
+export function rollback(errorMessage: Node<"StringLiteral"> | string): Node<"RaiseFunction"> {
   return n.createNode("RaiseFunction", {
     variant: "Rollback",
     errorMessage: string(errorMessage),
   });
 }
 
-export function abort(
-  errorMessage: Node<"StringLiteral"> | string,
-): Node<"RaiseFunction"> {
+export function abort(errorMessage: Node<"StringLiteral"> | string): Node<"RaiseFunction"> {
   return n.createNode("RaiseFunction", {
     variant: "Abort",
     errorMessage: string(errorMessage),
   });
 }
 
-export function fail(
-  errorMessage: Node<"StringLiteral"> | string,
-): Node<"RaiseFunction"> {
+export function fail(errorMessage: Node<"StringLiteral"> | string): Node<"RaiseFunction"> {
   return n.createNode("RaiseFunction", {
     variant: "Fail",
     errorMessage: string(errorMessage),

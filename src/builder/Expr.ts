@@ -16,8 +16,8 @@ export function identifier(name: string | Id, variant?: Id["variant"]): Id {
   if (typeof name !== "string") {
     return name;
   }
-  const variantResolved: Id["variant"] = variant ??
-    (SIMPLE_IDENTIFIER_REG.test(name) ? "Basic" : "Backtick");
+  const variantResolved: Id["variant"] =
+    variant ?? (SIMPLE_IDENTIFIER_REG.test(name) ? "Basic" : "Backtick");
   return n.createNode("Identifier", {
     name,
     variant: variantResolved,
@@ -48,10 +48,12 @@ export function columnFromString(col: string): Node<"Column"> {
 }
 
 export function column(
-  column: string | {
-    column: string | Id;
-    table?: string | { table: string | Id; schema?: string | Id };
-  },
+  column:
+    | string
+    | {
+        column: string | Id;
+        table?: string | { table: string | Id; schema?: string | Id };
+      },
 ): Node<"Column"> {
   if (typeof column === "string") {
     return n.createNode("Column", { columnName: identifier(column) });
@@ -59,13 +61,14 @@ export function column(
   const table = column.table;
   return n.createNode("Column", {
     columnName: identifier(column.column),
-    table: table === undefined
-      ? undefined
-      : typeof table === "string"
-      ? { name: identifier(table) }
-      : {
-        name: identifier(table.table),
-        schema: table.schema ? identifier(table.schema) : undefined,
-      },
+    table:
+      table === undefined
+        ? undefined
+        : typeof table === "string"
+          ? { name: identifier(table) }
+          : {
+              name: identifier(table.table),
+              schema: table.schema ? identifier(table.schema) : undefined,
+            },
   });
 }

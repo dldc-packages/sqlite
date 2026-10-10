@@ -39,9 +39,7 @@ export function InsertValues(
 ): InsertStmtData {
   return {
     variant: "Values",
-    rows: arrayToNonEmptyArray(
-      rows.map((cols) => arrayToNonEmptyArray(cols)),
-    ),
+    rows: arrayToNonEmptyArray(rows.map((cols) => arrayToNonEmptyArray(cols))),
     upsertClause,
   };
 }

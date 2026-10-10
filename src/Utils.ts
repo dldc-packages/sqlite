@@ -4,9 +4,7 @@ import type { AnyFn } from "./internal/utils.ts";
 
 export type NonEmptyArray<T> = [T, ...T[]];
 
-export function arrayToNonEmptyArray<T>(
-  arr: Array<T> | undefined,
-): NonEmptyArray<T> {
+export function arrayToNonEmptyArray<T>(arr: Array<T> | undefined): NonEmptyArray<T> {
   if (arr === undefined || arr.length === 0) {
     throw new Error("Expected non-empty array");
   }
@@ -88,10 +86,7 @@ export function getAllChildren(item: any): Array<NodeWithPath> {
     return [];
   }
   const type = typeof item;
-  if (
-    type === "string" || type === "number" || type === "boolean" ||
-    type === "bigint"
-  ) {
+  if (type === "string" || type === "number" || type === "boolean" || type === "bigint") {
     return [];
   }
   if (isReadonlyArray(item)) {
@@ -123,9 +118,12 @@ export function getAllChildren(item: any): Array<NodeWithPath> {
   return result;
 }
 
-export type NodeContentChildren = Node | ReadonlyArray<Node> | {
-  [key: string]: NodeContentChildren;
-};
+export type NodeContentChildren =
+  | Node
+  | ReadonlyArray<Node>
+  | {
+      [key: string]: NodeContentChildren;
+    };
 
 function isReadonlyArray(item: any): item is ReadonlyArray<any> {
   return Array.isArray(item);

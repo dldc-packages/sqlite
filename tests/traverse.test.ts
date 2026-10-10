@@ -1,8 +1,8 @@
-import { expect, fn } from "$std/expect/mod.ts";
-import type { Ast } from "../mod.ts";
-import { builder as b, Utils } from "../mod.ts";
+import { expect, test, vi } from "vite-plus/test";
+import type { Ast } from "@dldc/sqlite";
+import { builder as b, Utils } from "@dldc/sqlite";
 
-Deno.test("Travers Select using builder", () => {
+test("Travers Select using builder", () => {
   const node = b.SelectStmt.build({
     from: b.SelectStmt.FromJoin(
       b.SelectStmt.Table("users"),
@@ -15,22 +15,16 @@ Deno.test("Travers Select using builder", () => {
         ),
       ),
     ),
-    resultColumns: [
-      b.ResultColumn.columnFromString("users.id"),
-      b.ResultColumn.TableStar("users"),
-    ],
-    where: b.Operations.equal(
-      b.Expr.columnFromString("users.name"),
-      b.Literal.literal("azerty"),
-    ),
+    resultColumns: [b.ResultColumn.columnFromString("users.id"), b.ResultColumn.TableStar("users")],
+    where: b.Operations.equal(b.Expr.columnFromString("users.name"), b.Literal.literal("azerty")),
   });
 
   const nodeKinds: Array<Ast.NodeKind> = [];
 
-  const onNode = fn((node: Ast.Node) => {
+  const onNode = vi.fn((node: Ast.Node) => {
     nodeKinds.push(node.kind);
     return null;
-  }) as () => void;
+  });
 
   Utils.traverse(node, onNode);
 

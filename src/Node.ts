@@ -2,10 +2,7 @@
 
 import type { NonEmptyArray, Variants } from "./Utils.ts";
 
-export function createNode<K extends NodeKind>(
-  kind: K,
-  data: NodeData[K],
-): Node<K> {
+export function createNode<K extends NodeKind>(kind: K, data: NodeData[K]): Node<K> {
   const node: Node<K> = { kind, ...data } as any;
   return node;
 }
@@ -246,9 +243,7 @@ export interface NodeData {
     forEachRow?: true;
     when?: Expr;
     // BEGIN
-    stmts: NonEmptyArray<
-      Node<"UpdateStmt" | "InsertStmt" | "DeleteStmt" | "SelectStmt"> /* ; */
-    >;
+    stmts: NonEmptyArray<Node<"UpdateStmt" | "InsertStmt" | "DeleteStmt" | "SelectStmt"> /* ; */>;
     // END
   };
   CreateViewStmt: {
@@ -642,12 +637,7 @@ export interface NodeData {
         On: {
           // ON
           event: "Delete" | "Update";
-          action:
-            | "SetNull"
-            | "SetDefault"
-            | "Cascade"
-            | "Restrict"
-            | "NoAction";
+          action: "SetNull" | "SetDefault" | "Cascade" | "Restrict" | "NoAction";
         };
         Match: {
           // MATCH
@@ -876,9 +866,7 @@ export interface NodeData {
       }>;
       where?: Expr;
       groupBy?: { exprs: NonEmptyArray<Expr>; having?: Expr };
-      window?: NonEmptyArray<
-        { windowName: Identifier; windowDefn: Node<"WindowDefn"> }
-      >;
+      window?: NonEmptyArray<{ windowName: Identifier; windowDefn: Node<"WindowDefn"> }>;
     };
     Values: {
       // VALUES
@@ -1142,9 +1130,7 @@ export type LiteralValue = Node<
 >;
 
 export type FunctionInvocation = Node<
-  | "SimpleFunctionInvocation"
-  | "AggregateFunctionInvocation"
-  | "WindowFunctionInvocation"
+  "SimpleFunctionInvocation" | "AggregateFunctionInvocation" | "WindowFunctionInvocation"
 >;
 
 // Type aliases
@@ -1152,52 +1138,52 @@ export type Expr =
   | LiteralValue
   | FunctionInvocation
   | Node<
-    | "Or"
-    | "And"
-    | "Not"
-    | "Equal"
-    | "Different"
-    | "Is"
-    | "IsDistinctFrom"
-    | "Between"
-    | "In"
-    | "Match"
-    | "Like"
-    | "Glob"
-    | "Regexp"
-    | "Isnull"
-    | "Notnull"
-    | "NotNull"
-    | "LowerThan"
-    | "GreaterThan"
-    | "LowerThanOrEqual"
-    | "GreaterThanOrEqual"
-    | "BitwiseAnd"
-    | "BitwiseOr"
-    | "BitwiseShiftLeft"
-    | "BitwiseShiftRight"
-    | "Add"
-    | "Subtract"
-    | "Multiply"
-    | "Divide"
-    | "Modulo"
-    | "Concatenate"
-    | "Extract"
-    | "ExtractJson"
-    | "Collate"
-    | "BitwiseNegation"
-    | "Plus"
-    | "Minus"
-    | "Identifier"
-    | "BindParameter"
-    | "Column"
-    | "Exists"
-    | "NotExists"
-    | "Parenthesis"
-    | "CastAs"
-    | "Case"
-    | "RaiseFunction"
-  >;
+      | "Or"
+      | "And"
+      | "Not"
+      | "Equal"
+      | "Different"
+      | "Is"
+      | "IsDistinctFrom"
+      | "Between"
+      | "In"
+      | "Match"
+      | "Like"
+      | "Glob"
+      | "Regexp"
+      | "Isnull"
+      | "Notnull"
+      | "NotNull"
+      | "LowerThan"
+      | "GreaterThan"
+      | "LowerThanOrEqual"
+      | "GreaterThanOrEqual"
+      | "BitwiseAnd"
+      | "BitwiseOr"
+      | "BitwiseShiftLeft"
+      | "BitwiseShiftRight"
+      | "Add"
+      | "Subtract"
+      | "Multiply"
+      | "Divide"
+      | "Modulo"
+      | "Concatenate"
+      | "Extract"
+      | "ExtractJson"
+      | "Collate"
+      | "BitwiseNegation"
+      | "Plus"
+      | "Minus"
+      | "Identifier"
+      | "BindParameter"
+      | "Column"
+      | "Exists"
+      | "NotExists"
+      | "Parenthesis"
+      | "CastAs"
+      | "Case"
+      | "RaiseFunction"
+    >;
 
 export type Identifier = Node<"Identifier">;
 
@@ -1329,7 +1315,5 @@ const NODES_OBJ: { [K in NodeKind]: null } = {
 const NODES = Object.keys(NODES_OBJ) as Array<NodeKind>;
 
 export function isValidNodeKind(kind: unknown): boolean {
-  return Boolean(
-    kind && typeof kind === "string" && NODES.includes(kind as any),
-  );
+  return Boolean(kind && typeof kind === "string" && NODES.includes(kind as any));
 }

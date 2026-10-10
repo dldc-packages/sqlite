@@ -18,11 +18,13 @@ export function Join(
 ): Node<"JoinClause"> {
   return createNode("JoinClause", {
     tableOrSubquery,
-    joins: [{
-      joinOperator,
-      tableOrSubquery: joinTableOrSubquery,
-      joinConstraint,
-    }],
+    joins: [
+      {
+        joinOperator,
+        tableOrSubquery: joinTableOrSubquery,
+        joinConstraint,
+      },
+    ],
   });
 }
 
@@ -50,9 +52,7 @@ export function UsingJoinConstraint(
 ): Node<"JoinConstraint"> {
   return createNode("JoinConstraint", {
     variant: "Using",
-    columnNames: arrayToNonEmptyArray(
-      columns.map((v): Identifier => Expr.identifier(v)),
-    ),
+    columnNames: arrayToNonEmptyArray(columns.map((v): Identifier => Expr.identifier(v))),
   });
 }
 
@@ -67,10 +67,7 @@ export function Joins(
   });
 }
 
-export type SelectFrom = Extract<
-  Node<"SelectCore">,
-  { variant: "Select" }
->["from"];
+export type SelectFrom = Extract<Node<"SelectCore">, { variant: "Select" }>["from"];
 
 export type SelectStmtOptions = {
   distinct?: "Distinct" | "All";
@@ -107,7 +104,10 @@ export function build({
 
 export function Table(
   tableName: string,
-  { schema, alias }: {
+  {
+    schema,
+    alias,
+  }: {
     schema?: Identifier | string;
     alias?: Identifier | string;
   } = {},
@@ -133,7 +133,10 @@ export function Subquery(
 
 export function FromTable(
   tableName: string,
-  { schema, alias }: {
+  {
+    schema,
+    alias,
+  }: {
     schema?: Identifier | string;
     alias?: Identifier | string;
   } = {},
@@ -173,11 +176,6 @@ export function FromJoin(
 ): SelectFrom {
   return {
     variant: "Join",
-    joinClause: Join(
-      tableOrSubquery,
-      joinOperator,
-      joinTableOrSubquery,
-      joinConstraint,
-    ),
+    joinClause: Join(tableOrSubquery, joinOperator, joinTableOrSubquery, joinConstraint),
   };
 }

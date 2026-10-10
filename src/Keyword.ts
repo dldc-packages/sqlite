@@ -301,8 +301,7 @@ export type Keywords = {
   isKeyword(str: string): str is Keyword;
 } & { [K in Keyword]: K };
 
-export type Keyword = typeof KEYWORDS extends ReadonlyArray<infer K> ? K
-  : never;
+export type Keyword = typeof KEYWORDS extends ReadonlyArray<infer K> ? K : never;
 
 export const Keywords: Keywords = KEYWORDS.reduce<Keywords>(
   (acc, key) => {

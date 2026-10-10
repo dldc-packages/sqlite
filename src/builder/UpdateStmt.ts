@@ -41,16 +41,11 @@ export function ColumnName(columnName: string | Id, value: Exp): SetItem {
   };
 }
 
-export function ColumnNameList(
-  columns: Array<string | Id>,
-  value: Exp,
-): SetItem {
+export function ColumnNameList(columns: Array<string | Id>, value: Exp): SetItem {
   return {
     variant: "ColumnNameList",
     columnNameList: n.createNode("ColumnNameList", {
-      columnNames: arrayToNonEmptyArray(
-        columns.map((v): Id => Expr.identifier(v)),
-      ),
+      columnNames: arrayToNonEmptyArray(columns.map((v): Id => Expr.identifier(v))),
     }),
     expr: value,
   };
