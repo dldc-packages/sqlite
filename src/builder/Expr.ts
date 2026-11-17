@@ -1,7 +1,7 @@
+import { Keywords } from "../Keyword.ts";
 import * as n from "../Node.ts";
 
 type Id = n.Identifier;
-type Exp = n.Expr;
 type Node<K extends n.NodeKind = n.NodeKind> = n.Node<K>;
 
 const SIMPLE_IDENTIFIER_REG = /^[a-zA-Z_][a-zA-Z0-9_]*$/;
@@ -16,12 +16,18 @@ export function identifier(name: string | Id, variant?: Id["variant"]): Id {
   if (typeof name !== "string") {
     return name;
   }
-  const variantResolved: Id["variant"] =
-    variant ?? (SIMPLE_IDENTIFIER_REG.test(name) ? "Basic" : "Backtick");
-  return n.createNode("Identifier", {
-    name,
-    variant: variantResolved,
-  });
+  const variantResolved: Id["variant"] = variant ?? identifierVariant(name);
+  return n.createNode("Identifier", { name, variant: variantResolved });
+}
+
+function identifierVariant(name: string): Id["variant"] {
+  if (SIMPLE_IDENTIFIER_REG.test(name)) {
+    if (Keywords.isKeyword(name)) {
+      return "Backtick";
+    }
+    return "Basic";
+  }
+  return "Backtick";
 }
 
 /**

@@ -2,7 +2,6 @@ import * as n from "../Node.ts";
 import { arrayToNonEmptyArray } from "../Utils.ts";
 import { identifier } from "./Expr.ts";
 
-type Id = n.Identifier;
 type Exp = n.Expr;
 type Node<K extends n.NodeKind = n.NodeKind> = n.Node<K>;
 

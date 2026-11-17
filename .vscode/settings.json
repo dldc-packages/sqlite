@@ -1,7 +1,7 @@
 {
-  "deno.enable": false,
-  "typescript.tsdk": "node_modules/typescript/lib",
   "npm.autoDetect": "on",
+  "editor.formatOnSave": true,
+  "editor.defaultFormatter": "oxc.oxc-vscode",
   "editor.codeActionsOnSave": {
     "source.fixAll.ts": "explicit",
     "source.organizeImports": "explicit"

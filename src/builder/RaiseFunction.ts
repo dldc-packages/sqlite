@@ -1,8 +1,6 @@
 import * as n from "../Node.ts";
 import { string } from "./Literal.ts";
 
-type Id = n.Identifier;
-type Exp = n.Expr;
 type Node<K extends n.NodeKind = n.NodeKind> = n.Node<K>;
 
 export function ignore(): Node<"RaiseFunction"> {
